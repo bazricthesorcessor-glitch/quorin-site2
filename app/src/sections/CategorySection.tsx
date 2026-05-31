@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { quorinData } from '@/data/products';
@@ -15,10 +16,15 @@ interface CategoryCardProps {
 }
 
 function CategoryCard({ category, index }: CategoryCardProps) {
+  const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: '-100px' });
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHovered, setIsHovered] = useState(false);
+
+  const scrollToCategory = () => {
+    navigate(`/category/${category.id}`);
+  };
 
   const { scrollYProgress } = useScroll({
     target: cardRef,
@@ -64,7 +70,17 @@ function CategoryCard({ category, index }: CategoryCardProps) {
       >
         {/* Background Image with Parallax */}
         <motion.div
-          className="absolute inset-0"
+          className="absolute inset-0 cursor-pointer"
+          role="button"
+          tabIndex={0}
+          data-cursor="image"
+          onClick={scrollToCategory}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              scrollToCategory();
+            }
+          }}
           animate={{
             x: mousePos.x,
             y: mousePos.y,
@@ -75,39 +91,11 @@ function CategoryCard({ category, index }: CategoryCardProps) {
           <img
             src={categoryImages[category.id]}
             alt={category.title}
-            className="w-full h-full object-cover cursor-pointer"
-            role="button"
-            tabIndex={0}
-            onClick={() => {
-              try {
-                const sel = document.querySelector(`[data-category-id="${category.id}"]`);
-                if (sel) {
-                  (sel as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                  // fallback to id/hash navigation
-                  const byId = document.getElementById(category.id);
-                  if (byId) byId.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  else window.location.hash = `#${category.id}`;
-                }
-              } catch (err) {
-                try { window.location.hash = `#${category.id}`; } catch(e) {}
-              }
-            }}
-            onKeyDown={(e: any) => { if (e.key === 'Enter' || e.key === ' ') {
-              try {
-                const sel = document.querySelector(`[data-category-id="${category.id}"]`);
-                if (sel) (sel as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'start' });
-                else {
-                  const byId = document.getElementById(category.id);
-                  if (byId) byId.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  else window.location.hash = `#${category.id}`;
-                }
-              } catch(err) { window.location.hash = `#${category.id}`; }
-            } }}
+            className="w-full h-full object-cover pointer-events-none"
           />
           {/* Gradient Overlay */}
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 pointer-events-none"
             style={{
               background: `linear-gradient(
                 to top,
@@ -179,9 +167,7 @@ function CategoryCard({ category, index }: CategoryCardProps) {
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ delay: 0.5 }}
-            onClick={() => {
-              document.getElementById(category.id)?.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onClick={scrollToCategory}
           >
             <span className="relative overflow-hidden">
               <span className="block transition-transform duration-300 group-hover/btn:-translate-y-full">

@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import type { CSSProperties } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Routes, Route, useLocation, useNavigate } from 'react-router';
 
 import LoadingScreen from '@/components/LoadingScreen';
 import CustomCursor from '@/components/CustomCursor';
@@ -10,31 +12,153 @@ import Navigation from '@/components/Navigation';
 import CartDrawer from '@/components/CartDrawer';
 import ProductPreview from '@/components/ProductPreview';
 import ExplosionLayer from '@/components/ExplosionLayer';
-import PaintPoolLayer from '@/components/PaintPoolLayer';
 import CookieBanner from '@/components/CookieBanner';
+import ProfileModal from '@/components/ProfileModal';
+import AdminCenter, { type AdminTheme } from '@/components/AdminCenter';
 import Hero from '@/sections/Hero';
 import CategorySection from '@/sections/CategorySection';
-import ProductShowcase from '@/sections/ProductShowcase';
 import WhyShop from '@/sections/WhyShop';
 import HistorySection from '@/sections/History';
 import Footer from '@/sections/Footer';
-import type { Product } from '@/data/products';
+import CategoryPage from '@/pages/CategoryPage';
+import XpPage from '@/pages/XpPage';
+import { getProductId, quorinData, type Product } from '@/data/products';
+import {
+  demoAccounts,
+  findAccountByIdentifierInAccounts,
+  hydrateAccounts,
+  type AccountProfile,
+  type AccountRecord,
+} from '@/data/accounts';
+import { getXpDiscountPercent, getXpLevel } from '@/data/xp';
+import { getCheckoutGiftOffer, getGiftDiscountForProduct, getGiftLockKey, redeemCheckoutGift } from '@/data/gifts';
 
 gsap.registerPlugin(ScrollTrigger);
+
+const defaultTheme: AdminTheme = {
+  brand: quorinData.brand,
+  tagline: quorinData.tagline,
+  accent: '#ff1a3c',
+  teal: '#00d4ff',
+  dominant: '#08080d',
+  textPrimary: '#f0f0f5',
+  textSecondary: '#8a8a9a',
+  fontFamily: '"Copperplate", "Gill Sans", "Trebuchet MS", sans-serif',
+};
+
+const findProductById = (id: string) => {
+  let found: Product | undefined;
+  quorinData.categories.forEach((cat) => {
+    cat.products.forEach((product) => {
+      if (getProductId(product) === id) found = product;
+    });
+  });
+  return found;
+};
+
+const getInitialPreviewProduct = () => {
+  try {
+    const match = window.location.pathname.match(/^\/product\/(.+)$/);
+    if (!match) return null;
+    return findProductById(decodeURIComponent(match[1])) ?? null;
+  } catch {
+    return null;
+  }
+};
 
 interface CartItem extends Product {
   cartId: string;
   quantity: number;
 }
 
+type UpdateOrderFn = (orderId: string, patch: Partial<AccountRecord['orders'][number]>) => void;
+
+interface HomeScreenProps {
+  currentAccount: AccountRecord | null;
+  onUpdateOrder: UpdateOrderFn;
+}
+
+function HomeScreen({ currentAccount, onUpdateOrder }: HomeScreenProps) {
+  return (
+    <main>
+      <Hero />
+      <CategorySection />
+      <WhyShop />
+      <HistorySection
+        currentAccount={currentAccount}
+        onUpdateOrder={onUpdateOrder}
+      />
+      <Footer />
+    </main>
+  );
+}
+
 export default function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
   const [cartOpen, setCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const lenisRef = useRef<Lenis | null>(null);
+  const [accounts, setAccounts] = useState<Record<string, AccountRecord>>(() => {
+    try {
+      const raw = window.localStorage.getItem('quorin.accounts');
+      return raw ? hydrateAccounts(JSON.parse(raw) as Record<string, Partial<AccountRecord>>) : demoAccounts;
+    } catch {
+      return demoAccounts;
+    }
+  });
+  const [currentAccountId, setCurrentAccountId] = useState<string | null>(() => {
+    try {
+      return window.localStorage.getItem('quorin.currentAccountId');
+    } catch {
+      return null;
+    }
+  });
+  const [catalogVersion, setCatalogVersion] = useState(() => {
+    try {
+      const raw = window.localStorage.getItem('quorin.catalog');
+      if (raw) {
+        Object.assign(quorinData, JSON.parse(raw) as typeof quorinData);
+      }
+    } catch {
+      // ignore invalid saved catalog data
+    }
+    return 0;
+  });
+  const [theme, setTheme] = useState<AdminTheme>(() => {
+    try {
+      const raw = window.localStorage.getItem('quorin.theme');
+      return raw ? { ...defaultTheme, ...(JSON.parse(raw) as Partial<AdminTheme>) } : defaultTheme;
+    } catch {
+      return defaultTheme;
+    }
+  });
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [selectedGiftCartId, setSelectedGiftCartId] = useState<string | null>(null);
+  const [clientFingerprint] = useState(() => {
+    try {
+      const existing = window.localStorage.getItem('quorin.clientFingerprint');
+      if (existing) return existing;
+      const next = crypto.randomUUID();
+      window.localStorage.setItem('quorin.clientFingerprint', next);
+      return next;
+    } catch {
+      return `fingerprint-${Date.now()}`;
+    }
+  });
+  const [checkoutLocks, setCheckoutLocks] = useState<Record<string, boolean>>(() => {
+    try {
+      const raw = window.localStorage.getItem('quorin.checkoutLocks');
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
 
-  const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewProduct, setPreviewProduct] = useState<Product | null>(() => getInitialPreviewProduct());
+  const [previewOpen, setPreviewOpen] = useState(() => Boolean(getInitialPreviewProduct()));
   const openedViaPushRef = useRef(false);
 
   // Initialize Lenis smooth scroll
@@ -46,6 +170,7 @@ export default function App() {
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
+      allowNestedScroll: true,
       smoothWheel: true,
       touchMultiplier: 2,
     });
@@ -66,6 +191,20 @@ export default function App() {
       gsap.ticker.remove(lenis.raf);
     };
   }, [isLoading]);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (adminOpen) {
+      lenisRef.current?.stop();
+    } else {
+      lenisRef.current?.start();
+    }
+
+    return () => {
+      lenisRef.current?.start();
+    };
+  }, [adminOpen, isLoading]);
 
   // Cart functions
   const addToCart = useCallback((product: Product) => {
@@ -101,6 +240,180 @@ export default function App() {
   }, []);
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const currentAccount = currentAccountId ? accounts[currentAccountId] ?? null : null;
+  const currentOrders = currentAccount?.orders ?? [];
+  const currentSpend = currentOrders.reduce(
+    (sum, order) => sum + (order.status === 'returned' ? 0 : (order.product.price ?? 0)),
+    0
+  );
+  const xpLevel = getXpLevel(currentSpend);
+  const xpDiscountPercent = getXpDiscountPercent(xpLevel);
+  const giftOffer = getCheckoutGiftOffer(currentAccount, xpLevel, clientFingerprint, checkoutLocks);
+  const resolvedSelectedGiftCartId = giftOffer && cartItems.length > 0
+    ? (cartItems.some((item) => item.cartId === selectedGiftCartId) ? selectedGiftCartId : cartItems[0]?.cartId ?? null)
+    : null;
+  const selectedGiftItem = giftOffer
+    ? cartItems.find((item) => item.cartId === resolvedSelectedGiftCartId) ?? null
+    : null;
+  const selectedGiftDiscount = giftOffer && selectedGiftItem ? getGiftDiscountForProduct(selectedGiftItem) : 0;
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('quorin.accounts', JSON.stringify(accounts));
+    } catch {
+      // ignore storage failures
+    }
+  }, [accounts]);
+
+  useEffect(() => {
+    try {
+      if (currentAccountId) {
+        window.localStorage.setItem('quorin.currentAccountId', currentAccountId);
+      } else {
+        window.localStorage.removeItem('quorin.currentAccountId');
+      }
+    } catch {
+      // ignore storage failures
+    }
+  }, [currentAccountId]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('quorin.checkoutLocks', JSON.stringify(checkoutLocks));
+    } catch {
+      // ignore storage failures
+    }
+  }, [checkoutLocks]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('quorin.catalog', JSON.stringify(quorinData));
+    } catch {
+      // ignore storage failures
+    }
+  }, [catalogVersion]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('quorin.theme', JSON.stringify(theme));
+    } catch {
+      // ignore storage failures
+    }
+  }, [theme]);
+
+  const updateCatalog = useCallback((mutator: (catalog: typeof quorinData) => void) => {
+    const nextCatalog = JSON.parse(JSON.stringify(quorinData)) as typeof quorinData;
+    mutator(nextCatalog);
+    Object.assign(quorinData, nextCatalog);
+    setCatalogVersion((value) => value + 1);
+  }, []);
+
+  const updateTheme = useCallback((nextTheme: AdminTheme) => {
+    quorinData.brand = nextTheme.brand;
+    quorinData.tagline = nextTheme.tagline;
+    setTheme(nextTheme);
+  }, []);
+
+  const toggleAdminMode = useCallback(() => {
+    if (currentAccount?.profile.role !== 'admin') return;
+    setAdminOpen((value) => !value);
+  }, [currentAccount]);
+
+  const signOut = () => {
+    setCurrentAccountId(null);
+    setProfileOpen(false);
+    setAdminOpen(false);
+  };
+
+  const saveProfile = (profile: AccountProfile) => {
+    if (!currentAccountId) return { ok: false, message: 'No active account.' };
+    const existing = accounts[currentAccountId];
+    if (!existing) return { ok: false, message: 'Account not found.' };
+
+    const currentYear = new Date().getFullYear();
+    const birthdayChanged = (existing.profile.birthday ?? '') !== (profile.birthday ?? '');
+    if (birthdayChanged && existing.giftUsage.birthdayChangeYears.includes(currentYear)) {
+      return { ok: false, message: 'Birthday can only be changed once per year.' };
+    }
+
+    setAccounts((prev) => ({
+      ...prev,
+      [currentAccountId]: {
+        ...prev[currentAccountId],
+        profile,
+        giftUsage: {
+          ...prev[currentAccountId].giftUsage,
+          birthdayChangeYears: birthdayChanged
+            ? [...prev[currentAccountId].giftUsage.birthdayChangeYears, currentYear]
+            : prev[currentAccountId].giftUsage.birthdayChangeYears,
+        },
+      },
+    }));
+    return { ok: true };
+  };
+
+  const updateCurrentOrder = (orderId: string, patch: Partial<AccountRecord['orders'][number]>) => {
+    if (!currentAccountId) return;
+
+    setAccounts((prev) => {
+      const account = prev[currentAccountId];
+      if (!account) return prev;
+
+      return {
+        ...prev,
+        [currentAccountId]: {
+          ...account,
+          orders: account.orders.map((order) => (order.id === orderId ? { ...order, ...patch } : order)),
+        },
+      };
+    });
+  };
+
+  const handleCheckout = () => {
+    if (!currentAccount || !giftOffer) {
+      setCartOpen(false);
+      return;
+    }
+
+    const lockKey = getGiftLockKey(giftOffer.source, clientFingerprint);
+
+    setAccounts((prev) => {
+      const account = prev[currentAccount.profile.id];
+      if (!account) return prev;
+
+      return {
+        ...prev,
+        [currentAccount.profile.id]: redeemCheckoutGift(account, giftOffer),
+      };
+    });
+
+    setCheckoutLocks((prev) => ({
+      ...prev,
+      [lockKey]: true,
+    }));
+
+    setCartOpen(false);
+  };
+
+  const authenticate = (identifier: string, password: string) => {
+    const account = findAccountByIdentifierInAccounts(accounts, identifier) ?? findAccountByIdentifierInAccounts(demoAccounts, identifier);
+
+    if (!account || account.password !== password) {
+      return { ok: false, message: 'Invalid account or password.' };
+    }
+
+    setAccounts((prev) => ({
+      ...prev,
+      [account.profile.id]: prev[account.profile.id] ?? account,
+    }));
+    setCurrentAccountId(account.profile.id);
+    return { ok: true, account };
+  };
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    lenisRef.current?.scrollTo(0, { immediate: true });
+  }, [location.pathname]);
 
   // Mouse glow effect
   useEffect(() => {
@@ -188,31 +501,13 @@ export default function App() {
 
   // Preview helpers: open/close and history handling
   useEffect(() => {
-    // on mount, check url for direct product links
-    try {
-      const m = window.location.pathname.match(/^\/product\/(.+)$/);
-      if (m) {
-        const id = decodeURIComponent(m[1]);
-        // find product by id
-        let found: Product | undefined;
-        // quorinData is imported above
-        quorinData.categories.forEach((cat) => cat.products.forEach((p) => { if (String(p.id) === id) found = p; }));
-        if (found) {
-          setPreviewProduct(found);
-          setPreviewOpen(true);
-          openedViaPushRef.current = false; // direct open
-        }
-      }
-    } catch (e) { /* ignore */ }
-
     const onPop = () => {
       // if the URL now points to a product, open it, otherwise close preview
       try {
         const m = window.location.pathname.match(/^\/product\/(.+)$/);
         if (m) {
           const id = decodeURIComponent(m[1]);
-          let found: Product | undefined;
-          quorinData.categories.forEach((cat) => cat.products.forEach((p) => { if (String(p.id) === id) found = p; }));
+          const found = findProductById(id);
           if (found) {
             setPreviewProduct(found);
             setPreviewOpen(true);
@@ -220,7 +515,7 @@ export default function App() {
             return;
           }
         }
-      } catch (e) { /* ignore */ }
+      } catch { /* ignore */ }
 
       // otherwise close
       setPreviewOpen(false);
@@ -232,11 +527,12 @@ export default function App() {
 
   const openPreview = (product: Product) => {
     try {
-      const url = `/product/${encodeURIComponent(String(product.id))}`;
-      window.history.pushState({ preview: product.id }, '', url);
+      const productId = getProductId(product);
+      const url = `/product/${encodeURIComponent(productId)}`;
+      window.history.pushState({ preview: productId }, '', url);
       openedViaPushRef.current = true;
-    } catch (e) {
-      window.location.hash = `preview-${product.id}`;
+    } catch {
+      window.location.hash = `preview-${getProductId(product)}`;
       openedViaPushRef.current = true;
     }
     setPreviewProduct(product);
@@ -245,9 +541,9 @@ export default function App() {
 
   const closePreview = () => {
     if (openedViaPushRef.current) {
-      try { window.history.back(); } catch (e) { /* ignore */ }
+      try { window.history.back(); } catch { /* ignore */ }
     } else {
-      try { window.history.replaceState({}, '', '/'); } catch (e) { /* ignore */ }
+      try { window.history.replaceState({}, '', '/'); } catch { /* ignore */ }
     }
     setPreviewOpen(false);
     setPreviewProduct(null);
@@ -261,12 +557,33 @@ export default function App() {
       </AnimatePresence>
 
       {!isLoading && (
-        <div className="relative">
+        <div
+          className="relative"
+          style={{
+            '--color-dominant': theme.dominant,
+            '--color-accent': theme.accent,
+            '--color-teal': theme.teal,
+            '--color-text-primary': theme.textPrimary,
+            '--color-text-secondary': theme.textSecondary,
+            fontFamily: theme.fontFamily,
+          } as CSSProperties}
+        >
           {/* Custom Cursor */}
           <CustomCursor />
 
           {/* Navigation */}
-          <Navigation cartCount={cartCount} onCartClick={() => setCartOpen(true)} onHomeClick={() => { closePreview(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+          <Navigation
+            cartCount={cartCount}
+            onCartClick={() => setCartOpen(true)}
+            currentAccount={currentAccount}
+            onAuthenticate={authenticate}
+            onOpenProfile={() => setProfileOpen(true)}
+            onToggleAdminMode={toggleAdminMode}
+            onHomeClick={() => {
+              closePreview();
+              navigate('/');
+            }}
+          />
 
           {/* Cart Drawer */}
           <CartDrawer
@@ -275,17 +592,28 @@ export default function App() {
             items={cartItems}
             onUpdateQuantity={updateQuantity}
             onRemove={removeFromCart}
+            xpLevel={xpLevel}
+            xpDiscountPercent={xpDiscountPercent}
+            giftOffer={giftOffer}
+            selectedGiftCartId={resolvedSelectedGiftCartId}
+            onSelectGiftCartId={setSelectedGiftCartId}
+            selectedGiftDiscount={selectedGiftDiscount}
+            onCheckout={handleCheckout}
           />
 
           {/* Main Content */}
-          <main>
-            <Hero />
-            <CategorySection />
-            <ProductShowcase onAddToCart={addToCart} onPreview={openPreview} />
-            <WhyShop />
-            <HistorySection />
-            <Footer />
-          </main>
+          <Routes>
+            <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} />} />
+            <Route
+              path="/category/:categoryId"
+              element={<CategoryPage onAddToCart={addToCart} onPreview={openPreview} />}
+            />
+            <Route
+              path="/xp"
+              element={<XpPage currentAccount={currentAccount} onBackHome={() => navigate('/')} />}
+            />
+            <Route path="*" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} />} />
+          </Routes>
 
           {/* Product preview modal */}
           <ProductPreview product={previewProduct} isOpen={previewOpen} onClose={closePreview} />
@@ -296,8 +624,22 @@ export default function App() {
           {/* Cookie banner */}
           <CookieBanner />
 
-          {/* Paint pool overlay */}
-          <PaintPoolLayer />
+          <AdminCenter
+            isOpen={adminOpen && currentAccount?.profile.role === 'admin'}
+            onClose={() => setAdminOpen(false)}
+            onThemeChange={updateTheme}
+            onCatalogUpdate={updateCatalog}
+          />
+
+          <ProfileModal
+            isOpen={profileOpen && !!currentAccount}
+            profile={currentAccount?.profile ?? null}
+            orderCount={currentOrders.length}
+            onClose={() => setProfileOpen(false)}
+            onSave={saveProfile}
+            onSignOut={signOut}
+          />
+
         </div>
       )}
     </>

@@ -307,12 +307,17 @@ function CategoryProducts({ category, onAddToCart, onPreview }: CategoryProducts
 interface ProductShowcaseProps {
   onAddToCart: (product: Product) => void;
   onPreview?: (product: Product) => void;
+  categoryId?: string;
 }
 
-export default function ProductShowcase({ onAddToCart, onPreview }: ProductShowcaseProps) {
+export default function ProductShowcase({ onAddToCart, onPreview, categoryId }: ProductShowcaseProps) {
+  const categories = categoryId
+    ? quorinData.categories.filter((category) => category.id === categoryId)
+    : quorinData.categories;
+
   return (
     <div>
-      {quorinData.categories.map((category) => (
+      {categories.map((category) => (
         <CategoryProducts
           key={category.id}
           category={category}

@@ -1,15 +1,26 @@
 export interface Product {
+  id?: string;
   name: string;
   variant?: string;
   size?: string;
   price: number;
   mrp: number;
+  costPrice?: number;
   discount: string;
+  description?: string;
+  images?: string[];
+  reviews?: ProductReview[];
   features?: string[];
   tags: string[];
   type?: string;
   pieces?: number;
   compatibleWith?: string[];
+}
+
+export interface ProductReview {
+  author: string;
+  text: string;
+  date: string;
 }
 
 export interface Category {
@@ -19,7 +30,11 @@ export interface Category {
   products: Product[];
 }
 
-export const quorinData = {
+export const quorinData: {
+  brand: string;
+  tagline: string;
+  categories: Category[];
+} = {
   brand: "QUORIN",
   tagline: "Made for Makers",
   categories: [
@@ -253,6 +268,24 @@ export const quorinData = {
     }
   ]
 };
+
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+export const getProductId = (product: Product) =>
+  slugify([
+    product.type,
+    product.name,
+    product.variant,
+    product.size,
+    product.pieces,
+  ]
+    .filter((part): part is string | number => part !== undefined && part !== null)
+    .map(String)
+    .join(' '));
 
 export const benefits = [
   {

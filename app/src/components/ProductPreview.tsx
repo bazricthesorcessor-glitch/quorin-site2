@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Product } from '@/data/products';
+import { getProductId, type Product, type ProductReview } from '@/data/products';
 
 interface ProductPreviewProps {
   product: Product | null;
@@ -11,7 +11,7 @@ interface ProductPreviewProps {
 export default function ProductPreview({ product, isOpen, onClose }: ProductPreviewProps) {
   const [showReviews, setShowReviews] = useState(false);
   const [descriptionText, setDescriptionText] = useState('');
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [newReviewText, setNewReviewText] = useState('');
   const [showWrite, setShowWrite] = useState(false);
 
@@ -145,7 +145,7 @@ export default function ProductPreview({ product, isOpen, onClose }: ProductPrev
                                 const r = { author: 'You', text: newReviewText.trim(), date: new Date().toISOString() };
                                 setReviews((s) => [...s, r]);
                                 // emit event so app or parent can persist or react
-                                window.dispatchEvent(new CustomEvent('quorin:reviewAdded', { detail: { productId: product.id, review: r } }));
+                                 window.dispatchEvent(new CustomEvent('quorin:reviewAdded', { detail: { productId: getProductId(product), review: r } }));
                                 setNewReviewText('');
                                 setShowWrite(false);
                               }}
@@ -170,7 +170,7 @@ export default function ProductPreview({ product, isOpen, onClose }: ProductPrev
                                 onClick={() => {
                                   // remove review by index
                                   setReviews((prev) => prev.filter((_, idx) => idx !== i));
-                                  window.dispatchEvent(new CustomEvent('quorin:reviewRemoved', { detail: { productId: product.id, index: i } }));
+                                   window.dispatchEvent(new CustomEvent('quorin:reviewRemoved', { detail: { productId: getProductId(product), index: i } }));
                                 }}
                               >
                                 Remove

@@ -44,10 +44,6 @@ export default function ExplosionLayer() {
     resize();
     window.addEventListener('resize', resize);
 
-    const maxStars = () => (window.innerWidth <= 768 ? 25 : 100);
-    // ensure starManager is available
-    try { /* noop */ } catch (e) {};
-
     const spawnExplosion = (x: number, y: number) => {
       // sparks
       const sparks = 18;
@@ -68,8 +64,6 @@ export default function ExplosionLayer() {
 
       // stars pop
       const extraStars = 8;
-      let currentStars = particlesRef.current.filter(p => p.type === 'star').length;
-      const cap = maxStars();
       // ask starManager how many stars we can actually spawn
       const allowed = Math.max(0, starManager.requestReserve(extraStars));
       for (let i = 0; i < allowed; i++) {
@@ -141,8 +135,7 @@ export default function ExplosionLayer() {
 
     rafRef.current = requestAnimationFrame(animate);
 
-    const handler = (e: Event) => {
-      const detail: any = (e as CustomEvent).detail || {};
+    const handler = () => {
       // spawn at last click position if available
       const pos = lastClickRef.current || { x: window.innerWidth / 2, y: window.innerHeight / 2 };
       spawnExplosion(pos.x, pos.y);

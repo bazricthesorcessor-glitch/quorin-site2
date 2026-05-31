@@ -34,29 +34,6 @@ export default function PaintPoolLayer() {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    // spawn function (currently triggered programmatically)
-    function spawnPaintCan() {
-      // create an anim object describing S-path fall
-      const w = stateRef.current.width;
-      const h = stateRef.current.height;
-      const start = { x: w - 120, y: -80 };
-      const end = { x: 60, y: h * 0.6 };
-      const ctrl1 = { x: w * 0.6, y: h * 0.2 };
-      const ctrl2 = { x: w * 0.3, y: h * 0.5 };
-      const duration = 120; // frames
-      const anim = {
-        t: 0,
-        duration,
-        start,
-        end,
-        ctrl1,
-        ctrl2,
-        pathPoints: [] as {x:number,y:number}[],
-        color: `hsl(${Math.floor(Math.random()*360)}, 80%, 55%)`,
-      };
-      stateRef.current.anims.push(anim);
-    }
-
     const draw = () => {
       const { width, height, scrollY, anims } = stateRef.current;
       ctx.clearRect(0, 0, width, height);

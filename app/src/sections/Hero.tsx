@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import starManager from '@/utils/starManager';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { quorinData } from '@/data/products';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -25,25 +25,8 @@ export default function Hero() {
   const rafRef = useRef<number>(0);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const springConfig = { damping: 30, stiffness: 100 };
-  const glowX = useSpring(mouseX, springConfig);
-  const glowY = useSpring(mouseY, springConfig);
-
   // detect mobile to limit stars
   const isMobile = useIsMobile();
-
-  const glowOpacity = useTransform(
-    [glowX, glowY],
-    () => {
-      const cx = dimensions.width / 2;
-      const cy = dimensions.height / 2;
-      const dist = Math.sqrt((mouseRef.current.x - cx) ** 2 + (mouseRef.current.y - cy) ** 2);
-      return Math.max(0.3, 1 - dist / Math.max(dimensions.width, dimensions.height));
-    }
-  );
 
   // Initialize particles
   const initParticles = useCallback(() => {
@@ -167,8 +150,6 @@ export default function Hero() {
         x: e.clientX - rect.left,
         y: e.clientY - rect.top,
       };
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
     };
 
     const handleResize = () => {
@@ -182,7 +163,7 @@ export default function Hero() {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
     };
-  }, [initParticles, mouseX, mouseY]);
+  }, [initParticles]);
 
   // Canvas sizing
   useEffect(() => {
@@ -231,7 +212,7 @@ export default function Hero() {
           {brandLetters.map((letter, index) => (
             <motion.span
               key={index}
-              className="text-[12vw] md:text-[10vw] lg:text-[8vw] font-black leading-none select-none"
+              className="quorin-brand text-[12vw] md:text-[10vw] lg:text-[8vw] font-black leading-none select-none"
               style={{
                 background: 'linear-gradient(180deg, #ffffff 0%, #8a8a9a 100%)',
                 WebkitBackgroundClip: 'text',
@@ -281,78 +262,6 @@ export default function Hero() {
           Everything you need to bring your creative vision to life.
         </motion.p>
 
-        {/* CTA Buttons */}
-        <motion.div
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1.2 }}
-        >
-          <motion.a
-            href="#resin-art"
-            className="group relative px-8 py-4 rounded-full overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, #ff1a3c, #ff0044)',
-              boxShadow: '0 0 40px rgba(255, 26, 60, 0.3)',
-            }}
-            whileHover={{
-              scale: 1.05,
-              boxShadow: '0 0 60px rgba(255, 26, 60, 0.5)',
-            }}
-            whileTap={{ scale: 0.95 }}
-            onClick={(e) => {
-              e.preventDefault();
-              document.getElementById('resin-art')?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            <span className="relative z-10 text-white font-medium tracking-wider text-sm">
-              EXPLORE PRODUCTS
-            </span>
-          </motion.a>
-
-          <motion.a
-            href="#categories"
-            className="px-8 py-4 rounded-full border"
-            style={{
-              borderColor: 'rgba(255, 255, 255, 0.1)',
-              color: 'var(--color-text-primary)',
-              background: 'rgba(255, 255, 255, 0.03)',
-            }}
-            whileHover={{
-              scale: 1.05,
-              borderColor: 'rgba(0, 212, 255, 0.3)',
-              background: 'rgba(0, 212, 255, 0.05)',
-              boxShadow: '0 0 30px rgba(0, 212, 255, 0.1)',
-            }}
-            whileTap={{ scale: 0.95 }}
-            onClick={(e) => {
-              e.preventDefault();
-              document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-          >
-            <span className="font-medium tracking-wider text-sm">VIEW CATEGORIES</span>
-          </motion.a>
-        </motion.div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2, duration: 1 }}
-        >
-          <motion.div
-            className="w-[1px] h-12"
-            style={{
-              background: 'linear-gradient(to bottom, transparent, var(--color-accent))',
-            }}
-            animate={{ scaleY: [1, 1.5, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
-          <span className="text-xs tracking-[0.3em]" style={{ color: 'var(--color-text-muted)' }}>
-            SCROLL
-          </span>
-        </motion.div>
       </div>
     </section>
   );

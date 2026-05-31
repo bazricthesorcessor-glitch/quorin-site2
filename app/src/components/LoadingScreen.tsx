@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { quorinData } from '@/data/products';
 
 const loadingFrames = [
   '/loading-frames/0to45.png',
@@ -161,7 +162,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
               <motion.img
                 key={currentFrame}
                 src={loadingFrames[currentFrame]}
-                alt="QUORIN"
+                alt={quorinData.brand}
                 className="w-full h-full object-cover"
                 initial={{ opacity: 0.5, scale: 1.05 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -178,7 +179,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.8 }}
           >
-            QUORIN
+            {quorinData.brand}
           </motion.h1>
 
           {/* Tagline */}

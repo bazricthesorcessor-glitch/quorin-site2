@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingCart, Trash2, Plus, Minus } from 'lucide-react';
 import type { Product } from '@/data/products';
+import { getProductCostPrice, type CheckoutGiftOffer } from '@/data/gifts';
 
 interface CartItem extends Product {
   cartId: string;
@@ -13,6 +14,13 @@ interface CartDrawerProps {
   items: CartItem[];
   onUpdateQuantity: (cartId: string, quantity: number) => void;
   onRemove: (cartId: string) => void;
+  xpLevel: number;
+  xpDiscountPercent: number;
+  giftOffer: CheckoutGiftOffer | null;
+  selectedGiftCartId: string | null;
+  onSelectGiftCartId: (cartId: string) => void;
+  selectedGiftDiscount: number;
+  onCheckout: () => void;
 }
 
 export default function CartDrawer({
@@ -21,10 +29,23 @@ export default function CartDrawer({
   items,
   onUpdateQuantity,
   onRemove,
+  xpLevel,
+  xpDiscountPercent,
+  giftOffer,
+  selectedGiftCartId,
+  onSelectGiftCartId,
+  selectedGiftDiscount,
+  onCheckout,
 }: CartDrawerProps) {
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const totalMrp = items.reduce((sum, item) => sum + item.mrp * item.quantity, 0);
   const savings = totalMrp - total;
+  const selectedGiftItem = giftOffer ? items.find((item) => item.cartId === selectedGiftCartId) ?? items[0] ?? null : null;
+  const giftUnitPrice = selectedGiftItem?.price ?? 0;
+  const xpDiscountBase = Math.max(0, total - giftUnitPrice);
+  const xpDiscount = Math.round((xpDiscountBase * xpDiscountPercent) / 100);
+  const giftDiscount = giftOffer && selectedGiftItem ? Math.min(selectedGiftDiscount, giftUnitPrice) : 0;
+  const payable = Math.max(0, total - xpDiscount - giftDiscount);
 
   return (
     <AnimatePresence>
@@ -222,21 +243,70 @@ export default function CartDrawer({
                     <span>You Save</span>
                     <span>-₹{savings}</span>
                   </div>
+                  <div className="flex justify-between text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                    <span>XP Discount (Level {xpLevel})</span>
+                    <span>-₹{xpDiscount} ({xpDiscountPercent.toFixed(1)}%)</span>
+                  </div>
+                  {giftOffer && (
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm" style={{ color: 'var(--color-teal)' }}>
+                        <span>{giftOffer.label}</span>
+                        <span>-₹{giftDiscount}</span>
+                      </div>
+                      <div className="rounded-2xl border p-4" style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}>
+                        <p className="text-xs tracking-[0.25em] mb-3" style={{ color: 'var(--color-text-muted)' }}>
+                          PICK 1 GIFT ITEM
+                        </p>
+                        <div className="space-y-2">
+                          {items.map((item) => {
+                            const costPrice = getProductCostPrice(item);
+                            const isSelected = selectedGiftItem?.cartId === item.cartId;
+                            return (
+                              <button
+                                key={item.cartId}
+                                className="w-full rounded-xl border px-3 py-2 text-left"
+                                style={{
+                                  background: isSelected ? 'rgba(0, 212, 255, 0.1)' : 'rgba(255,255,255,0.03)',
+                                  borderColor: isSelected ? 'rgba(0, 212, 255, 0.25)' : 'rgba(255,255,255,0.06)',
+                                  color: 'var(--color-text-primary)',
+                                }}
+                                onClick={() => onSelectGiftCartId(item.cartId)}
+                              >
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium truncate">{item.name}</p>
+                                    <p className="text-[11px] text-[var(--color-text-muted)]">Gift price: ₹{costPrice}</p>
+                                  </div>
+                                  <div className="text-right shrink-0">
+                                    <p className="text-sm font-semibold">₹{item.price}</p>
+                                    <p className="text-[10px] tracking-[0.22em] text-[var(--color-text-muted)]">SALE</p>
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div
                     className="h-[1px] my-2"
                     style={{ background: 'rgba(255, 255, 255, 0.05)' }}
                   />
                   <div className="flex justify-between">
                     <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                      Total
+                      Payable Total
                     </span>
                     <span className="text-xl font-bold" style={{ color: 'var(--color-accent)' }}>
-                      ₹{total}
+                      ₹{payable}
                     </span>
                   </div>
                 </div>
 
                 {/* Checkout Button */}
+                <p className="mb-3 text-xs leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+                  XP discount applies to non-gift items only. The selected gift item stays at cost price.
+                </p>
                 <motion.button
                   className="w-full py-4 rounded-xl text-sm font-medium tracking-wider"
                   style={{
@@ -249,6 +319,7 @@ export default function CartDrawer({
                     boxShadow: '0 6px 40px rgba(255, 26, 60, 0.4)',
                   }}
                   whileTap={{ scale: 0.98 }}
+                  onClick={onCheckout}
                 >
                   PROCEED TO CHECKOUT
                 </motion.button>
