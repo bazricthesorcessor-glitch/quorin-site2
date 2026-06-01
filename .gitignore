@@ -9,3 +9,10 @@ app_copy/
 run_full_dev.log
 .DS_Store
 *.zip
+node_modules
+dist
+.vite
+*.log
+codebase_full.txt
+clean_codebase.txt
+*.zip
