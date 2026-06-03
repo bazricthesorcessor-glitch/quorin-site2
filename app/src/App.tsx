@@ -32,6 +32,20 @@ import {
 } from '@/data/accounts';
 import { getXpDiscountPercent, getXpLevel } from '@/data/xp';
 import { getCheckoutGiftOffer, getGiftDiscountForProduct, getGiftLockKey, redeemCheckoutGift } from '@/data/gifts';
+import {
+  appendCustomRequest,
+  loadAccounts,
+  loadCatalog,
+  loadCheckoutLocks,
+  loadClientFingerprint,
+  loadCurrentAccountId,
+  loadTheme,
+  saveAccounts,
+  saveCatalog,
+  saveCheckoutLocks,
+  saveCurrentAccountId,
+  saveTheme,
+} from '@/lib/quorinStore';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -100,62 +114,21 @@ export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const lenisRef = useRef<Lenis | null>(null);
-  const [accounts, setAccounts] = useState<Record<string, AccountRecord>>(() => {
-    try {
-      const raw = window.localStorage.getItem('quorin.accounts');
-      return raw ? hydrateAccounts(JSON.parse(raw) as Record<string, Partial<AccountRecord>>) : demoAccounts;
-    } catch {
-      return demoAccounts;
-    }
-  });
-  const [currentAccountId, setCurrentAccountId] = useState<string | null>(() => {
-    try {
-      return window.localStorage.getItem('quorin.currentAccountId');
-    } catch {
-      return null;
-    }
-  });
+  const [accounts, setAccounts] = useState<Record<string, AccountRecord>>(() => loadAccounts() ?? demoAccounts);
+  const [currentAccountId, setCurrentAccountId] = useState<string | null>(() => loadCurrentAccountId());
   const [catalogVersion, setCatalogVersion] = useState(() => {
-    try {
-      const raw = window.localStorage.getItem('quorin.catalog');
-      if (raw) {
-        Object.assign(quorinData, JSON.parse(raw) as typeof quorinData);
-      }
-    } catch {
-      // ignore invalid saved catalog data
+    const persistedCatalog = loadCatalog();
+    if (persistedCatalog) {
+      Object.assign(quorinData, persistedCatalog);
     }
     return 0;
   });
-  const [theme, setTheme] = useState<AdminTheme>(() => {
-    try {
-      const raw = window.localStorage.getItem('quorin.theme');
-      return raw ? { ...defaultTheme, ...(JSON.parse(raw) as Partial<AdminTheme>) } : defaultTheme;
-    } catch {
-      return defaultTheme;
-    }
-  });
+  const [theme, setTheme] = useState<AdminTheme>(() => loadTheme(defaultTheme));
   const [adminOpen, setAdminOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [selectedGiftCartId, setSelectedGiftCartId] = useState<string | null>(null);
-  const [clientFingerprint] = useState(() => {
-    try {
-      const existing = window.localStorage.getItem('quorin.clientFingerprint');
-      if (existing) return existing;
-      const next = crypto.randomUUID();
-      window.localStorage.setItem('quorin.clientFingerprint', next);
-      return next;
-    } catch {
-      return `fingerprint-${Date.now()}`;
-    }
-  });
-  const [checkoutLocks, setCheckoutLocks] = useState<Record<string, boolean>>(() => {
-    try {
-      const raw = window.localStorage.getItem('quorin.checkoutLocks');
-      return raw ? JSON.parse(raw) : {};
-    } catch {
-      return {};
-    }
-  });
+  const [clientFingerprint] = useState(() => loadClientFingerprint());
+  const [checkoutLocks, setCheckoutLocks] = useState<Record<string, boolean>>(() => loadCheckoutLocks());
 
   const [previewProduct, setPreviewProduct] = useState<Product | null>(() => getInitialPreviewProduct());
   const [previewOpen, setPreviewOpen] = useState(() => Boolean(getInitialPreviewProduct()));
@@ -258,47 +231,23 @@ export default function App() {
   const selectedGiftDiscount = giftOffer && selectedGiftItem ? getGiftDiscountForProduct(selectedGiftItem) : 0;
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem('quorin.accounts', JSON.stringify(accounts));
-    } catch {
-      // ignore storage failures
-    }
+    saveAccounts(accounts);
   }, [accounts]);
 
   useEffect(() => {
-    try {
-      if (currentAccountId) {
-        window.localStorage.setItem('quorin.currentAccountId', currentAccountId);
-      } else {
-        window.localStorage.removeItem('quorin.currentAccountId');
-      }
-    } catch {
-      // ignore storage failures
-    }
+    saveCurrentAccountId(currentAccountId);
   }, [currentAccountId]);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem('quorin.checkoutLocks', JSON.stringify(checkoutLocks));
-    } catch {
-      // ignore storage failures
-    }
+    saveCheckoutLocks(checkoutLocks);
   }, [checkoutLocks]);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem('quorin.catalog', JSON.stringify(quorinData));
-    } catch {
-      // ignore storage failures
-    }
+    saveCatalog(quorinData);
   }, [catalogVersion]);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem('quorin.theme', JSON.stringify(theme));
-    } catch {
-      // ignore storage failures
-    }
+    saveTheme(theme);
   }, [theme]);
 
   const updateCatalog = useCallback((mutator: (catalog: typeof quorinData) => void) => {

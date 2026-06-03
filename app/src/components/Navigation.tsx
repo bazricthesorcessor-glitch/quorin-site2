@@ -5,6 +5,7 @@ import { Menu, X, ShoppingCart, UserRound } from 'lucide-react';
 import { quorinData } from '@/data/products';
 import type { AccountRecord } from '@/data/accounts';
 import { defaultPhoneCountry, phoneCountries, findPhoneCountry, searchPhoneCountries } from '@/data/phoneCountries';
+import { appendCustomRequest } from '@/lib/quorinStore';
 
 interface NavigationProps {
   cartCount: number;
@@ -160,13 +161,7 @@ export default function Navigation({
       createdAt: new Date().toISOString(),
     };
 
-    try {
-      const raw = window.localStorage.getItem('quorin.customRequests');
-      const list = raw ? JSON.parse(raw) : [];
-      window.localStorage.setItem('quorin.customRequests', JSON.stringify([entry, ...list]));
-    } catch {
-      // storage is best-effort
-    }
+    appendCustomRequest(entry);
   };
 
   const selectedCountry = findPhoneCountry(countryLabel) ?? defaultPhoneCountry;
