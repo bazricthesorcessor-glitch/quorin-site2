@@ -1,13 +1,15 @@
-import { MedusaClient } from "@medusajs/js-sdk";
+import { Client } from "@medusajs/js-sdk";
 
 const MEDUSA_BACKEND_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || "http://localhost:9000";
 
-export const medusaClient = new MedusaClient({
+export const medusaClient = new Client({
   url: MEDUSA_BACKEND_URL,
   auth: {
     token: localStorage.getItem("medusa_auth_token") || "",
   },
 });
+
+export const medusaStore = medusaClient.store;
 
 export const medusaApi = {
   // Products

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router';
 import { Menu, X, ShoppingCart, UserRound } from 'lucide-react';
 import { quorinData } from '@/data/products';
+import { useMedusaCatalog } from '@/lib/useMedusaCatalog';
 import type { AccountRecord } from '@/data/accounts';
 import { defaultPhoneCountry, phoneCountries, findPhoneCountry, searchPhoneCountries } from '@/data/phoneCountries';
 import { appendCustomRequest } from '@/lib/quorinStore';
@@ -27,6 +28,7 @@ export default function Navigation({
   onToggleAdminMode,
 }: NavigationProps) {
   const navigate = useNavigate();
+  const { categories: medusaCategories } = useMedusaCatalog();
   const [isVisible, setIsVisible] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
@@ -302,7 +304,7 @@ export default function Navigation({
 
               {/* Center links - hidden on mobile */}
               <div className="hidden md:flex items-center gap-8">
-                {quorinData.categories.map((cat) => (
+                {medusaCategories.map((cat) => (
                   <motion.button
                     key={cat.id}
                     className="relative text-sm tracking-wider transition-colors"
@@ -570,7 +572,7 @@ export default function Navigation({
                       </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 min-w-0">
-                      {quorinData.categories.map((cat, index) => (
+                      {medusaCategories.map((cat, index) => (
                         <motion.button
                           key={cat.id}
                           className="group min-w-0 rounded-[1.6rem] px-4 py-5 text-center"

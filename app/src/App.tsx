@@ -22,7 +22,7 @@ import HistorySection from '@/sections/History';
 import Footer from '@/sections/Footer';
 import CategoryPage from '@/pages/CategoryPage';
 import XpPage from '@/pages/XpPage';
-import { getProductId, quorinData, type Product } from '@/data/products';
+import { getProductId, quorinData, type Category, type Product } from '@/data/products';
 import {
   demoAccounts,
   findAccountByIdentifierInAccounts,
@@ -46,6 +46,8 @@ import {
   saveCurrentAccountId,
   saveTheme,
 } from '@/lib/quorinStore';
+import { useMedusaCart, type CartItem as MedusaCartItem } from '@/lib/useMedusaCart';
+import { useMedusaCatalog } from '@/lib/useMedusaCatalog';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -90,14 +92,18 @@ type UpdateOrderFn = (orderId: string, patch: Partial<AccountRecord['orders'][nu
 interface HomeScreenProps {
   currentAccount: AccountRecord | null;
   onUpdateOrder: UpdateOrderFn;
+  categories: Category[];
+  addToCart: (product: Product) => void;
+  openPreview: (product: Product) => void;
 }
 
-function HomeScreen({ currentAccount, onUpdateOrder }: HomeScreenProps) {
+function HomeScreen({ currentAccount, onUpdateOrder, categories, addToCart, openPreview }: HomeScreenProps) {
   return (
     <main>
       <Hero />
       <CategorySection />
       <WhyShop />
+      <ProductShowcase categories={categories} onAddToCart={addToCart} onPreview={openPreview} />
       <HistorySection
         currentAccount={currentAccount}
         onUpdateOrder={onUpdateOrder}
@@ -112,7 +118,6 @@ export default function App() {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
   const [cartOpen, setCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const lenisRef = useRef<Lenis | null>(null);
   const [accounts, setAccounts] = useState<Record<string, AccountRecord>>(() => loadAccounts() ?? demoAccounts);
   const [currentAccountId, setCurrentAccountId] = useState<string | null>(() => loadCurrentAccountId());
@@ -129,6 +134,24 @@ export default function App() {
   const [selectedGiftCartId, setSelectedGiftCartId] = useState<string | null>(null);
   const [clientFingerprint] = useState(() => loadClientFingerprint());
   const [checkoutLocks, setCheckoutLocks] = useState<Record<string, boolean>>(() => loadCheckoutLocks());
+
+  const { categories: medusaCategories, loading: catalogLoading } = useMedusaCatalog();
+  const { cart: medusaCart, cartId, addItem: medusaAddItem, updateItem: medusaUpdateItem, removeItem: medusaRemoveItem } = useMedusaCart();
+
+  const cartItems: CartItem[] = medusaCart.map((item) => ({
+    cartId: item.lineId,
+    name: item.name,
+    variant: undefined,
+    size: undefined,
+    price: item.price,
+    mrp: item.mrp,
+    description: undefined,
+    images: item.image ? [item.image] : [],
+    features: undefined,
+    tags: [],
+    type: '',
+    quantity: item.quantity,
+  }));
 
   const [previewProduct, setPreviewProduct] = useState<Product | null>(() => getInitialPreviewProduct());
   const [previewOpen, setPreviewOpen] = useState(() => Boolean(getInitialPreviewProduct()));
@@ -179,40 +202,69 @@ export default function App() {
     };
   }, [adminOpen, isLoading]);
 
-  // Cart functions
+  // Cart functions - Medusa-backed with fallback to local state
   const addToCart = useCallback((product: Product) => {
-    setCartItems((prev) => {
-      const existing = prev.find((item) => item.name === product.name && item.variant === product.variant);
-      if (existing) {
-        return prev.map((item) =>
+    if (cartId && product.tags && product.tags.length > 0) {
+      // Try Medusa first
+      const match = medusaCategories
+        .flatMap((c) => c.products)
+        .find((p) => p.name === product.name);
+      if (match && match.tags) {
+        const medusaType = match.tags.find((t) => t.type === product.type);
+        if (match.variants && match.variants.length > 0) {
+          medusaAddItem(match.id, match.variants[0].id, match.title, match.price, match.mrp);
+          setCartOpen(true);
+          window.dispatchEvent(new CustomEvent('quorin:addedToCart', { detail: product }));
+          return;
+        }
+      }
+    }
+    // Fallback: local cart
+    const existing = cartItems.find((item) => item.name === product.name && item.variant === product.variant);
+    if (existing) {
+      setCartItems((prev) =>
+        prev.map((item) =>
           item.cartId === existing.cartId
             ? { ...item, quantity: item.quantity + 1 }
             : item
-        );
-      }
-      return [...prev, { ...product, cartId: `${product.name}-${Date.now()}`, quantity: 1 }];
-    });
+        )
+      );
+    } else {
+      setCartItems((prev) => [...prev, { ...product, cartId: `${product.name}-${Date.now()}`, quantity: 1 }]);
+    }
     setCartOpen(true);
-
-    // fire small event for explosion/particles
     window.dispatchEvent(new CustomEvent('quorin:addedToCart', { detail: product }));
-  }, []);
+  }, [cartId, medusaCategories, medusaAddItem, cartItems]);
 
-  const updateQuantity = useCallback((cartId: string, quantity: number) => {
+  const updateQuantity = useCallback((cartIdKey: string, quantity: number) => {
+    // Check if this is a Medusa cart item
+    const medusaItem = medusaCart.find((item) => item.lineId === cartIdKey);
+    if (medusaItem) {
+      medusaUpdateItem(cartIdKey, quantity);
+      return;
+    }
+    // Fallback: local cart
     if (quantity <= 0) {
-      setCartItems((prev) => prev.filter((item) => item.cartId !== cartId));
+      setCartItems((prev) => prev.filter((item) => item.cartId !== cartIdKey));
     } else {
       setCartItems((prev) =>
-        prev.map((item) => (item.cartId === cartId ? { ...item, quantity } : item))
+        prev.map((item) => (item.cartId === cartIdKey ? { ...item, quantity } : item))
       );
     }
-  }, []);
+  }, [medusaCart, medusaUpdateItem]);
 
-  const removeFromCart = useCallback((cartId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.cartId !== cartId));
-  }, []);
+  const removeFromCart = useCallback((cartIdKey: string) => {
+    const medusaItem = medusaCart.find((item) => item.lineId === cartIdKey);
+    if (medusaItem) {
+      medusaRemoveItem(cartIdKey);
+      return;
+    }
+    setCartItems((prev) => prev.filter((item) => item.cartId !== cartIdKey));
+  }, [medusaCart, medusaRemoveItem]);
 
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const cartCount = medusaCart.length > 0
+    ? medusaCart.reduce((sum, item) => sum + item.quantity, 0)
+    : cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const currentAccount = currentAccountId ? accounts[currentAccountId] ?? null : null;
   const currentOrders = currentAccount?.orders ?? [];
   const currentSpend = currentOrders.reduce(

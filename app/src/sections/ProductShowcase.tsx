@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { ShoppingCart, Sparkles } from 'lucide-react';
-import { quorinData, type Product } from '@/data/products';
+import type { Category, Product } from '@/data/products';
 
 const productImageMap: Record<string, string> = {
   'resin-kit': '/product-resin-kit.jpg',
@@ -231,7 +231,7 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
 }
 
 interface CategoryProductsProps {
-  category: typeof quorinData.categories[0];
+  category: Category;
   onAddToCart: (product: Product) => void;
   onPreview?: (product: Product) => void;
 }
@@ -307,17 +307,18 @@ function CategoryProducts({ category, onAddToCart, onPreview }: CategoryProducts
 interface ProductShowcaseProps {
   onAddToCart: (product: Product) => void;
   onPreview?: (product: Product) => void;
+  categories: Category[];
   categoryId?: string;
 }
 
-export default function ProductShowcase({ onAddToCart, onPreview, categoryId }: ProductShowcaseProps) {
-  const categories = categoryId
-    ? quorinData.categories.filter((category) => category.id === categoryId)
-    : quorinData.categories;
+export default function ProductShowcase({ onAddToCart, onPreview, categories, categoryId }: ProductShowcaseProps) {
+  const filtered = categoryId
+    ? categories.filter((category) => category.id === categoryId)
+    : categories;
 
   return (
     <div>
-      {categories.map((category) => (
+      {filtered.map((category) => (
         <CategoryProducts
           key={category.id}
           category={category}

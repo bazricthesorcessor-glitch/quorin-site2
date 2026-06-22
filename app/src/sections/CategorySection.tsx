@@ -2,7 +2,8 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { quorinData } from '@/data/products';
+import { useMedusaCatalog } from '@/lib/useMedusaCatalog';
+import type { Category } from '@/data/products';
 
 const categoryImages: Record<string, string> = {
   'resin-art': '/category-resin.jpg',
@@ -11,7 +12,7 @@ const categoryImages: Record<string, string> = {
 };
 
 interface CategoryCardProps {
-  category: typeof quorinData.categories[0];
+  category: Category;
   index: number;
 }
 
@@ -202,6 +203,7 @@ function CategoryCard({ category, index }: CategoryCardProps) {
 }
 
 export default function CategorySection() {
+  const { categories, loading, error } = useMedusaCatalog();
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-200px' });
 
@@ -254,12 +256,26 @@ export default function CategorySection() {
         </motion.div>
       </div>
 
+      {loading && (
+        <div className="text-center py-20 text-sm" style={{ color: 'var(--color-text-muted)' }}>
+          Loading catalog...
+        </div>
+      )}
+
+      {error && (
+        <div className="text-center py-20 text-sm" style={{ color: 'var(--color-accent)' }}>
+          {error}
+        </div>
+      )}
+
       {/* Category Cards Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-        {quorinData.categories.map((category, index) => (
-          <CategoryCard key={category.id} category={category} index={index} />
-        ))}
-      </div>
+      {!loading && !error && (
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+          {categories.map((category, index) => (
+            <CategoryCard key={category.id} category={category} index={index} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

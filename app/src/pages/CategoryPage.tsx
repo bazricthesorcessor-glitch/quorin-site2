@@ -2,22 +2,22 @@ import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import { quorinData } from '@/data/products';
 import ProductShowcase from '@/sections/ProductShowcase';
-import type { Product } from '@/data/products';
+import type { Category, Product } from '@/data/products';
 
 interface CategoryPageProps {
   onAddToCart: (product: Product) => void;
   onPreview?: (product: Product) => void;
+  categories: Category[];
 }
 
-export default function CategoryPage({ onAddToCart, onPreview }: CategoryPageProps) {
+export default function CategoryPage({ onAddToCart, onPreview, categories }: CategoryPageProps) {
   const navigate = useNavigate();
   const { categoryId } = useParams();
 
   const category = useMemo(
-    () => quorinData.categories.find((item) => item.id === categoryId),
-    [categoryId]
+    () => categories.find((item) => item.id === categoryId),
+    [categories, categoryId]
   );
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function CategoryPage({ onAddToCart, onPreview }: CategoryPagePro
         <p className="max-w-2xl text-[var(--color-text-secondary)]">{category.description}</p>
       </section>
 
-      <ProductShowcase categoryId={category.id} onAddToCart={onAddToCart} onPreview={onPreview} />
+      <ProductShowcase categoryId={category.id} onAddToCart={onAddToCart} onPreview={onPreview} categories={categories} />
     </main>
   );
 }
