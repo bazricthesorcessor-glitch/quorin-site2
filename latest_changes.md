@@ -196,13 +196,37 @@ The admin system needs to connect to Medusa, not Express.
 
 ---
 
+## 11. Changes Made — 2026-06-23 (Phase 1.5: Evidence & Architecture)
+
+### New Files Created
+- `admin_audit.md` — Admin editing capabilities, persistence, localStorage keys, draft behavior, save operations
+- `medusa_evidence.md` — Medusa SDK existence, hooks, API calls, connectivity status D (hooks connected, UI disconnected)
+- `dead_code_report.md` — 3 dead components, 53 dead UI components, ~38 unused npm packages, 28 dead CSS classes, duplicate directories
+- `navigation_audit.md` — Route structure, dead routes, menu sigils, scroll visibility, touch behavior
+- `mobile_audit.md` — Viewport meta, responsive breakpoints, touch interactions, section-by-section review, cursor bug
+- `performance_audit.md` — Animation stack (16 framer-motion files, GSAP, Lenis), performance hotspots, bundle indicators
+- `architecture_audit.md` — Source of truth for all 10 data systems: Products (Hybrid), Categories (Hybrid), Cart (Medusa), Orders (localStorage), Accounts (localStorage), XP (Computed), Rewards (Computed + localStorage), Reviews (Ephemeral), Theme (localStorage), Admin Settings (localStorage)
+- `migration_plan.md` — Current/target architecture, 7-phase migration order, risk assessment, rollback plan, data migration strategy, admin migration strategy, product migration strategy, endpoint spec, timeline estimate (5-7 weeks)
+
+### Key Evidence Findings
+- Admin changes DO persist across refresh (localStorage) — not broken, but localStorage-only instead of backend
+- Medusa is partially connected: SDK exists, hooks exist, categories partially connected, cart fully on Medusa, but products/orders/accounts/admin are NOT driven by Medusa
+- Navigation has dead routes: `/category/[id]` and `/xp` are not defined in App.tsx
+- CustomCursor not rendered but `body { cursor: none; }` in index.css blocks cursor on all devices
+- 53 shadcn/ui components entirely unused by active application code
+- `backend-backup/` (Prisma + Express) is NOT connected to any frontend code
+- Cart (`useMedusaCart.ts`) is the ONLY system where Medusa is the primary data source
+
+### Documentation Rule (Enforced)
+- No more .md file deletions. Outdated docs move to `docs/archive/` instead.
+
+---
+
 ## 10. Next Actions (Awaiting Instruction)
 
-1. Remove or archive outdated .md files (13 files identified)
-2. Audit dependency tree for bundle bloat cleanup
-3. Plan admin system overhaul (connect to real backend)
-4. Design mobile navigation flow
-5. Fix product page priority order
+1. Review `architecture_audit.md` and `migration_plan.md`
+2. Decide target architecture: stay on Medusa, use custom backend, or hybrid
+3. Begin Phase 1 of migration (Foundation: schema, API scaffolding, data export tool)
 
 ---
 
