@@ -7,11 +7,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Routes, Route, useLocation, useNavigate } from 'react-router';
 
 import LoadingScreen from '@/components/LoadingScreen';
-import CustomCursor from '@/components/CustomCursor';
 import Navigation from '@/components/Navigation';
 import CartDrawer from '@/components/CartDrawer';
 import ProductPreview from '@/components/ProductPreview';
-import ExplosionLayer from '@/components/ExplosionLayer';
 import CookieBanner from '@/components/CookieBanner';
 import ProfileModal from '@/components/ProfileModal';
 import AdminCenter, { type AdminTheme } from '@/components/AdminCenter';
@@ -416,27 +414,6 @@ export default function App() {
     lenisRef.current?.scrollTo(0, { immediate: true });
   }, [location.pathname]);
 
-  // Mouse glow effect
-  useEffect(() => {
-    if (isLoading) return;
-
-    const glow = document.createElement('div');
-    glow.className = 'mouse-glow';
-    document.body.appendChild(glow);
-
-    const handleMouseMove = (e: MouseEvent) => {
-      glow.style.left = `${e.clientX}px`;
-      glow.style.top = `${e.clientY}px`;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      glow.remove();
-    };
-  }, [isLoading]);
-
   // Scroll expand animations with GSAP
   useEffect(() => {
     if (isLoading) return;
@@ -569,9 +546,6 @@ export default function App() {
             fontFamily: theme.fontFamily,
           } as CSSProperties}
         >
-          {/* Custom Cursor */}
-          <CustomCursor />
-
           {/* Navigation */}
           <Navigation
             cartCount={cartCount}
@@ -618,9 +592,6 @@ export default function App() {
 
           {/* Product preview modal */}
           <ProductPreview product={previewProduct} isOpen={previewOpen} onClose={closePreview} />
-
-          {/* Explosion / star overlay */}
-          <ExplosionLayer />
 
           {/* Cookie banner */}
           <CookieBanner />
