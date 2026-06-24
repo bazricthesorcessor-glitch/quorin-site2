@@ -1,5 +1,8 @@
 # Architecture Audit — QUORIN
 
+**Version:** 1 (frozen — awaiting owner answers)
+**Freeze Note:** Do not modify this document until owner answers `owner_questions.md`. If findings emerge, append to `architecture_review_notes.md`.
+
 ## Executive Summary
 
 The QUORIN application is a **hybrid frontend architecture** where most data lives in `localStorage` on the client, with Medusa partially wired in as a secondary data source. No persistent backend database is actively used by the frontend. The application has two competing data layers:
