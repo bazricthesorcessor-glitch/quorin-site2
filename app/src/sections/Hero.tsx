@@ -4,19 +4,19 @@ import { motion } from 'framer-motion';
 import { quorinData } from '@/data/products';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-const hexToRgba = (hex: string): string => {
+const hexToRgba = (hex: string, alpha: number = 1): string => {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}`;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
 const getThemeColors = () => {
   const styles = getComputedStyle(document.documentElement);
   const accent = styles.getPropertyValue('--color-accent').trim() || '#ff1a3c';
   const teal = styles.getPropertyValue('--color-teal').trim() || '#00d4ff';
-  const accentRgba = hexToRgba(accent);
-  const tealRgba = hexToRgba(teal);
+  const accentRgba = hexToRgba(accent, 1);
+  const tealRgba = hexToRgba(teal, 1);
   return { accent, teal, accentRgba, tealRgba };
 };
 
@@ -40,6 +40,11 @@ export default function Hero() {
   const mouseRef = useRef({ x: 0, y: 0 });
   const rafRef = useRef<number>(0);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [themeColors, setThemeColors] = useState<ReturnType<typeof getThemeColors> | null>(null);
+
+  useEffect(() => {
+    setThemeColors(getThemeColors());
+  }, []);
 
   // detect mobile to limit stars
   const isMobile = useIsMobile();
@@ -235,7 +240,7 @@ export default function Hero() {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
-                filter: `drop-shadow(0 0 40px ${colors.accentRgba}, 0.3))`,
+                filter: themeColors ? `drop-shadow(0 0 40px ${hexToRgba(themeColors.accent, 0.3)})` : 'none',
               }}
               initial={{ opacity: 0, y: 100, rotateX: -90 }}
               animate={{ opacity: 1, y: 0, rotateX: 0 }}
@@ -247,7 +252,6 @@ export default function Hero() {
               whileHover={{
                 scale: 1.1,
                 rotateY: 10,
-                color: '#ff1a3c',
                 transition: { duration: 0.3 },
               }}
             >
