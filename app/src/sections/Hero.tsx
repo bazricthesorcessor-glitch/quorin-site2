@@ -4,6 +4,22 @@ import { motion } from 'framer-motion';
 import { quorinData } from '@/data/products';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+const hexToRgba = (hex: string): string => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}`;
+};
+
+const getThemeColors = () => {
+  const styles = getComputedStyle(document.documentElement);
+  const accent = styles.getPropertyValue('--color-accent').trim() || '#ff1a3c';
+  const teal = styles.getPropertyValue('--color-teal').trim() || '#00d4ff';
+  const accentRgba = hexToRgba(accent);
+  const tealRgba = hexToRgba(teal);
+  return { accent, teal, accentRgba, tealRgba };
+};
+
 interface Particle {
   x: number;
   y: number;
@@ -30,6 +46,7 @@ export default function Hero() {
 
   // Initialize particles
   const initParticles = useCallback(() => {
+    const colors = getThemeColors();
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const particles: Particle[] = [];
@@ -52,7 +69,7 @@ export default function Hero() {
         originX: x,
         originY: y,
         size: Math.random() * 2 + 0.5,
-        color: Math.random() > 0.5 ? '#ff1a3c' : '#00d4ff',
+        color: Math.random() > 0.5 ? colors.accent : colors.teal,
         alpha: Math.random() * 0.5 + 0.2,
         speed: Math.random() * 0.5 + 0.2,
         angle: Math.random() * Math.PI * 2,
@@ -214,11 +231,11 @@ export default function Hero() {
               key={index}
               className="quorin-brand text-[12vw] md:text-[10vw] lg:text-[8vw] font-black leading-none select-none"
               style={{
-                background: 'linear-gradient(180deg, #ffffff 0%, #8a8a9a 100%)',
+                background: `linear-gradient(180deg, var(--color-text-primary) 0%, var(--color-text-secondary) 100%)`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
-                filter: 'drop-shadow(0 0 40px rgba(255, 26, 60, 0.3))',
+                filter: `drop-shadow(0 0 40px ${colors.accentRgba}, 0.3))`,
               }}
               initial={{ opacity: 0, y: 100, rotateX: -90 }}
               animate={{ opacity: 1, y: 0, rotateX: 0 }}

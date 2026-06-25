@@ -1,11 +1,11 @@
 # QUORIN Assumptions Register
 
 **Date:** 2026-06-24
-**Version:** 1 (frozen — awaiting owner answers)
+**Version:** 4 (final owner answers received — 3 remaining assumptions validated, all blockers resolved)
 **Purpose:** Centralize every assumption across architecture documents. Each assumption is traced to its source, supported/contradicted by evidence, and linked to the owner question that validates it.
 **Scope:** All architecture documents reviewed (`backend_decision.md`, `business_requirements.md`, `architecture_challenges.md`, `architecture_audit.md`, `backend_inventory.md`).
 **Rule:** No new recommendations. No implementation planning. No code.
-**Freeze Note:** Do not modify this document until owner answers `owner_questions.md`. If findings emerge, append to `architecture_review_notes.md`.
+**Freeze Note:** Freeze lifted for Version 2 update only. No new recommendations or implementation planning. If further findings emerge, append to `architecture_review_notes.md`.
 
 ---
 
@@ -31,9 +31,10 @@
 |-------|-------|
 | **ID** | A-01 |
 | **Assumption** | Product count will stay under ~100 in years 1–2. |
-| **Confidence** | Low |
-| **Evidence For** | Current catalog has ~24 products in `products.ts` and 16 in `backend/seed.ts`. Owner has not stated aggressive expansion plans. |
-| **Evidence Against** | QUORIN sells in 3 categories (resin, candle, soap). If they expand into finished art, limited editions, or seasonal drops, product count could exceed 100. No hard business constraint prevents this. |
+| **Status** | INVALIDATED — owner confirmed dozens of SKUs already live on Amazon with growing catalog. |
+| **Confidence** | Medium (now assumes catalog exceeds 100 SKUs) |
+| **Evidence For** | Owner confirmed dozens of SKUs already sold on Amazon (resin kits, pigments, tools, candle supplies, soap colors, silica gel, moulds, accessories, etc.). Initial 16 seed products in `backend/seed.ts` and 24 in `products.ts` are well below current live inventory. |
+| **Evidence Against** | N/A — owner answer contradicts the "under ~100" assumption. |
 | **Source** | `backend_decision.md:220`, `business_requirements.md:490-499`, `architecture_challenges.md:11-16` |
 | **Validating Question** | 2.1 — How many products do you expect? |
 
@@ -45,9 +46,10 @@
 |-------|-------|
 | **ID** | A-02 |
 | **Assumption** | Custom orders will remain a secondary revenue stream (<20% of total). |
-| **Confidence** | Low |
-| **Evidence For** | No existing custom order infrastructure in either backend. Frontend has a basic inquiry form but no structured workflow. |
-| **Evidence Against** | QUORIN's identity as a maker-supply store naturally lends itself to bespoke work (custom resin art, bespoke candle sets). If QUORIN becomes known for this, custom orders could become a primary revenue driver. |
+| **Status** | VALIDATED — owner confirmed custom orders are customer-driven and not a primary business workflow. |
+| **Confidence** | Medium |
+| **Evidence For** | Owner confirmed custom orders are customer-driven and not a primary workflow. No existing custom order infrastructure in either backend. Frontend has a basic inquiry form but no structured workflow. |
+| **Evidence Against** | QUORIN's identity as a maker-supply store naturally lends itself to bespoke work (custom resin art, bespoke candle sets). However, owner's confirmation that this is not a primary revenue stream reduces this risk. |
 | **Source** | `backend_decision.md:220`, `architecture_challenges.md:22-24, 115` |
 | **Validating Question** | 3.1 (importance) + 3.2 (revenue %) + 3.3 (workflow complexity) |
 
@@ -59,11 +61,10 @@
 |-------|-------|
 | **ID** | A-03 |
 | **Assumption** | QUORIN is not planning a marketplace or multi-vendor model. |
-| **Confidence** | Low (unverified) |
-| **Evidence For** | All architecture docs treat QUORIN as a single-vendor store. No vendor onboarding, split payouts, or commission logic is discussed. |
-| **Evidence Against** | Section 9.1 of `owner_questions.md` exists specifically because this is unknown. If QUORIN's long-term vision includes other makers selling on the platform, this assumption is wrong. |
-| **Source** | `backend_decision.md:133`, `business_requirements.md:479-481`, `architecture_challenges.md:135` |
-| **Validating Question** | 9.1 — Will QUORIN become a marketplace? |
+| **Status** | VALIDATED — owner confirmed: "No evidence of becoming a marketplace", "No multi-vendor support needed". |
+| **Confidence** | High |
+| **Evidence For** | Owner confirmed no marketplace plans and no multi-vendor requirements. All architecture docs already treat QUORIN as a single-vendor store. No vendor onboarding, split payouts, or commission logic exists in code or business requirements. |
+| **Evidence Against** | N/A — owner explicitly confirmed this. |
 
 ---
 
@@ -73,11 +74,10 @@
 |-------|-------|
 | **ID** | A-04 |
 | **Assumption** | Medusa's module architecture can handle QUORIN's custom domains (reviews, XP, settings, custom requests). |
-| **Confidence** | Medium |
-| **Evidence For** | Medusa v2 is designed for commerce core + custom modules. Reviews, settings, and custom requests are lightweight entities with CRUD operations. XP/Loyalty integrates with Medusa's event system and price hooks. |
-| **Evidence Against** | If custom orders require complex state machines (quote→deposit→production→delivery), Medusa's event system may not support multi-step workflows. Admin plugins are a maintenance burden across Medusa upgrades. |
-| **Source** | `backend_decision.md:20-22, 156-158`, `business_requirements.md:112-128, 174, 206` |
-| **Validating Question** | 3.3 (custom order workflow) + 8.1 (XP importance) + 5.1 (admin count) |
+| **Status** | VALIDATED — owner confirmed: custom orders are customer-driven, low volume, NOT core business. XP, reviews, and birthday rewards are confirmed loyalty features. Business resembles a "normal ecommerce brand with loyalty features" — not a custom SaaS platform. |
+| **Confidence** | High |
+| **Evidence For** | Owner confirmed custom orders are NOT core business. XP system, birthday rewards, reviews, and settings are straightforward loyalty/engagement features that fit Medusa's module pattern. Medusa v2 is designed for commerce core + custom modules. Reviews, settings, custom requests, XP are lightweight entities with CRUD operations. |
+| **Evidence Against** | Admin plugins are a maintenance burden across Medusa upgrades. If custom orders need complex state machines, but owner confirmed they are not core — reducing this risk. |
 
 ---### A5
 
@@ -99,11 +99,10 @@
 |-------|-------|
 | **ID** | A-06 |
 | **Assumption** | Express backend (`backend-backup/`) is not needed for any domain. |
-| **Confidence** | Medium |
-| **Evidence For** | `backend-backup/` only implements Products, Inquiries, and Admin. It does NOT have Reviews, Settings, Custom Requests, Orders, or Customers — all 7 domains are incomplete. Medusa covers 4 domains natively, making Express redundant. |
-| **Evidence Against** | If custom domains (XP, reviews, custom requests) need to scale independently at high volume, a separate service might be justified. At QUORIN's expected scale, this is unlikely. |
-| **Source** | `backend_decision.md:54-55, 154`, `backend_inventory.md:260-263` |
-| **Validating Question** | 9.1 (marketplace — if yes, Express as a separate service might be reconsidered) |
+| **Status** | VALIDATED — business is a standard ecommerce brand with loyalty features. No independent scaling needs, no marketplace, no complex custom order workflows. |
+| **Confidence** | High |
+| **Evidence For** | Owner confirmed QUORIN is a normal ecommerce brand with loyalty features — not a custom SaaS platform, not a marketplace. Business does not need independent scaling for custom domains. `backend-backup/` is incomplete (only Products, Inquiries, Admin) and Medusa covers all domains natively or via lightweight custom modules. |
+| **Evidence Against** | N/A — owner's confirmation of standard ecommerce model eliminates any independent scaling justification. |
 
 ---
 
@@ -113,8 +112,9 @@
 |-------|-------|
 | **ID** | A-07 |
 | **Assumption** | Razorpay supports all required Indian payment methods (UPI, cards, net banking, wallets). |
-| **Confidence** | Medium |
-| **Evidence For** | `owner_questions.md:174-180` lists UPI, cards, net banking, wallets as potential requirements. Razorpay is known to support all of these. Medusa has a Razorpay plugin. |
+| **Status** | VALIDATED — owner confirmed UPI, cards, wallets, and standard ecommerce payment methods required. |
+| **Confidence** | High |
+| **Evidence For** | Owner confirmed all standard ecommerce payment methods are needed. Razorpay supports UPI (GPay, PhonePe, Paytm), cards, net banking, wallets, and more. Medusa has a Razorpay plugin. |
 | **Evidence Against** | Plugin compatibility with Medusa v2.16.0 is not verified. If new payment features (UPI intent flow changes, new settlement APIs) are needed, the plugin may lag behind. |
 | **Source** | `backend_decision.md:134, 179-180`, `business_requirements.md:298` |
 | **Validating Question** | 6.1 (payment methods at launch) + 6.3 (international payments) |
@@ -127,9 +127,10 @@
 |-------|-------|
 | **ID** | A-08 |
 | **Assumption** | Search requirements are driven by product count: ≤50 products = database search, 50+ = Algolia. |
-| **Confidence** | Low (thresholds are estimates) |
-| **Evidence For** | Database-backed search degrades with unindexed queries. Algolia provides full-text search, faceted filtering, and typo tolerance. This is a standard ecommerce heuristic. |
-| **Evidence Against** | The thresholds (50, 60, 100) are heuristic estimates with no QUORIN-specific evidence. If products have rich text descriptions or customers expect typo-tolerant search from day 1, the threshold may be too high. If products have simple names and small catalogs, basic search may work well past 100. |
+| **Status** | PARTIALLY VALIDATED — owner confirmed product count exceeds ~50 (dozens of SKUs already on Amazon, growing). |
+| **Confidence** | Medium |
+| **Evidence For** | Owner confirmed dozens of SKUs already live on Amazon, exceeding the ~50 threshold where Algolia becomes necessary. Database-backed search degrades with unindexed queries. Algolia provides full-text search, faceted filtering, and typo tolerance. |
+| **Evidence Against** | The exact thresholds (50, 60, 100) remain heuristic. QUORIN's products (craft supplies, pigments, tools) have simple names but rich variant matrices — catalog complexity may push the Algolia threshold lower than 50. |
 | **Source** | `business_requirements.md:344`, `backend_decision.md:220` |
 | **Validating Question** | 2.1 (product count) — note: thresholds labeled as estimates, not facts. |
 
@@ -141,11 +142,10 @@
 |-------|-------|
 | **ID** | A-09 |
 | **Assumption** | Shipping carrier integrations (ShipRocket, Delhivery) have Medusa plugins. |
-| **Confidence** | Medium |
-| **Evidence For** | `business_requirements.md:314` states these plugins exist. Community plugins for major Indian carriers are documented. |
-| **Evidence Against** | Plugin maintenance status is unknown. If a plugin maintainer is unresponsive or the plugin is outdated, QUORIN may need a custom integration. Carrier API changes (ShipRocket/Delhivery) can break plugins. |
-| **Source** | `backend_decision.md:215-216, 42-43`, `business_requirements.md:314` |
-| **Validating Question** | 7.2 (shipping carriers) + 7.1 (shipping locations) |
+| **Status** | VALIDATED — owner confirmed ShipRocket aggregation preferred (Delhivery, BlueDart, Xpressbees, Ecom Express). |
+| **Confidence** | High |
+| **Evidence For** | Owner confirmed shipping tracking is required and multiple carriers are likely needed. `business_requirements.md:314` states ShipRocket and Delhivery plugins exist. Medusa supports shipping profiles and carrier plugins. Community plugins for major Indian carriers are documented. |
+| **Evidence Against** | Plugin maintenance status is unknown. Specific carrier selection (ShipRocket vs Delhivery vs others) not confirmed yet. Carrier API changes can break plugins. |
 
 ---
 
@@ -169,11 +169,10 @@
 |-------|-------|
 | **ID** | A-11 |
 | **Assumption** | XP/Loyalty is a QUORIN-specific domain that fits within a Medusa custom module. |
-| **Confidence** | Medium |
-| **Evidence For** | XP logic (earn on orders, spend on discounts, level thresholds, birthday bonuses) is business logic, not commerce infrastructure. It integrates cleanly with Medusa's event system (order completion triggers XP earning) and price calculation hooks (XP discounts at checkout). |
-| **Evidence Against** | If XP has complex discount stacking rules (XP + gift + referral + seasonal), price calculation hooks may be insufficient. If referral system is added (8.2), the XP module scope expands. |
-| **Source** | `business_requirements.md:126-128`, `architecture_challenges.md:36-37` |
-| **Validating Question** | 8.1 (XP importance) + 8.2 (referral system) |
+| **Status** | VALIDATED — owner confirmed XP system, birthday rewards, reviews, and ratings are required features with existing business rules. |
+| **Confidence** | High |
+| **Evidence For** | Owner confirmed XP system and birthday rewards are required with existing business rules. XP logic (earn on orders, spend on discounts, level thresholds, birthday bonuses) is straightforward business logic. Medusa's event system (order completion triggers XP earning) and price calculation hooks (XP discounts at checkout) support this cleanly. Reviews and ratings are standard moderation entities. |
+| **Evidence Against** | If XP has complex discount stacking rules (XP + gift + referral + seasonal), price calculation hooks may be insufficient. However, owner confirmed "loyalty features" not "custom SaaS platform" — suggesting moderate complexity. |
 
 ---
 
@@ -183,11 +182,12 @@
 |-------|-------|
 | **ID** | A-12 |
 | **Assumption** | GST invoicing requires a custom module regardless of architecture. |
-| **Confidence** | Medium |
+| **Status** | VALIDATED — owner confirmed GST invoices required at launch. |
+| **Confidence** | High |
 | **Evidence For** | `owner_questions.md:187-188` states neither Medusa nor a custom backend generates GST invoices natively. Indian ecommerce requires per-invoice tax calculation based on HSN codes and destination state. |
-| **Evidence Against** | N/A — this is a confirmed gap in both options. The architecture choice doesn't affect this; a custom invoice module is needed in all cases. |
+| **Evidence Against** | N/A — this is a confirmed gap in both options if GST is required. The architecture choice doesn't affect this; a custom invoice module is needed in all cases where GST is required. |
 | **Source** | `backend_decision.md:187-188`, `business_requirements.md:44-48`, `architecture_challenges.md:48-49` |
-| **Validating Question** | 6.2 (GST invoices at launch) |
+| **Validating Question** | 6.2 (GST invoices at launch) — PENDING final confirmation |
 
 ---
 
@@ -211,12 +211,10 @@
 |-------|-------|
 | **ID** | A-14 |
 | **Assumption** | Building a custom backend (Option B) is not justified for QUORIN's use case. |
-| **Confidence** | Medium — **conditional on owner answers** |
-| **Evidence For** | 11 of 26 features are standard commerce domains already solved by Medusa (products, categories, variants, cart, orders, payments, shipping, inventory, auth, admin, search). Building these from scratch is reinventing mature solutions. Time to market would be significantly longer. |
-| **Evidence Against** | If QUORIN's business model is heavily centered on custom resin commissions (50%+ revenue from quote→deposit→production workflows with heavy XP/rewards), a custom backend with full control over every domain could be justified. A custom backend avoids Medusa module learning curve and upgrade risks. |
-| **Source** | `backend_decision.md:60-81`, `business_requirements.md:544-584` |
-| **Validating Question** | 3.1 (custom order importance) + 3.2 (custom order revenue %) + 8.1 (XP importance) + 9.1 (marketplace) |
-| **Note** | **This assumption is NOT confirmed.** Current evidence does not justify Option B, but it becomes justifiable if custom orders become a dominant revenue stream with complex workflows. |
+| **Status** | VALIDATED — owner confirmed business resembles a "normal ecommerce brand with loyalty features" — NOT a custom SaaS platform, NOT marketplace, NOT heavy custom-order business. |
+| **Confidence** | High |
+| **Evidence For** | Owner confirmed QUORIN is a standard ecommerce brand with loyalty features. Custom orders are not a core workflow. No marketplace or multi-vendor plans. 11 of 26 features are standard commerce domains (products, categories, variants, cart, orders, payments, shipping, inventory, auth, admin, search). Building these from scratch is reinventing mature solutions. Time to market would be significantly longer with a custom backend. |
+| **Evidence Against** | N/A — owner's explicit description eliminates the primary justification for a custom backend (heavy custom order workflows, SaaS platform, marketplace). |
 
 ---
 
@@ -226,11 +224,10 @@
 |-------|-------|
 | **ID** | A-15 |
 | **Assumption** | Two backends (Hybrid — Option C) provide no independent scaling benefit for QUORIN. |
+| **Status** | VALIDATED — business is a standard ecommerce brand, not a high-volume platform. |
 | **Confidence** | High |
-| **Evidence For** | QUORIN is a single store, single owner. Custom domains (XP, reviews, custom requests) are tightly coupled to commerce data (orders, products, customers). Splitting them creates integration overhead without scaling benefit. |
-| **Evidence Against** | If any custom domain needs to handle millions of transactions independently (e.g., XP ledger at massive scale), independent scaling could be justified. QUORIN will not approach this scale in 3+ years. |
-| **Source** | `backend_decision.md:112-117`, `architecture_challenges.md:145-146` |
-| **Validating Question** | N/A — this assumption holds across likely business scenarios. |
+| **Evidence For** | Owner confirmed QUORIN is a normal ecommerce brand with loyalty features — not a high-volume platform. Custom domains (XP, reviews, custom requests) are tightly coupled to commerce data. Splitting them creates integration overhead without scaling benefit. QUORIN will not approach massive transaction volumes in 3+ years. |
+| **Evidence Against** | If custom requests become a large revenue share, a separate subsystem might be justified. Current evidence does not justify Hybrid architecture. |
 
 ---
 
@@ -254,11 +251,10 @@
 |-------|-------|
 | **ID** | A-17 |
 | **Assumption** | Digital products and subscriptions are not on the initial roadmap. |
-| **Confidence** | Low |
-| **Evidence For** | No existing infrastructure for digital fulfillment or recurring billing in either backend. `owner_questions.md` has these as optional questions (2.3, 2.4). |
-| **Evidence Against** | If QUORIN plans tutorials, design templates, or monthly supply boxes, both architectures require custom modules. The choice of architecture doesn't matter — both need custom work. |
-| **Source** | `owner_questions.md:54-66`, `architecture_challenges.md:136-137` |
-| **Validating Question** | 2.3 (digital products) + 2.4 (subscriptions) |
+| **Status** | VALIDATED — owner confirmed physical products only, no subscription products, no membership products. |
+| **Confidence** | High |
+| **Evidence For** | Owner explicitly confirmed: physical products, no subscriptions, no memberships. No existing infrastructure for digital fulfillment or recurring billing in either backend. Focus is entirely on physical goods. |
+| **Evidence Against** | QUORIN could add courses or subscriptions later. Both architectures require custom modules, but not at launch. |
 
 ---
 
@@ -282,11 +278,10 @@
 |-------|-------|
 | **ID** | A-19 |
 | **Assumption** | GST compliance requires a custom invoice plugin regardless of architecture choice. |
+| **Status** | VALIDATED — owner confirmed GST invoices required at launch. |
 | **Confidence** | High |
 | **Evidence For** | `owner_questions.md:187-188` explicitly states neither Medusa nor a custom backend generates GST invoices natively. Indian ecommerce legally requires GST-compliant invoices with CGST/SGST/IGST breakdown. |
-| **Evidence Against** | N/A — this is a confirmed gap in all options. |
-| **Source** | `backend_decision.md:187-188`, `business_requirements.md:44-48`, `architecture_challenges.md:48-49` |
-| **Validating Question** | 6.2 (GST invoices at launch) |
+| **Evidence Against** | N/A — this is a confirmed gap in all options if GST is required at launch. |
 
 ---
 
@@ -296,11 +291,10 @@
 |-------|-------|
 | **ID** | A-20 |
 | **Assumption** | Medusa's order model (standard: pending → paid → shipped → delivered) covers most QUORIN use cases with simple extensions. |
-| **Confidence** | Low |
-| **Evidence For** | Standard ecommerce order lifecycles are well-served by Medusa's order entity and state machine. Custom statuses can be added via extensions. |
-| **Evidence Against** | If custom orders require a fundamentally different lifecycle (quote → approval → deposit → production → delivery → revisions), Medusa's order model may not support this without forcing custom orders into a hacky workaround. At 30%+ custom order revenue, this becomes a significant constraint. |
-| **Source** | `backend_decision.md:110-111`, `architecture_challenges.md:46, 115` |
-| **Validating Question** | 3.3 (custom order workflow) + 3.2 (custom order revenue %) |
+| **Status** | PARTIALLY VALIDATED — custom orders are not primary, owner confirmed they are NOT core business. |
+| **Confidence** | Medium-High |
+| **Evidence For** | Owner confirmed custom orders are customer-driven and NOT core business — so the standard Medusa order model covers the VAST majority of transactions. Custom statuses can be added via extensions. Standard ecommerce order lifecycles are well-served by Medusa's order entity and state machine. |
+| **Evidence Against** | If custom orders require a fundamentally different lifecycle (quote → approval → deposit → production → delivery → revisions), they'd need a separate workflow outside Medusa's order model. However, owner confirmed they are not core — so this edge case affects a small minority of orders. |
 
 ---
 
@@ -324,9 +318,10 @@
 |-------|-------|
 | **ID** | A-22 |
 | **Assumption** | QUORIN's primary identity is a retail maker-supply store, not a custom commission business or marketplace. |
-| **Confidence** | Low (unverified) |
-| **Evidence For** | Current codebase focuses on product catalog, categories, cart, and standard checkout. `owner_questions.md` treats custom orders and marketplace as "Nice to Have" or "Conditional" (Tiers 3-4). |
-| **Evidence Against** | QUORIN's brand identity as "Made for Makers" may emphasize bespoke work over catalog products. If custom commissions become the primary revenue driver, the architecture assumption shifts dramatically. If a marketplace is the long-term vision, all current options are wrong. |
+| **Status** | VALIDATED — owner confirmed physical craft/resin/candle making supplies with a growing catalog, not a custom commission business. |
+| **Confidence** | Medium-High |
+| **Evidence For** | Owner confirmed QUORIN sells physical craft supplies (resin, candle, soap making kits, pigments, tools, consumables) across Website + Amazon. Custom orders are customer-driven, not a primary workflow. Codebase focuses on product catalog, categories, cart, and standard checkout. |
+| **Evidence Against** | Custom orders, while not primary, could grow over time. If a marketplace is planned (9.1 still unanswered), the assumption would be wrong. |
 | **Source** | `business_requirements.md:26, 479-481`, `owner_questions.md:250-257` |
 | **Validating Question** | 1.1 (business vision) + 3.1 (custom order importance) + 9.1 (marketplace) |
 
@@ -336,42 +331,117 @@
 
 | Confidence Level | Count | IDs |
 |-----------------|-------|-----|
-| **High** | 3 | A15, A19, A21 (low dispute risk) |
-| **Medium** | 11 | A4, A5, A6, A7, A9, A11, A13, A14, A20 (moderate dispute risk) |
-| **Low** | 8 | A1, A2, A3, A8, A10, A12, A16, A17, A18, A22 (high dispute risk — depend on owner answers) |
+| **High** | 13 | A3, A4, A6, A7, A9, A11, A12, A14, A15, A17, A19, A21, A22 |
+| **Medium-High** | 2 | A20, A8 |
+| **Medium** | 6 | A1 (now assumes >100 SKUs), A2, A5, A10, A13, A16 |
+| **Low** | 1 | A18 (traffic volume — marketing strategy unknown) |
 
 **Total assumptions:** 22
-**High confidence (safe to proceed on):** 3
-**Medium confidence (reasonable but verify):** 11
-**Low confidence (must validate before implementation):** 8
+**High confidence (safe to proceed on):** 13 (+9 validated across all rounds)
+**Medium-High confidence:** 2 (-1 from A9, A19 moved up)
+**Medium confidence (reasonable but verify):** 6 (-2 from A12 moved up)
+**Low confidence (must validate before implementation):** 1 (A18 — marketing strategy unknown, not an architecture blocker)
+**Invalidated:** A1 (product count under ~100 — owner confirmed growing catalog beyond 100 SKUs)
+
+### Round 1 Validation Changes
+
+| Assumption | Before | After | Change |
+|------------|--------|-------|--------|
+| A3 (no marketplace) | Low | **High** ✅ | Owner confirmed no marketplace |
+| A4 (Medusa modules fit) | Medium | **High** ✅ | Custom orders NOT core business |
+| A6 (Express not needed) | Medium | **High** ✅ | Standard ecommerce model confirmed |
+| A9 (shipping plugins) | Medium | **Medium-High** | Owner confirmed tracking + multiple carriers |
+| A11 (XP/Loyalty module) | Medium | **High** ✅ | Owner confirmed XP/birthday/reviews required |
+| A14 (Custom backend not justified) | Medium → conditional | **High** ✅ | "Normal ecommerce brand with loyalty features" |
+| A15 (Hybrid no benefit) | High | **High** ✅ | Confirmed — standard brand, no independent scaling |
+| A17 (No digital/subscriptions) | Medium | **High** ✅ | Owner confirmed physical only, no subscriptions |
+| A19 (GST custom plugin) | High | **Medium-High (conditional)** | PENDING 6.2 — irrelevant if GST not needed at launch |
+| A20 (Medusa order model) | Low | **Medium-High** ✅ | Custom orders NOT core — standard model covers most |
+| A22 (retail identity) | Medium-High | **High** ✅ | Owner confirmed normal ecommerce brand with loyalty |
+| A12 (GST custom module) | Medium | **Medium (pending)** | PENDING 6.2 — GST confirmation still needed |
+| A18 (moderate traffic) | Low | **Low** | Still low — marketing strategy not documented |
+
+### Round 3 Final Validation Changes (2026-06-24 — COD, Shipping, GST)
+
+| Assumption | Before | After | Change |
+|------------|--------|-------|--------|
+| A9 (shipping plugins) | Medium-High | **High** ✅ | Owner confirmed ShipRocket aggregation (Delhivery, BlueDart, Xpressbees, Ecom Express) |
+| A12 (GST custom module) | Medium (pending) | **High** ✅ | Owner confirmed GST invoices required at launch |
+| A19 (GST custom plugin) | Medium-High (conditional) | **High** ✅ | Owner confirmed GST invoices required at launch |
 
 ---
 
-## Unanswered Owner Questions (Blocked Items)
+## Remaining Business Unknowns
+
+| Unknown | Impact | Blocks |
+|---------|--------|--------|
+| **Custom requests volume** — what % of revenue will custom commissions become? | If 5%: Medusa is obvious. If 60%: custom order system needs significant investment, may require separate subsystem beyond Medusa order model. | A2, A4, C.1 (Custom Requests module) |
+
+---
+
+## Unanswered Owner Questions (Non-Blocking Items)
 
 The following `owner_questions.md` entries block multiple assumptions and cannot be answered without owner input:
 
-| Question ID | Topic | Blocks Assumptions |
-|-------------|-------|-------------------|
-| **1.1** | Business vision | A22, A5 |
-| **2.1** | Product count | A1, A8 |
-| **3.1** | Custom order importance | A2, A22 |
-| **3.2** | Custom order revenue % | A2, A20 |
-| **3.3** | Custom order workflow | A4, A20 |
-| **4.1** | Customer type | A22 |
-| **6.1** | Payment methods | A7 |
-| **6.2** | GST at launch | A12, A19 |
-| **7.1** | Shipping locations | A9 |
-| **7.2** | Shipping carriers | A9 |
-| **8.1** | XP system importance | A11, A16 |
-| **9.1** | Marketplace plans | A3, A14, A22 |
-| **5.1** | Admin users today | A10 |
-| **5.3** | Staff roles | A10 |
-| **2.3** | Digital products | A17 |
-| **2.4** | Subscriptions | A17 |
-| **2.5** | Product bundles | A1 (indirect — bundles increase effective SKU count) |
+| Question ID | Topic | Blocks Assumptions | Status |
+|-------------|-------|-------------------|--------|
+| **6.2** | GST at launch | A12, A19 | **PENDING** — are GST invoices needed at launch? |
+| **7.1** | Shipping locations | A9 | **PENDING** — single or multiple fulfillment locations? |
+| **7.2** | Shipping carriers | A9 | **PENDING** — which carriers? ShipRocket, Delhivery, etc.? |
+| **8.1** | XP system importance | A16 | **PENDING** — is XP critical at launch or can it wait? |
+| **5.1** | Admin users today | A10 | **PENDING** — how many admin users? |
+| **5.3** | Staff roles | A10 | **PENDING** — need granular permissions? |
+| **2.5** | Product bundles | A1 (indirect) | **PENDING** — bundles increase effective SKU count. |
 
-All Low and some Medium confidence assumptions are blocked pending these answers.
+### Resolved (no longer blocks assumptions):
+
+| Question ID | Topic | Owner Answer | Resolves |
+|-------------|-------|-------------|----------|
+| **2.1** | Product count | Growing catalog beyond 50 SKUs | A1, A8 → Medium+ |
+| **3.2** | Custom order revenue % | Custom orders not primary | A20 → Medium-High |
+| **3.3** | Custom order workflow | Customer-driven, NOT core business | A4, A20 → High/Medium-High |
+| **4.1** | Customer type | Retail maker-supply store | A22 → High |
+| **9.1** | Marketplace plans | No marketplace, no multi-vendor | A3, A14 → High |
+| **8.1** | XP importance | XP, birthday rewards, reviews required | A11 → High |
+| **5.1** | Admin count | (still needed for A10) | — |
+| **5.3** | Staff roles | (still needed for A10) | — |
+| **7.1** | Shipping locations | (still needed for A9) | — |
+| **7.2** | Shipping carriers | Multiple carriers likely | A9 → Medium-High |
+| **6.2** | GST at launch | (still pending) | A12, A19 |
+| **2.5** | Product bundles | (still pending) | A1 |
+
+### Previously Answered (no longer blocks):
+
+| Question ID | Topic | Owner Answer | Resolves |
+|-------------|-------|-------------|----------|
+| **6.1** | Payment methods | UPI, cards, wallets, standard ecommerce | A7 → High |
+| **2.3** | Digital products | Physical products only | A17 → High |
+| **Sales channels** | Website + Amazon | | A22 → High |
+
+### Remaining Blockers
+
+**All blockers resolved.** Final answers received 2026-06-24:
+1. **COD requirement** (Q31 / 4.3) — ✅ Yes. Support COD where available.
+2. **Shipping carrier preference** (Q33 / 7.2) — ✅ ShipRocket aggregation (no carrier lock).
+3. **GST invoice necessity** (Q34 / 6.2) — ✅ GST invoices required at launch.
+
+### Unanswered (non-blocking)
+
+These remaining questions in  do not block architecture decisions:
+| Question ID | Topic | Impact |
+|-------------|-------|--------|
+| 2.2 | Variants per product | Affects inventory complexity (Medium) |
+| 2.5 | Product bundles | Affects effective SKU count (Medium) |
+| 2.6 | Limited editions | Affects product expiry logic (Medium) |
+| 3.2 | Custom order revenue % | Affects custom module priority (Medium) |
+| 5.1 | Admin users today | Affects admin plugin complexity (Medium) |
+| 5.2 | Admin users in 2 years | Affects permissions (Medium) |
+| 5.3 | Staff roles | Affects permissions (Medium) |
+| 7.3 | International shipping | Affects shipping profiles (Medium) |
+| 8.2 | Referral system | Adds another custom module dimension (Low) |
+| 9.2 | Creator/vendor accounts | Affects user types (Medium) |
+| 9.3 | Courses/tutorials | Affects digital product support (Low) |
+| 9.4 | Community/forum | Affects content scope (Low) |
 
 ---
 

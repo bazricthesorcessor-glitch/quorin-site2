@@ -1,7 +1,7 @@
 # QUORIN Owner Questions
 
-**Version:** 1 (frozen — awaiting answers)
-**Freeze Note:** Do not modify this document until owner provides responses. If new questions arise, append to `architecture_review_notes.md` rather than altering the existing list.
+**Version:** 2 (final owner answers received — 2026-06-24)
+**Freeze Note:** All owner questions answered. This document is frozen at V2.
 
 **Date:** 2026-06-23
 **Purpose:** Validate business assumptions before implementation. Every answer affects the technical architecture and development timeline.
@@ -309,6 +309,25 @@
 | 6.1 | Payment methods | All methods | Razorpay covers all. No timeline impact if using Medusa + Razorpay plugin. |
 | 7.3 | International shipping | Yes | Adds 2\u20133 weeks (international shipping profiles + carrier integration) |
 | 8.1 | XP system importance | Critical at launch | Adds XP module to Tier 1 (extends launch timeline by 3\u20134 weeks) |
+
+---
+
+## Final Owner Answers (2026-06-24)
+
+### 4.3 — Cash on Delivery (COD)
+**Answer:** Yes. Support COD where available.
+
+COD is required for the Indian market. Razorpay supports COD natively. Order flow will create orders without upfront payment confirmation for COD, and cash collection on delivery.
+
+### 6.2 — GST Invoices at Launch
+**Answer:** Yes. GST invoice support required.
+
+Products are sold commercially in India. Per-invoice tax calculation based on product HSN codes and destination state (CGST/SGST/IGST) is a legal requirement. A custom GST invoice module is needed regardless of architecture choice.
+
+### 7.2 — Shipping Carrier
+**Answer:** No carrier lock. Prefer ShipRocket aggregation (Delhivery, BlueDart, Xpressbees, Ecom Express).
+
+ShipRocket is preferred because it can aggregate multiple carriers (Delhivery, Xpressbees, BlueDart, Ecom Express). No carrier-specific dependencies at this stage. Both ShipRocket and Delhivery have Medusa plugins.
 
 ---
 

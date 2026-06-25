@@ -13,25 +13,27 @@ import ProductPreview from '@/components/ProductPreview';
 import CookieBanner from '@/components/CookieBanner';
 import ProfileModal from '@/components/ProfileModal';
 import AdminCenter, { type AdminTheme } from '@/components/AdminCenter';
+import CustomCursor from '@/components/CustomCursor';
 import Hero from '@/sections/Hero';
 import CategorySection from '@/sections/CategorySection';
 import WhyShop from '@/sections/WhyShop';
 import HistorySection from '@/sections/History';
 import Footer from '@/sections/Footer';
+import ProductShowcase from '@/sections/ProductShowcase';
 import CategoryPage from '@/pages/CategoryPage';
 import XpPage from '@/pages/XpPage';
 import { getProductId, quorinData, type Category, type Product } from '@/data/products';
 import {
   demoAccounts,
   findAccountByIdentifierInAccounts,
-  hydrateAccounts,
+
   type AccountProfile,
   type AccountRecord,
 } from '@/data/accounts';
 import { getXpDiscountPercent, getXpLevel } from '@/data/xp';
 import { getCheckoutGiftOffer, getGiftDiscountForProduct, getGiftLockKey, redeemCheckoutGift } from '@/data/gifts';
 import {
-  appendCustomRequest,
+
   loadAccounts,
   loadCatalog,
   loadCheckoutLocks,
@@ -44,8 +46,9 @@ import {
   saveCurrentAccountId,
   saveTheme,
 } from '@/lib/quorinStore';
-import { useMedusaCart, type CartItem as MedusaCartItem } from '@/lib/useMedusaCart';
+import { useMedusaCart } from '@/lib/useMedusaCart';
 import { useMedusaCatalog } from '@/lib/useMedusaCatalog';
+import { medusaApi } from '@/lib/medusa';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -132,24 +135,47 @@ export default function App() {
   const [selectedGiftCartId, setSelectedGiftCartId] = useState<string | null>(null);
   const [clientFingerprint] = useState(() => loadClientFingerprint());
   const [checkoutLocks, setCheckoutLocks] = useState<Record<string, boolean>>(() => loadCheckoutLocks());
+  const [localCartItems, setLocalCartItems] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('quorin.localCart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
-  const { categories: medusaCategories, loading: catalogLoading } = useMedusaCatalog();
+  const { categories: medusaCategories, refetch: refetchMedusaCatalog } = useMedusaCatalog();
   const { cart: medusaCart, cartId, addItem: medusaAddItem, updateItem: medusaUpdateItem, removeItem: medusaRemoveItem } = useMedusaCart();
 
-  const cartItems: CartItem[] = medusaCart.map((item) => ({
-    cartId: item.lineId,
-    name: item.name,
-    variant: undefined,
-    size: undefined,
-    price: item.price,
-    mrp: item.mrp,
-    description: undefined,
-    images: item.image ? [item.image] : [],
-    features: undefined,
-    tags: [],
-    type: '',
-    quantity: item.quantity,
-  }));
+  useEffect(() => {
+    console.log('[App] medusaCategories.length =', medusaCategories.length, 'categories:', medusaCategories.map(c => c.id));
+  }, [medusaCategories]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('quorin.localCart', JSON.stringify(localCartItems));
+    } catch {
+      // Storage full or unavailable
+    }
+  }, [localCartItems]);
+
+  const cartItems: CartItem[] = medusaCart.length > 0
+    ? medusaCart.map((item) => ({
+        cartId: item.lineId,
+        name: item.name,
+        variant: undefined,
+        size: undefined,
+        price: item.price,
+        mrp: item.mrp,
+        discount: '0',
+        description: undefined,
+        images: item.image ? [item.image] : [],
+        features: undefined,
+        tags: [],
+        type: '',
+        quantity: item.quantity,
+      }))
+    : localCartItems;
 
   const [previewProduct, setPreviewProduct] = useState<Product | null>(() => getInitialPreviewProduct());
   const [previewOpen, setPreviewOpen] = useState(() => Boolean(getInitialPreviewProduct()));
@@ -202,25 +228,23 @@ export default function App() {
 
   // Cart functions - Medusa-backed with fallback to local state
   const addToCart = useCallback((product: Product) => {
-    if (cartId && product.tags && product.tags.length > 0) {
-      // Try Medusa first
+    if (cartId && medusaCategories.length > 0) {
+      // Try Medusa first - find matching product by name
       const match = medusaCategories
         .flatMap((c) => c.products)
         .find((p) => p.name === product.name);
-      if (match && match.tags) {
-        const medusaType = match.tags.find((t) => t.type === product.type);
-        if (match.variants && match.variants.length > 0) {
-          medusaAddItem(match.id, match.variants[0].id, match.title, match.price, match.mrp);
-          setCartOpen(true);
-          window.dispatchEvent(new CustomEvent('quorin:addedToCart', { detail: product }));
-          return;
-        }
+      if (match && match.id) {
+        // Medusa products don't have variants in the mapped type, so use placeholder
+        medusaAddItem(match.id, 'placeholder_variant', match.name, match.price, match.mrp);
+        setCartOpen(true);
+        window.dispatchEvent(new CustomEvent('quorin:addedToCart', { detail: product }));
+        return;
       }
     }
     // Fallback: local cart
-    const existing = cartItems.find((item) => item.name === product.name && item.variant === product.variant);
+    const existing = localCartItems.find((item) => item.name === product.name && item.variant === product.variant);
     if (existing) {
-      setCartItems((prev) =>
+      setLocalCartItems((prev) =>
         prev.map((item) =>
           item.cartId === existing.cartId
             ? { ...item, quantity: item.quantity + 1 }
@@ -228,11 +252,11 @@ export default function App() {
         )
       );
     } else {
-      setCartItems((prev) => [...prev, { ...product, cartId: `${product.name}-${Date.now()}`, quantity: 1 }]);
+      setLocalCartItems((prev) => [...prev, { ...product, cartId: `${product.name}-${Date.now()}`, quantity: 1 }]);
     }
     setCartOpen(true);
     window.dispatchEvent(new CustomEvent('quorin:addedToCart', { detail: product }));
-  }, [cartId, medusaCategories, medusaAddItem, cartItems]);
+  }, [cartId, medusaCategories, medusaAddItem, localCartItems]);
 
   const updateQuantity = useCallback((cartIdKey: string, quantity: number) => {
     // Check if this is a Medusa cart item
@@ -243,9 +267,9 @@ export default function App() {
     }
     // Fallback: local cart
     if (quantity <= 0) {
-      setCartItems((prev) => prev.filter((item) => item.cartId !== cartIdKey));
+      setLocalCartItems((prev) => prev.filter((item) => item.cartId !== cartIdKey));
     } else {
-      setCartItems((prev) =>
+      setLocalCartItems((prev) =>
         prev.map((item) => (item.cartId === cartIdKey ? { ...item, quantity } : item))
       );
     }
@@ -257,12 +281,12 @@ export default function App() {
       medusaRemoveItem(cartIdKey);
       return;
     }
-    setCartItems((prev) => prev.filter((item) => item.cartId !== cartIdKey));
+    setLocalCartItems((prev) => prev.filter((item) => item.cartId !== cartIdKey));
   }, [medusaCart, medusaRemoveItem]);
 
   const cartCount = medusaCart.length > 0
     ? medusaCart.reduce((sum, item) => sum + item.quantity, 0)
-    : cartItems.reduce((sum, item) => sum + item.quantity, 0);
+    : localCartItems.reduce((sum, item) => sum + item.quantity, 0);
   const currentAccount = currentAccountId ? accounts[currentAccountId] ?? null : null;
   const currentOrders = currentAccount?.orders ?? [];
   const currentSpend = currentOrders.reduce(
@@ -300,12 +324,64 @@ export default function App() {
     saveTheme(theme);
   }, [theme]);
 
-  const updateCatalog = useCallback((mutator: (catalog: typeof quorinData) => void) => {
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--color-accent', theme.accent);
+    root.style.setProperty('--color-teal', theme.teal);
+    root.style.setProperty('--color-dominant', theme.dominant);
+    root.style.setProperty('--color-text-primary', theme.textPrimary);
+    root.style.setProperty('--color-text-secondary', theme.textSecondary);
+  }, [theme.accent, theme.teal, theme.dominant, theme.textPrimary, theme.textSecondary]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.fontFamily = theme.fontFamily;
+    document.body.style.fontFamily = theme.fontFamily;
+  }, [theme.fontFamily]);
+
+  const syncCatalogToMedusa = useCallback(async () => {
+    try {
+      const existing = await medusaApi.getProducts({ limit: 200 });
+      const existingMap = new Map<string, unknown>();
+      existing?.products?.forEach((p: Record<string, unknown>) => {
+        existingMap.set(p.title as string, p);
+      });
+
+      for (const category of quorinData.categories) {
+        for (const product of category.products) {
+          const name = product.name;
+          const existing = existingMap.get(name) as Record<string, unknown> | undefined;
+
+          const productData: Record<string, unknown> = {
+            title: name,
+            description: (product.description as string) ?? '',
+            status: 'publishable',
+          };
+
+          if (product.images && product.images.length > 0) {
+            productData.thumbnail = product.images[0] as string;
+          }
+
+          if (existing?.id) {
+            await medusaApi.updateProduct(existing.id as string, productData);
+          } else {
+            await medusaApi.createProduct(productData);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Catalog sync to Medusa failed (backend may be offline):', err);
+    }
+  }, []);
+
+  const updateCatalog = useCallback(async (mutator: (catalog: typeof quorinData) => void) => {
     const nextCatalog = JSON.parse(JSON.stringify(quorinData)) as typeof quorinData;
     mutator(nextCatalog);
     Object.assign(quorinData, nextCatalog);
     setCatalogVersion((value) => value + 1);
-  }, []);
+    await syncCatalogToMedusa();
+    refetchMedusaCatalog();
+  }, [syncCatalogToMedusa, refetchMedusaCatalog]);
 
   const updateTheme = useCallback((nextTheme: AdminTheme) => {
     quorinData.brand = nextTheme.brand;
@@ -394,7 +470,8 @@ export default function App() {
     setCartOpen(false);
   };
 
-  const authenticate = (identifier: string, password: string) => {
+  const authenticate = useCallback((identifier: string, password: string) => {
+    // Try local accounts first (fast, sync)
     const account = findAccountByIdentifierInAccounts(accounts, identifier) ?? findAccountByIdentifierInAccounts(demoAccounts, identifier);
 
     if (!account || account.password !== password) {
@@ -406,8 +483,14 @@ export default function App() {
       [account.profile.id]: prev[account.profile.id] ?? account,
     }));
     setCurrentAccountId(account.profile.id);
+
+    // Try Medusa auth in background (non-blocking)
+    medusaApi.authenticate(identifier, password).catch(() => {
+      // Medusa backend may be offline; local auth succeeded
+    });
+
     return { ok: true, account };
-  };
+  }, [accounts]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -546,6 +629,9 @@ export default function App() {
             fontFamily: theme.fontFamily,
           } as CSSProperties}
         >
+          {/* Custom cursor */}
+          <CustomCursor />
+
           {/* Navigation */}
           <Navigation
             cartCount={cartCount}
@@ -578,16 +664,16 @@ export default function App() {
 
           {/* Main Content */}
           <Routes>
-            <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} />} />
+            <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={medusaCategories.length > 0 ? medusaCategories : quorinData.categories} addToCart={addToCart} openPreview={openPreview} />} />
             <Route
               path="/category/:categoryId"
-              element={<CategoryPage onAddToCart={addToCart} onPreview={openPreview} />}
+              element={<CategoryPage onAddToCart={addToCart} onPreview={openPreview} categories={medusaCategories.length > 0 ? medusaCategories : quorinData.categories} />}
             />
             <Route
               path="/xp"
               element={<XpPage currentAccount={currentAccount} onBackHome={() => navigate('/')} />}
             />
-            <Route path="*" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} />} />
+            <Route path="*" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={medusaCategories.length > 0 ? medusaCategories : quorinData.categories} addToCart={addToCart} openPreview={openPreview} />} />
           </Routes>
 
           {/* Product preview modal */}

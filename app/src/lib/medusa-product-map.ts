@@ -1,4 +1,4 @@
-import type { Product } from './products';
+import type { Product } from '@/data/products';
 
 const CATEGORY_SLUG_MAP: Record<string, string> = {
   'resin-kit': 'resin-art',
@@ -32,12 +32,20 @@ const CATEGORY_INFO: Record<string, { title: string; description: string }> = {
 
 const defaultImage = '/product-resin-kit.jpg';
 
+interface MedusaCalculatedPrice {
+  calculated_amount: number;
+  currency_code: string;
+}
+
 interface MedusaVariant {
   id: string;
   title?: string;
+  sku?: string;
+  calculated_price?: MedusaCalculatedPrice;
+  allow_zero_price?: boolean;
+  prices?: Array<{ currency_code: string; amount: number }>;
   options?: Record<string, string | number>;
-  allow_zero_price: boolean;
-  prices: Array<{ currency_code: string; amount: number }>;
+  thumbnail?: string | null;
 }
 
 interface MedusaProductImage {
@@ -97,9 +105,15 @@ function getPrimaryImageUrl(images: MedusaProductImage[] | undefined): string {
 }
 
 function getVariantInfo(variants: MedusaVariant[]) {
-  const prices = variants.flatMap((v) =>
-    v.prices.map((p) => ({ variantId: v.id, amount: p.amount, currency: p.currency_code }))
-  );
+  const prices = variants.flatMap((v) => {
+    if (v.calculated_price) {
+      return [{ variantId: v.id, amount: v.calculated_price.calculated_amount, currency: v.calculated_price.currency_code }];
+    }
+    if (v.prices) {
+      return v.prices.map((p) => ({ variantId: v.id, amount: p.amount, currency: p.currency_code }));
+    }
+    return [];
+  });
   const cheapest = prices.reduce(
     (min, p) => (p.amount < min.amount ? p : min),
     prices[0] ?? { amount: 0, currency: 'inr' }

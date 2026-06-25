@@ -1,7 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { medusaStore } from './medusa';
 import { medusaApi } from './medusa';
-import type { Product } from '@/data/products';
 
 export interface CartItem {
   cartId: string;
@@ -84,7 +82,7 @@ export function useMedusaCart(): MedusaCartState {
     setLoading(true);
     setError(null);
     try {
-      const { cart } = await medusaStore.carts.retrieve(cartId);
+      const { cart } = await medusaApi.getCart(cartId);
       const items = (cart.items || []).map(mapCartLineToItem);
       setCart(items);
       setLoading(false);
@@ -97,15 +95,14 @@ export function useMedusaCart(): MedusaCartState {
     if (cartId) {
       return cartId;
     }
-    const newCart = await medusaApi.createCart();
-    const id = newCart.id;
-    setCartId(id);
-    localStorage.setItem(STORAGE_KEY, id);
-    return id;
+    const { cart } = await medusaApi.createCart();
+    setCartId(cart.id);
+    localStorage.setItem(STORAGE_KEY, cart.id);
+    return cart.id;
   }, [cartId]);
 
   const addItem = useCallback(
-    async (productId: string, variantId: string, name: string, price: number, mrp: number) => {
+    async (_productId: string, variantId: string, _name: string, _price: number, _mrp: number) => {
       if (pendingRef.current) return;
       pendingRef.current = true;
       try {
