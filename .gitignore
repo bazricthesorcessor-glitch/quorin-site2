@@ -12,7 +12,20 @@ run_full_dev.log
 node_modules
 dist
 .vite
-*.log
 codebase_full.txt
 clean_codebase.txt
 *.zip
+
+# Large files (> 1MB) - images, media
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.mp4
+*.avi
+*.mov
+*.wasm
+*.ttf
+*.woff
+*.woff2
