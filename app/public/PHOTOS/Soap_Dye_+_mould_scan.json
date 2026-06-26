@@ -1,0 +1,11 @@
+```json
+{
+  "product_name": "Soap Making Kit",
+  "description": "A soap making kit with colorful pigments and mold",
+  "category": "Crafting",
+  "tags": ["soap making", "crafting", "pigments"],
+  "price_hint": "budget",
+  "materials": ["plastic", "pigments"],
+  "colors": ["pink", "violet", "brown", "red", "orange", "green", "yellow", "blue"]
+}
+```

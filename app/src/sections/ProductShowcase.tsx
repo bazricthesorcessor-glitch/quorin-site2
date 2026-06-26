@@ -3,27 +3,13 @@ import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { ShoppingCart, Sparkles } from 'lucide-react';
 import type { Category, Product } from '@/data/products';
 
-const productImageMap: Record<string, string> = {
-  'resin-kit': '/product-resin-kit.jpg',
-  'pigments': '/product-pigments.jpg',
-  'eco-resin': '/product-eco-resin.jpg',
-  'tools': '/product-tools.jpg',
-  'drill': '/product-tools.jpg',
-  'candle-color': '/product-candle-colors.jpg',
-  'wicks': '/product-wicks.jpg',
-  'torch': '/product-torch.jpg',
-  'fragrance-oil': '/product-fragrance.jpg',
-  'soap-color': '/product-soap-colors.jpg',
-  'glitter': '/product-glitter.jpg',
-  'geode-art': '/product-glitter.jpg',
-  'default': '/product-resin-kit.jpg',
-};
+const fallbackImage = '/product-resin-kit.jpg';
 
 function getProductImage(product: Product): string {
-  for (const [key, value] of Object.entries(productImageMap)) {
-    if (product.tags.includes(key)) return value;
+  if (product.images && product.images.length > 0) {
+    return product.images[0];
   }
-  return productImageMap.default;
+  return fallbackImage;
 }
 
 interface ProductCardProps {
@@ -44,15 +30,15 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
     offset: ['start end', 'center center'],
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], [80, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [0.9, 1]);
+  const y = useTransform(scrollYProgress, [0, 1], [40, 0]);
+  const scale = useTransform(scrollYProgress, [0, 1], [0.95, 1]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [0, 1]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 15;
-    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 15;
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 8;
+    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 8;
     setMousePos({ x, y });
   };
 
@@ -66,11 +52,7 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
       className="group"
     >
       <motion.div
-        className="relative overflow-hidden rounded-xl"
-        style={{
-          background: 'var(--color-secondary)',
-          border: '1px solid rgba(255, 255, 255, 0.05)',
-        }}
+        className="relative overflow-hidden rounded-2xl ivory-card"
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => {
@@ -78,21 +60,21 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
           setMousePos({ x: 0, y: 0 });
         }}
         whileHover={{
-          borderColor: 'rgba(255, 26, 60, 0.3)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)',
+          y: -4,
+          borderColor: 'var(--color-accent)',
         }}
         transition={{ duration: 0.4 }}
       >
-        {/* Image Container with Parallax */}
+        {/* Image Container */}
         <div className="relative h-56 overflow-hidden cursor-pointer" onClick={() => onPreview?.(product)}>
           <motion.div
             className="absolute inset-0"
             animate={{
               x: mousePos.x,
               y: mousePos.y,
-              scale: isHovered ? 1.1 : 1,
+              scale: isHovered ? 1.05 : 1,
             }}
-            transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 100 }}
           >
             <img
               src={image}
@@ -101,26 +83,25 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
             />
           </motion.div>
 
-          {/* Gradient overlay */}
+          {/* Soft gradient overlay */}
           <div
             className="absolute inset-0"
             style={{
-              background: 'linear-gradient(to bottom, transparent 40%, rgba(8, 8, 13, 0.9) 100%)',
+              background: 'linear-gradient(to bottom, transparent 50%, rgba(248, 245, 240, 0.5) 100%)',
             }}
           />
 
           {/* Discount Badge */}
           {discount > 0 && (
             <motion.div
-              className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold"
+              className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-semibold"
               style={{
-                background: 'linear-gradient(135deg, #ff1a3c, #ff0044)',
+                background: 'var(--color-accent)',
                 color: 'white',
-                boxShadow: '0 4px 15px rgba(255, 26, 60, 0.4)',
               }}
               initial={{ scale: 0 }}
               animate={isInView ? { scale: 1 } : {}}
-              transition={{ delay: 0.2 + index * 0.05, type: 'spring' }}
+              transition={{ delay: 0.2 + index * 0.05, type: 'spring', stiffness: 300 }}
             >
               {product.discount} OFF
             </motion.div>
@@ -128,10 +109,10 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
 
           {/* Quick Add Button */}
           <motion.button
-            className="absolute bottom-3 right-3 p-3 rounded-full"
+            className="absolute bottom-3 right-3 p-2.5 rounded-full"
             style={{
-              background: 'linear-gradient(135deg, #ff1a3c, #ff0044)',
-              boxShadow: '0 4px 20px rgba(255, 26, 60, 0.4)',
+              background: 'var(--color-accent)',
+              color: 'white',
             }}
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: isHovered ? 1 : 0, scale: isHovered ? 1 : 0.5 }}
@@ -139,7 +120,7 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
             whileTap={{ scale: 0.9 }}
             onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
           >
-            <ShoppingCart size={18} color="white" />
+            <ShoppingCart size={16} color="white" />
           </motion.button>
 
           {/* Tags */}
@@ -147,11 +128,10 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
             {product.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-0.5 rounded-full text-[10px] tracking-wider"
+                className="px-2 py-0.5 rounded-full text-[10px] tracking-wider font-medium"
                 style={{
-                  background: 'rgba(0, 212, 255, 0.15)',
-                  color: 'var(--color-teal)',
-                  border: '1px solid rgba(0, 212, 255, 0.2)',
+                  background: 'rgba(201, 169, 110, 0.1)',
+                  color: 'var(--color-accent)',
                 }}
               >
                 {tag}
@@ -162,7 +142,7 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
 
         {/* Content */}
         <div className="p-5">
-          {/* Product Name with slide animation */}
+          {/* Product Name */}
           <div className="overflow-hidden mb-2">
             <motion.h4
               className="text-sm font-medium leading-snug"
@@ -184,9 +164,9 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
               )}
               {product.size && (
                 <span
-                  className="text-xs px-2 py-0.5 rounded"
+                  className="text-xs px-2 py-0.5 rounded-md"
                   style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
+                    background: 'rgba(201, 169, 110, 0.08)',
                     color: 'var(--color-text-secondary)',
                   }}
                 >
@@ -198,14 +178,14 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
 
           {/* Features */}
           {product.features && (
-            <div className="flex flex-wrap gap-1 mb-3">
+            <div className="flex flex-wrap gap-2 mb-3">
               {product.features.slice(0, 3).map((feature) => (
                 <span
                   key={feature}
-                  className="flex items-center gap-1 text-[10px]"
+                  className="flex items-center gap-1 text-[10px] font-medium"
                   style={{ color: 'var(--color-text-muted)' }}
                 >
-                  <Sparkles size={10} style={{ color: 'var(--color-teal)' }} />
+                  <Sparkles size={10} style={{ color: 'var(--color-accent)' }} />
                   {feature}
                 </span>
               ))}
@@ -213,15 +193,15 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
           )}
 
           {/* Price */}
-          <div className="flex items-center gap-3 mt-3 pt-3" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
-            <span className="text-xl font-bold" style={{ color: 'var(--color-accent)' }}>
+          <div className="flex items-center gap-3 mt-3 pt-3" style={{ borderTop: '1px solid var(--color-border)' }}>
+            <span className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
               ₹{product.price}
             </span>
-            <span className="text-sm line-through" style={{ color: 'var(--color-text-muted)' }}>
+            <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
               ₹{product.mrp}
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(255, 26, 60, 0.1)', color: 'var(--color-accent)' }}>
-              SAVE ₹{product.mrp - product.price}
+            <span className="text-xs font-medium" style={{ background: 'rgba(201, 169, 110, 0.1)', color: 'var(--color-accent)' }}>
+              Save ₹{product.mrp - product.price}
             </span>
           </div>
         </div>
@@ -251,7 +231,7 @@ function CategoryProducts({ category, onAddToCart, onPreview }: CategoryProducts
       {/* Section Header */}
       <motion.div
         className="max-w-7xl mx-auto mb-12"
-        initial={{ opacity: 0, y: 50 }}
+        initial={{ opacity: 0, y: 40 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.8 }}
       >
@@ -259,12 +239,12 @@ function CategoryProducts({ category, onAddToCart, onPreview }: CategoryProducts
           <div>
             <motion.span
               className="text-xs tracking-[0.3em] mb-3 block"
-              style={{ color: 'var(--color-teal)' }}
+              style={{ color: 'var(--color-accent)' }}
             >
               {category.products.length} PRODUCTS
             </motion.span>
             <motion.h2
-              className="text-3xl md:text-5xl font-bold"
+              className="text-3xl md:text-4xl font-bold"
               style={{ color: 'var(--color-text-primary)' }}
             >
               {category.title}

@@ -160,13 +160,15 @@ function mapFeatures(description: string | undefined): string[] | undefined {
 }
 
 export function mapMedusaProduct(product: MedusaProduct): Product {
-  const { price, mrp, discount, variantLabel, size } = getVariantInfo(product.variants);
+  const { price, mrp, discount, variantId, variantLabel, size } = getVariantInfo(product.variants);
   const tags = product.tags?.map((t) => t.value.toLowerCase()) ?? [];
   const category = getCategoryFromProduct(product);
   const features = mapFeatures(product.description);
   const images = product.images ? product.images.map((img) => getPrimaryImageUrl([img])) : [defaultImage];
 
   return {
+    id: product.id,
+    variantId,
     name: product.title,
     variant: variantLabel,
     size,

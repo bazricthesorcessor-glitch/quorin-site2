@@ -1,21 +1,21 @@
 require("dotenv").config();
-const { initializeContainer } = require("./node_modules/@medusajs/medusa/dist/loaders");
-const { ContainerRegistrationKeys } = require("./node_modules/@medusajs/framework/dist/utils");
+const loaders = require("./node_modules/@medusajs/medusa/dist/loaders/index.js");
+const { default: medusaLoader } = loaders;
 
 async function setup() {
-  const container = await initializeContainer(process.cwd(), {
-    skipMigrations: true,
-    skipDbConnection: false,
+  const { container } = await medusaLoader({
+    directory: process.cwd(),
+    expressApp: null,
+    skipLoadingEntryPoints: true,
   });
-  const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
+  const logger = container.resolve("logger");
 
   // 1. Create region if it doesn't exist
   const regionModule = container.resolve("region");
-  let region = await regionModule.listRegions({ code: "IN" });
+  let region = await regionModule.listRegions();
   if (region.length === 0) {
     const [created] = await regionModule.createRegions([{
       name: "India",
-      code: "IN",
       currency_code: "inr",
       countries: ["in"],
       is_tax_inclusive: false,

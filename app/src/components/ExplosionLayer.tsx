@@ -1,131 +1,81 @@
 import { useEffect, useRef } from 'react';
-import starManager from '@/utils/starManager';
 
-type Particle = {
+type FloatParticle = {
+  el: HTMLElement;
   x: number;
   y: number;
   vx: number;
   vy: number;
-  life: number;
   size: number;
-  color: string;
-  type?: 'star' | 'spark';
+  opacity: number;
+  rotation: number;
+  rotationSpeed: number;
+  life: number;
 };
 
 export default function ExplosionLayer() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const particlesRef = useRef<Particle[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const particlesRef = useRef<FloatParticle[]>([]);
   const rafRef = useRef<number | null>(null);
-  const lastClickRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
-    const handlePointerDown = (e: PointerEvent) => {
-      lastClickRef.current = { x: e.clientX, y: e.clientY };
-    };
-    window.addEventListener('pointerdown', handlePointerDown, { capture: true });
+    const container = containerRef.current;
+    if (!container) return;
 
-    return () => window.removeEventListener('pointerdown', handlePointerDown, { capture: true });
-  }, []);
+    const createParticles = (x: number, y: number) => {
+      const count = 12;
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'absolute rounded-full pointer-events-none';
+        const size = 4 + Math.random() * 6;
+        el.style.width = `${size}px`;
+        el.style.height = `${size}px`;
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
+        el.style.background = `rgba(201, 169, 110, ${0.3 + Math.random() * 0.4})`;
+        el.style.boxShadow = `0 0 ${size}px rgba(201, 169, 110, 0.3)`;
+        el.style.transition = 'opacity 0.6s ease-out';
+        container.appendChild(el);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
-      canvas.style.width = window.innerWidth + 'px';
-      canvas.style.height = window.innerHeight + 'px';
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
-    const spawnExplosion = (x: number, y: number) => {
-      // sparks
-      const sparks = 18;
-      for (let i = 0; i < sparks; i++) {
         const angle = Math.random() * Math.PI * 2;
-        const speed = 2 + Math.random() * 6;
+        const speed = 1 + Math.random() * 3;
+
         particlesRef.current.push({
+          el,
           x,
           y,
           vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - (Math.random() * 1.5),
-          life: 40 + Math.random() * 30,
-          size: 2 + Math.random() * 3,
-          color: `hsl(${Math.floor(Math.random() * 50 + 350)}, 90%, ${50 + Math.random() * 20}%)`,
-          type: 'spark',
-        });
-      }
-
-      // stars pop
-      const extraStars = 8;
-      // ask starManager how many stars we can actually spawn
-      const allowed = Math.max(0, starManager.requestReserve(extraStars));
-      for (let i = 0; i < allowed; i++) {
-        particlesRef.current.push({
-          x: x + (Math.random() - 0.5) * 40,
-          y: y + (Math.random() - 0.5) * 40,
-          vx: (Math.random() - 0.5) * 0.8,
-          vy: - (1 + Math.random() * 1.5),
-          life: 80 + Math.random() * 120,
-          size: 1 + Math.random() * 3,
-          color: `#fff`,
-          type: 'star',
+          vy: Math.sin(angle) * speed - 1,
+          size,
+          opacity: 0.6 + Math.random() * 0.4,
+          rotation: Math.random() * 360,
+          rotationSpeed: (Math.random() - 0.5) * 4,
+          life: 60 + Math.random() * 40,
         });
       }
     };
 
     const animate = () => {
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
       const particles = particlesRef.current;
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        // physics
-        p.vy += p.type === 'star' ? 0.03 : 0.18; // gravity gentle for stars
-        p.vx *= 0.99;
-        p.vy *= 0.99;
+        p.vy += 0.05;
+        p.vx *= 0.98;
+        p.vy *= 0.98;
         p.x += p.vx;
         p.y += p.vy;
+        p.rotation += p.rotationSpeed;
         p.life -= 1;
 
-        const alpha = Math.max(0, p.life / 100);
+        const fadeProgress = Math.max(0, p.life / 60);
+        const currentOpacity = p.opacity * fadeProgress;
 
-        if (p.type === 'star') {
-          ctx.save();
-          ctx.globalAlpha = alpha;
-          ctx.fillStyle = p.color;
-          // simple star as filled circle for perf
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        } else {
-          // spark
-          ctx.save();
-          ctx.globalCompositeOperation = 'lighter';
-          ctx.globalAlpha = Math.max(0, alpha);
-          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 8);
-          g.addColorStop(0, p.color);
-          g.addColorStop(0.2, 'rgba(255,200,150,0.7)');
-          g.addColorStop(1, 'rgba(0,0,0,0)');
-          ctx.fillStyle = g;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * 8, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        }
+        p.el.style.transform = `translate(${p.x - parseFloat(p.el.style.left) || 0}px, ${p.y - parseFloat(p.el.style.top) || 0}px) rotate(${p.rotation}deg)`;
+        p.el.style.opacity = String(currentOpacity);
 
-        if (p.life <= 0 || p.y > window.innerHeight + 100) {
-          // if this was a star, release reservation
-          if (p.type === 'star') starManager.release(1);
+        if (p.life <= 0) {
+          p.el.style.opacity = '0';
+          setTimeout(() => p.el.remove(), 600);
           particles.splice(i, 1);
         }
       }
@@ -135,26 +85,27 @@ export default function ExplosionLayer() {
 
     rafRef.current = requestAnimationFrame(animate);
 
-    const handler = () => {
-      // spawn at last click position if available
-      const pos = lastClickRef.current || { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-      spawnExplosion(pos.x, pos.y);
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { x, y } = customEvent.detail || { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+      createParticles(x, y);
     };
 
     window.addEventListener('quorin:addedToCart', handler as EventListener);
 
     return () => {
       window.removeEventListener('quorin:addedToCart', handler as EventListener);
-      window.removeEventListener('resize', resize);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      particlesRef.current.forEach(p => p.el.remove());
+      particlesRef.current = [];
     };
   }, []);
 
-  // Render canvas
   return (
-    <canvas
-      ref={canvasRef}
-      style={{ position: 'fixed', left: 0, top: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 60 }}
+    <div
+      ref={containerRef}
+      className="fixed inset-0 pointer-events-none z-[60]"
+      style={{ overflow: 'hidden' }}
     />
   );
 }

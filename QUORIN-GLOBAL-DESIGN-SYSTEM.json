@@ -1,0 +1,260 @@
+{
+  "project": "QUORIN",
+  "phase": "Global Design System Migration",
+  "priority": "P0 - BLOCKER",
+  "status": "REJECT_CURRENT_IMPLEMENTATION",
+  "reason": "The redesign changed isolated pages instead of migrating the application's entire visual language. The website currently contains multiple competing design systems, causing severe inconsistency in branding, user perception, navigation flow, and product trust.",
+  "objective": {
+    "primary_goal": "Transform QUORIN into a world-class premium ecommerce experience by replacing the entire visual language instead of recoloring individual pages.",
+    "design_identity": "Premium Luxury Minimalism",
+    "brand_keywords": [
+      "Elegant",
+      "Warm",
+      "Premium",
+      "Handcrafted",
+      "Creative",
+      "Luxury",
+      "Professional",
+      "Modern",
+      "Soft",
+      "High-end"
+    ],
+    "must_not_feel_like": [
+      "Gaming UI",
+      "Cyberpunk",
+      "Sci-fi dashboard",
+      "Developer portfolio",
+      "Crypto exchange",
+      "Neon RGB interface",
+      "Space themed landing page"
+    ],
+    "should_feel_like": [
+      "Apple",
+      "Aesop",
+      "Notion",
+      "Stripe",
+      "Linear",
+      "Modern Luxury Ecommerce",
+      "Premium Design Studio"
+    ]
+  },
+  "critical_problem_analysis": {
+    "current_state": {
+      "home_page": "Dark futuristic interface with neon accents, glowing particles, cyberpunk styling and gaming aesthetics.",
+      "xp_page": "Soft cream minimal page with premium luxury styling.",
+      "product_page": "Still using futuristic cards with red badges, cyan labels, glowing borders and dark gaming UI.",
+      "cart": "Uses old futuristic sidebar with outdated spacing, typography and styling.",
+      "navigation": "Old cyberpunk navigation retained.",
+      "theme": "Only isolated components changed while global design language remained untouched."
+    },
+    "impact": {
+      "brand_consistency": "Critical Failure",
+      "visual_consistency": "Critical Failure",
+      "design_system": "Broken",
+      "customer_trust": "Reduced",
+      "premium_perception": "Lost",
+      "user_experience": "Feels like multiple websites stitched together."
+    },
+    "diagnosis": "The redesign incorrectly treated pages as independent projects. A premium ecommerce application is built from one unified design system where every page inherits identical visual rules. Currently, each route follows a different design philosophy, destroying immersion and reducing perceived quality."
+  },
+  "mandatory_design_system_rebuild": {
+    "description": "Before modifying any additional page, the application must establish a single source of truth for every visual component.",
+    "rebuild_everything": [
+      "Global color tokens",
+      "Typography system",
+      "Spacing scale",
+      "Elevation system",
+      "Corner radius system",
+      "Shadow hierarchy",
+      "Border hierarchy",
+      "Motion language",
+      "Animation timing",
+      "Hover behavior",
+      "Focus behavior",
+      "Button system",
+      "Input system",
+      "Card system",
+      "Navigation system",
+      "Badge system",
+      "Notification system",
+      "Modal system",
+      "Drawer system",
+      "Product card system",
+      "Category card system",
+      "Pricing components",
+      "Checkout components",
+      "Profile components",
+      "Reward components",
+      "Footer",
+      "Hero",
+      "Entire layout structure"
+    ]
+  },
+  "global_visual_rules": {
+    "background": {
+      "primary": "Soft warm ivory (#F8F6F2)",
+      "secondary": "Pure white (#FFFFFF)",
+      "section_alt": "#F3F0EA",
+      "never_use": [
+        "Pure black backgrounds",
+        "Heavy gradients",
+        "Space textures",
+        "Galaxy effects",
+        "Particle backgrounds"
+      ]
+    },
+    "surfaces": {
+      "cards": "Pure white",
+      "hover": "#FCFAF7",
+      "border": "#E8E2D8",
+      "radius": "24px",
+      "shadow": "Very subtle ambient shadow only"
+    },
+    "accent_usage": {
+      "gold": "Used only for premium highlights, progress bars, active pricing, luxury badges and CTA emphasis.",
+      "terracotta": "Used only for small highlights and brand warmth.",
+      "charcoal": "Used for navigation and typography.",
+      "never": [
+        "Neon cyan",
+        "Electric red",
+        "Glowing purple",
+        "RGB colors"
+      ]
+    }
+  },
+  "page_consistency_requirements": {
+    "rule": "Every page must appear as if designed by the same designer on the same day.",
+    "affected_pages": [
+      "Landing",
+      "Categories",
+      "Products",
+      "Product Detail",
+      "Search",
+      "Wishlist",
+      "Cart",
+      "Checkout",
+      "Orders",
+      "Profile",
+      "XP",
+      "Rewards",
+      "Authentication",
+      "Settings",
+      "Footer",
+      "Error Pages"
+    ],
+    "forbidden": [
+      "Different button styles",
+      "Different corner radius",
+      "Different spacing systems",
+      "Different typography",
+      "Different shadows",
+      "Different color palettes",
+      "Different navigation styles",
+      "Different animation language"
+    ]
+  },
+  "component_reconstruction": {
+    "navigation": {
+      "replace": "Entire navigation",
+      "requirements": [
+        "Floating premium navigation",
+        "Warm ivory background",
+        "Soft blur",
+        "Minimal borders",
+        "Elegant spacing",
+        "Premium typography",
+        "Subtle hover animation",
+        "No neon",
+        "No glowing effects",
+        "No gaming appearance"
+      ]
+    },
+    "hero": {
+      "requirements": [
+        "Large breathing whitespace",
+        "Elegant typography",
+        "Professional photography",
+        "Luxury CTA buttons",
+        "Soft background gradients only",
+        "No particles",
+        "No stars",
+        "No futuristic effects"
+      ]
+    },
+    "product_cards": {
+      "replace_everything": true,
+      "requirements": [
+        "White premium card",
+        "Large product image",
+        "Soft shadows",
+        "Clean hierarchy",
+        "Luxury price styling",
+        "Minimal badges",
+        "Elegant hover elevation",
+        "Consistent spacing",
+        "Modern ecommerce proportions"
+      ]
+    },
+    "cart": {
+      "requirements": [
+        "Luxury drawer",
+        "Warm white surface",
+        "Premium typography",
+        "Minimal separators",
+        "Elegant quantity selector",
+        "Beautiful checkout button",
+        "No dark cyberpunk drawer"
+      ]
+    },
+    "xp_system": {
+      "requirements": [
+        "Keep the functionality.",
+        "Only redesign the visuals.",
+        "Luxury membership experience.",
+        "Premium loyalty dashboard.",
+        "Apple Wallet level of polish.",
+        "No gaming aesthetics."
+      ]
+    }
+  },
+  "animation_language": {
+    "style": "Luxury Motion",
+    "rules": [
+      "Slow and elegant",
+      "No flashy transitions",
+      "No neon glows",
+      "No bouncing",
+      "Subtle fade",
+      "Soft elevation",
+      "Micro interactions",
+      "Professional easing curves",
+      "Motion should communicate quality rather than excitement."
+    ]
+  },
+  "acceptance_criteria": [
+    "There must be only ONE visual language across the application.",
+    "No page may retain cyberpunk styling.",
+    "Every component must inherit the global design tokens.",
+    "Changing the theme should update the entire application consistently.",
+    "All pages must feel like one premium luxury ecommerce platform.",
+    "The redesign should improve perceived product value before users even read product descriptions.",
+    "A user should never feel they navigated into another website."
+  ],
+  "definition_of_done": {
+    "completed_when": [
+      "Every route shares identical design language.",
+      "Every component uses the new token system.",
+      "No legacy dark gaming UI remains.",
+      "No isolated redesigns exist.",
+      "Navigation, hero, product cards, cart, checkout, profile, XP and footer all look like one coherent premium product.",
+      "The application visually communicates luxury craftsmanship instead of futuristic gaming."
+    ],
+    "rejected_if": [
+      "Only one page changes.",
+      "Old components remain.",
+      "Mixed design languages coexist.",
+      "Any neon cyberpunk styling survives.",
+      "Different pages use different visual philosophies."
+    ]
+  }
+}

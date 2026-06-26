@@ -100,9 +100,9 @@ function CategoryCard({ category, index }: CategoryCardProps) {
             style={{
               background: `linear-gradient(
                 to top,
-                rgba(8, 8, 13, 0.95) 0%,
-                rgba(8, 8, 13, 0.7) 40%,
-                rgba(8, 8, 13, 0.3) 100%
+                rgba(248, 245, 240, 0.95) 0%,
+                rgba(248, 245, 240, 0.7) 40%,
+                rgba(248, 245, 240, 0.1) 100%
               )`,
             }}
           />
@@ -236,11 +236,7 @@ export default function CategorySection() {
             >
               Our{' '}
               <span
-                style={{
-                  background: 'linear-gradient(135deg, #ff1a3c, #00d4ff)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                }}
+                style={{ color: 'var(--color-accent)' }}
               >
                 Categories
               </span>

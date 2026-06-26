@@ -1,12 +1,16 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Crown, Wallet } from 'lucide-react';
-import type { AccountRecord } from '@/data/accounts';
+import type { AccountRecord, AccountOrder } from '@/data/accounts';
 import { getXpLevel, xpLevelLadder, XP_MAX_ORDER_VALUE, XP_LEVEL_COUNT } from '@/data/xp';
+import { rgba, getThemeColors } from '@/lib/theme';
+
+const colors = getThemeColors();
 
 interface XpPageProps {
   currentAccount: AccountRecord | null;
   onBackHome: () => void;
+  resolveOrderPrice: (order: AccountOrder) => number;
 }
 
 const formatRupees = (value: number) =>
@@ -16,10 +20,10 @@ const formatRupees = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
-export default function XpPage({ currentAccount, onBackHome }: XpPageProps) {
+export default function XpPage({ currentAccount, onBackHome, resolveOrderPrice }: XpPageProps) {
   const totalSpend = useMemo(
-    () => currentAccount?.orders.reduce((sum, order) => sum + (order.product.price ?? 0), 0) ?? 0,
-    [currentAccount]
+    () => currentAccount?.orders.reduce((sum, order) => sum + (order.status === 'returned' ? 0 : resolveOrderPrice(order)), 0) ?? 0,
+    [currentAccount, resolveOrderPrice]
   );
 
   const currentLevel = useMemo(() => {
@@ -36,8 +40,8 @@ export default function XpPage({ currentAccount, onBackHome }: XpPageProps) {
     <main className="pt-28 pb-14">
       <section className="max-w-7xl mx-auto px-4 md:px-8">
         <motion.button
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
-          style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--color-text-primary)' }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-sm"
+          style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
           whileHover={{ x: -4 }}
           onClick={onBackHome}
         >
@@ -45,36 +49,36 @@ export default function XpPage({ currentAccount, onBackHome }: XpPageProps) {
           Back Home
         </motion.button>
 
-        <div className="rounded-[2rem] border p-6 md:p-8" style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="rounded-2xl p-6 md:p-8" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', boxShadow: 'var(--color-shadow-sm)' }}>
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
             <div>
-              <p className="text-xs tracking-[0.35em] text-[var(--color-text-muted)]">XP MODE</p>
-              <h1 className="mt-3 text-4xl md:text-6xl font-black">Order ladder</h1>
-              <p className="mt-3 max-w-2xl text-[var(--color-text-secondary)]">
-                Spend grows through 10 levels, with Level 2 starting at {formatRupees(xpLevelLadder[1].cumulative)} and the full ladder capping at {formatRupees(XP_MAX_ORDER_VALUE)}.
+              <p className="text-xs tracking-[0.15em] text-[var(--color-text-muted)]">LOYALTY PROGRAM</p>
+              <h1 className="mt-3 text-3xl md:text-5xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>Your Journey</h1>
+              <p className="mt-3 max-w-2xl" style={{ color: 'var(--color-text-muted)' }}>
+                Your purchases unlock exclusive tiers, with Level 2 starting at {formatRupees(xpLevelLadder[1].cumulative)} and the full journey capping at {formatRupees(XP_MAX_ORDER_VALUE)}.
               </p>
             </div>
 
-            <div className="rounded-3xl border px-5 py-4" style={{ background: 'rgba(0, 212, 255, 0.06)', borderColor: 'rgba(0, 212, 255, 0.14)' }}>
+            <div className="rounded-xl border px-5 py-4" style={{ background: 'var(--color-ivory)', borderColor: 'var(--color-border-subtle)' }}>
               <div className="flex items-center gap-3">
-                <Wallet size={18} style={{ color: 'var(--color-teal)' }} />
+                <Wallet size={18} style={{ color: 'var(--color-accent)' }} />
                 <div>
-                  <p className="text-xs tracking-[0.3em] text-[var(--color-text-muted)]">CURRENT SPEND</p>
-                  <p className="text-2xl font-bold">{formatRupees(totalSpend)}</p>
+                  <p className="text-xs tracking-[0.15em] text-[var(--color-text-muted)]">Current Spend</p>
+                  <p className="text-2xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>{formatRupees(totalSpend)}</p>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="rounded-[1.8rem] border p-5 md:p-6" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}>
+            <div className="rounded-xl border p-5 md:p-6" style={{ background: 'var(--color-ivory)', borderColor: 'var(--color-border-subtle)' }}>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs tracking-[0.3em] text-[var(--color-text-muted)]">CURRENT LEVEL</p>
-                  <p className="mt-1 text-3xl font-black">Level {currentLevel}</p>
+                  <p className="text-xs tracking-[0.15em] text-[var(--color-text-muted)]">Current Tier</p>
+                  <p className="mt-1 text-3xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>Level {currentLevel}</p>
                 </div>
-                <div className="rounded-full px-4 py-2 text-sm tracking-wider" style={{ background: 'rgba(255,26,60,0.1)', color: 'var(--color-text-primary)' }}>
-                  {currentLevel === XP_LEVEL_COUNT ? 'MAX LEVEL' : `NEXT: Level ${currentLevel + 1}`}
+                <div className="rounded-full px-4 py-2 text-sm" style={{ background: 'var(--color-accent)', color: 'white' }}>
+                  {currentLevel === XP_LEVEL_COUNT ? 'Completed' : `Next: Level ${currentLevel + 1}`}
                 </div>
               </div>
 
@@ -83,65 +87,65 @@ export default function XpPage({ currentAccount, onBackHome }: XpPageProps) {
                   <span style={{ color: 'var(--color-text-muted)' }}>{formatRupees(progressStart)}</span>
                   <span style={{ color: 'var(--color-text-muted)' }}>{formatRupees(progressEnd)}</span>
                 </div>
-                <div className="h-3 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
                   <motion.div
                     className="h-full rounded-full"
-                    style={{ background: 'linear-gradient(90deg, #ff1a3c, #00d4ff)' }}
+                    style={{ background: 'var(--color-accent)' }}
                     initial={{ width: 0 }}
                     animate={{ width: `${progress * 100}%` }}
                     transition={{ duration: 0.6 }}
                   />
                 </div>
-                <p className="mt-3 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                <p className="mt-3 text-sm" style={{ color: 'var(--color-text-muted)' }}>
                     {currentLevel === XP_LEVEL_COUNT
-                      ? `You reached the final tier at ${formatRupees(XP_MAX_ORDER_VALUE)}.`
-                      : `Spend ${formatRupees(Math.max(0, progressEnd - totalSpend))} more to reach Level ${currentLevel + 1}.`}
+                      ? `You've reached the final tier at ${formatRupees(XP_MAX_ORDER_VALUE)}.`
+                      : `${formatRupees(Math.max(0, progressEnd - totalSpend))} more to reach Level ${currentLevel + 1}.`}
                 </p>
               </div>
 
               {currentAccount ? (
-                <div className="mt-6 rounded-3xl border p-4 md:p-5" style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}>
+                <div className="mt-6 rounded-xl border p-4 md:p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border-subtle)' }}>
                   <div className="flex items-center gap-3">
                     <Crown size={18} style={{ color: 'var(--color-accent)' }} />
-                    <p className="text-sm tracking-wider">Signed in as {currentAccount.profile.displayName}</p>
+                    <p className="text-sm" style={{ color: 'var(--color-text-primary)' }}>Signed in as {currentAccount.profile.displayName}</p>
                   </div>
-                  <p className="mt-2 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    Your XP is driven by the total value of your orders.
+                  <p className="mt-2 text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                    Your rewards are driven by the total value of your orders.
                   </p>
                 </div>
               ) : (
-                <div className="mt-6 rounded-3xl border p-4 md:p-5" style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}>
-                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    Login to see your personal XP track and account-based progress.
+                <div className="mt-6 rounded-xl border p-4 md:p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border-subtle)' }}>
+                  <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                    Sign in to see your personal journey and rewards.
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="rounded-[1.8rem] border p-5 md:p-6" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}>
-              <p className="text-xs tracking-[0.35em] text-[var(--color-text-muted)]">LEVEL LADDER</p>
+            <div className="rounded-xl border p-5 md:p-6" style={{ background: 'var(--color-ivory)', borderColor: 'var(--color-border-subtle)' }}>
+              <p className="text-xs tracking-[0.15em] text-[var(--color-text-muted)]">Tier Breakdown</p>
               <div className="mt-4 space-y-3">
                 {xpLevelLadder.map((item) => {
                   const active = item.level <= currentLevel;
                   return (
                     <div
                       key={item.level}
-                      className="rounded-2xl border px-4 py-3"
+                      className="rounded-lg border px-4 py-3"
                       style={{
-                        background: active ? 'rgba(0, 212, 255, 0.08)' : 'rgba(255,255,255,0.03)',
-                        borderColor: active ? 'rgba(0, 212, 255, 0.18)' : 'rgba(255,255,255,0.06)',
+                        background: active ? 'var(--color-surface)' : 'rgba(0,0,0,0.02)',
+                        borderColor: active ? 'var(--color-accent)' : 'var(--color-border-subtle)',
                       }}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="font-bold">Level {item.level}</p>
-                          <p className="text-xs tracking-[0.22em] text-[var(--color-text-muted)]">
-                             +{formatRupees(item.increment)} THIS STEP
+                          <p className="font-semibold" style={{ color: active ? 'var(--color-text-primary)' : 'var(--color-text-muted)' }}>Level {item.level}</p>
+                          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                            +{formatRupees(item.increment)} this tier
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-semibold">{formatRupees(item.cumulative)}</p>
-                           <p className="text-[10px] tracking-[0.22em] text-[var(--color-text-muted)]">LEVEL STARTS AT</p>
+                          <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>{formatRupees(item.cumulative)}</p>
+                          <p className="text-[10px] text-[var(--color-text-muted)]">Starts at</p>
                         </div>
                       </div>
                     </div>
@@ -153,17 +157,17 @@ export default function XpPage({ currentAccount, onBackHome }: XpPageProps) {
 
           <div className="mt-6 grid gap-3 md:grid-cols-3">
               {[
-              { label: 'Level cap', value: '10 tiers' },
+              { label: 'Tiers', value: '10 levels' },
               { label: 'Total cap', value: formatRupees(XP_MAX_ORDER_VALUE) },
-              { label: 'Growth style', value: '1:2:3:4:5:6:7:8:9:10' },
+              { label: 'Growth style', value: 'Progressive' },
             ].map((item) => (
               <div
                 key={item.label}
-                className="rounded-2xl border px-4 py-3"
-                style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}
+                className="rounded-lg border px-4 py-3"
+                style={{ background: 'var(--color-ivory)', borderColor: 'var(--color-border-subtle)' }}
               >
-                <p className="text-[10px] tracking-[0.3em] text-[var(--color-text-muted)]">{item.label}</p>
-                <p className="mt-1 text-lg font-semibold">{item.value}</p>
+                <p className="text-xs tracking-[0.15em] text-[var(--color-text-muted)]">{item.label}</p>
+                <p className="mt-1 text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>{item.value}</p>
               </div>
             ))}
           </div>

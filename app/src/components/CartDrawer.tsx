@@ -54,7 +54,7 @@ export default function CartDrawer({
           {/* Backdrop */}
           <motion.div
             className="fixed inset-0 z-50"
-            style={{ background: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(10px)' }}
+            style={{ background: 'rgba(0, 0, 0, 0.25)', backdropFilter: 'blur(8px)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -65,8 +65,8 @@ export default function CartDrawer({
           <motion.div
             className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md flex flex-col"
             style={{
-              background: 'linear-gradient(180deg, #0d0d14 0%, #08080d 100%)',
-              borderLeft: '1px solid rgba(255, 255, 255, 0.05)',
+              background: 'var(--color-surface)',
+              borderLeft: '1px solid var(--color-border-subtle)',
             }}
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -76,33 +76,33 @@ export default function CartDrawer({
             {/* Header */}
             <div
               className="flex items-center justify-between p-6"
-              style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}
+              style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
             >
               <div className="flex items-center gap-3">
                 <ShoppingCart size={20} style={{ color: 'var(--color-accent)' }} />
                 <h2
-                  className="text-lg font-bold tracking-wider"
+                  className="text-lg font-semibold tracking-wide"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
-                  YOUR CART
+                  Shopping Bag
                 </h2>
                 <span
                   className="text-xs px-2 py-0.5 rounded-full"
                   style={{
-                    background: 'rgba(255, 26, 60, 0.15)',
+                    background: 'var(--color-accent-soft)',
                     color: 'var(--color-accent)',
                   }}
                 >
-                  {items.length} items
+                  {items.length} item{items.length !== 1 ? 's' : ''}
                 </span>
               </div>
               <motion.button
                 className="p-2 rounded-full"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'var(--color-surface-hover)',
+                  border: '1px solid var(--color-border-subtle)',
                 }}
-                whileHover={{ scale: 1.1, background: 'rgba(255, 26, 60, 0.1)' }}
+                whileHover={{ scale: 1.05, background: 'var(--color-ivory)' }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onClose}
               >
@@ -117,19 +117,19 @@ export default function CartDrawer({
                   <motion.div
                     className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
                     style={{
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      border: '1px solid rgba(255, 255, 255, 0.05)',
+                      background: 'var(--color-ivory)',
+                      border: '1px solid var(--color-border-subtle)',
                     }}
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
+                    animate={{ scale: [1, 1.03, 1] }}
+                    transition={{ duration: 2.5, repeat: Infinity }}
                   >
                     <ShoppingCart size={32} style={{ color: 'var(--color-text-muted)' }} />
                   </motion.div>
                   <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                    Your cart is empty
+                    Your bag is empty
                   </p>
                   <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                    Start shopping to add items
+                    Discover our curated collection
                   </p>
                 </div>
               ) : (
@@ -138,13 +138,13 @@ export default function CartDrawer({
                     <motion.div
                       key={item.cartId}
                       layout
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: -100 }}
+                      exit={{ opacity: 0, x: -80 }}
                       className="mb-4 p-4 rounded-xl"
                       style={{
-                        background: 'rgba(255, 255, 255, 0.03)',
-                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        background: 'var(--color-ivory)',
+                        border: '1px solid var(--color-border-subtle)',
                       }}
                     >
                       <div className="flex gap-4">
@@ -162,11 +162,11 @@ export default function CartDrawer({
                             </p>
                           )}
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold" style={{ color: 'var(--color-accent)' }}>
+                            <span className="text-sm font-semibold" style={{ color: 'var(--color-accent)' }}>
                               ₹{item.price}
                             </span>
-                            <span className="text-xs line-through" style={{ color: 'var(--color-text-muted)' }}>
-                              ₹{item.mrp}
+                            <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                              MRP ₹{item.mrp}
                             </span>
                           </div>
                         </div>
@@ -176,20 +176,20 @@ export default function CartDrawer({
                           <motion.button
                             className="p-1.5 rounded-lg"
                             style={{
-                              background: 'rgba(255, 26, 60, 0.1)',
+                              background: 'var(--color-surface-hover)',
                             }}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => onRemove(item.cartId)}
                           >
-                            <Trash2 size={14} style={{ color: 'var(--color-accent)' }} />
+                            <Trash2 size={14} style={{ color: 'var(--color-text-muted)' }} />
                           </motion.button>
                           <div className="flex items-center gap-2">
                             <motion.button
                               className="w-7 h-7 rounded-lg flex items-center justify-center"
                               style={{
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                background: 'var(--color-ivory)',
+                                border: '1px solid var(--color-border-subtle)',
                               }}
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
@@ -206,8 +206,8 @@ export default function CartDrawer({
                             <motion.button
                               className="w-7 h-7 rounded-lg flex items-center justify-center"
                               style={{
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                background: 'var(--color-ivory)',
+                                border: '1px solid var(--color-border-subtle)',
                               }}
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
@@ -229,8 +229,8 @@ export default function CartDrawer({
               <div
                 className="p-6"
                 style={{
-                  borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                  background: 'rgba(8, 8, 13, 0.9)',
+                  borderTop: '1px solid var(--color-border-subtle)',
+                  background: 'var(--color-ivory)',
                 }}
               >
                 {/* Price Summary */}
@@ -239,7 +239,7 @@ export default function CartDrawer({
                     <span>Subtotal (MRP)</span>
                     <span>₹{totalMrp}</span>
                   </div>
-                  <div className="flex justify-between text-sm" style={{ color: 'var(--color-teal)' }}>
+                  <div className="flex justify-between text-sm" style={{ color: 'var(--color-accent)' }}>
                     <span>You Save</span>
                     <span>-₹{savings}</span>
                   </div>
@@ -249,13 +249,13 @@ export default function CartDrawer({
                   </div>
                   {giftOffer && (
                     <div className="space-y-3">
-                      <div className="flex justify-between text-sm" style={{ color: 'var(--color-teal)' }}>
+                      <div className="flex justify-between text-sm" style={{ color: 'var(--color-accent)' }}>
                         <span>{giftOffer.label}</span>
                         <span>-₹{giftDiscount}</span>
                       </div>
-                      <div className="rounded-2xl border p-4" style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}>
-                        <p className="text-xs tracking-[0.25em] mb-3" style={{ color: 'var(--color-text-muted)' }}>
-                          PICK 1 GIFT ITEM
+                      <div className="rounded-xl border p-4" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border-subtle)' }}>
+                        <p className="text-xs tracking-[0.2em] mb-3" style={{ color: 'var(--color-text-muted)' }}>
+                          CHOOSE A GIFT
                         </p>
                         <div className="space-y-2">
                           {items.map((item) => {
@@ -264,10 +264,10 @@ export default function CartDrawer({
                             return (
                               <button
                                 key={item.cartId}
-                                className="w-full rounded-xl border px-3 py-2 text-left"
+                                className="w-full rounded-lg border px-3 py-2 text-left"
                                 style={{
-                                  background: isSelected ? 'rgba(0, 212, 255, 0.1)' : 'rgba(255,255,255,0.03)',
-                                  borderColor: isSelected ? 'rgba(0, 212, 255, 0.25)' : 'rgba(255,255,255,0.06)',
+                                  background: isSelected ? 'var(--color-accent-soft)' : 'var(--color-ivory)',
+                                  borderColor: isSelected ? 'var(--color-accent)' : 'var(--color-border-subtle)',
                                   color: 'var(--color-text-primary)',
                                 }}
                                 onClick={() => onSelectGiftCartId(item.cartId)}
@@ -275,11 +275,11 @@ export default function CartDrawer({
                                 <div className="flex items-center justify-between gap-3">
                                   <div className="min-w-0">
                                     <p className="text-sm font-medium truncate">{item.name}</p>
-                                    <p className="text-[11px] text-[var(--color-text-muted)]">Gift price: ₹{costPrice}</p>
+                                    <p className="text-[11px] text-[var(--color-text-muted)]">Complimentary gift</p>
                                   </div>
                                   <div className="text-right shrink-0">
                                     <p className="text-sm font-semibold">₹{item.price}</p>
-                                    <p className="text-[10px] tracking-[0.22em] text-[var(--color-text-muted)]">SALE</p>
+                                    <p className="text-[10px] tracking-[0.18em] text-[var(--color-text-muted)]">GIFT</p>
                                   </div>
                                 </div>
                               </button>
@@ -291,11 +291,11 @@ export default function CartDrawer({
                   )}
                   <div
                     className="h-[1px] my-2"
-                    style={{ background: 'rgba(255, 255, 255, 0.05)' }}
+                    style={{ background: 'var(--color-border-subtle)' }}
                   />
                   <div className="flex justify-between">
                     <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                      Payable Total
+                      Total
                     </span>
                     <span className="text-xl font-bold" style={{ color: 'var(--color-accent)' }}>
                       ₹{payable}
@@ -305,23 +305,23 @@ export default function CartDrawer({
 
                 {/* Checkout Button */}
                 <p className="mb-3 text-xs leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-                  XP discount applies to non-gift items only. The selected gift item stays at cost price.
+                  XP discount applies to non-gift items. Your chosen gift remains at no extra cost.
                 </p>
                 <motion.button
                   className="w-full py-4 rounded-xl text-sm font-medium tracking-wider"
                   style={{
-                    background: 'linear-gradient(135deg, #ff1a3c, #ff0044)',
+                    background: 'var(--color-accent)',
                     color: 'white',
-                    boxShadow: '0 4px 30px rgba(255, 26, 60, 0.3)',
+                    boxShadow: '0 2px 12px rgba(201, 169, 110, 0.25)',
                   }}
                   whileHover={{
-                    scale: 1.02,
-                    boxShadow: '0 6px 40px rgba(255, 26, 60, 0.4)',
+                    scale: 1.01,
+                    boxShadow: '0 4px 20px rgba(201, 169, 110, 0.35)',
                   }}
                   whileTap={{ scale: 0.98 }}
                   onClick={onCheckout}
                 >
-                  PROCEED TO CHECKOUT
+                  Proceed to Checkout
                 </motion.button>
               </div>
             )}

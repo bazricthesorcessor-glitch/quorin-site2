@@ -12,8 +12,8 @@ module.exports = {
       ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
     },
     http: {
-      authCors: process.env.CORS_ORIGIN || "http://localhost:5173",
-      storeCors: process.env.CORS_ORIGIN || "http://localhost:5173",
+      authCors: process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:3000",
+      storeCors: process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:3000",
       adminCors: process.env.CORS_ORIGIN || "http://localhost:3000",
       cookieSecret: process.env.COOKIE_SECRET,
     },
@@ -94,6 +94,7 @@ module.exports = {
         },
       },
     },
+
     cache: {
       resolve: "@medusajs/cache-redis",
       options: {

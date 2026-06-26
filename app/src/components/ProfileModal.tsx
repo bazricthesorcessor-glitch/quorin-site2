@@ -36,74 +36,78 @@ export default function ProfileModal({
       {isOpen && draft && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          style={{ background: 'rgba(8, 8, 13, 0.78)' }}
+          style={{ background: 'rgba(0,0,0,0.3)' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
           <motion.div
-            className="w-full max-w-2xl rounded-3xl border p-6"
-            style={{
-              background: 'rgba(16, 16, 24, 0.98)',
-              borderColor: 'rgba(255, 255, 255, 0.08)',
-            }}
+            className="w-full max-w-2xl rounded-2xl overflow-hidden"
+            style={{ background: 'var(--color-surface)' }}
             initial={{ y: 24, scale: 0.97 }}
             animate={{ y: 0, scale: 1 }}
             exit={{ y: 18, scale: 0.97 }}
             transition={{ type: 'spring', damping: 24, stiffness: 260 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-4 mb-5">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs tracking-[0.3em] mb-3" style={{ background: 'rgba(0,212,255,0.08)', color: 'var(--color-teal)' }}>
-                  <Star size={12} />
-                  PROFILE
-                </div>
-                <h3 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-                  {draft.displayName}
-                </h3>
-                <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>
-                  {draft.id} · {draft.role === 'admin' ? 'Admin account' : 'Customer account'}
-                </p>
-              </div>
-              <button className="rounded-full px-4 py-2 text-sm" style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--color-text-primary)' }} onClick={onClose}>
-                Close
-              </button>
-            </div>
-
-            <div className="rounded-3xl border p-4 mb-5" style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.03)' }}>
-              <div className="flex items-center justify-between gap-4 mb-3">
+            {/* Header */}
+            <div className="p-6 md:p-8 pb-0">
+              <div className="flex items-start justify-between mb-4">
                 <div>
-                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Experience</p>
-                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>{orderCount} orders completed</p>
+                  <div className="inline-flex items-center gap-2 text-xs tracking-[0.2em] mb-2" style={{ color: 'var(--color-accent)' }}>
+                    <Star size={12} />
+                    Profile
+                  </div>
+                  <h3 className="text-2xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                    {draft.displayName}
+                  </h3>
+                  <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                    {draft.id} · {draft.role === 'admin' ? 'Admin account' : 'Customer account'}
+                  </p>
                 </div>
-                <span className="text-sm" style={{ color: 'var(--color-teal)' }}>{Math.round(experience)}%</span>
-              </div>
-              <div className="h-3 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <div className="h-full rounded-full" style={{ width: `${experience}%`, background: 'linear-gradient(90deg, #ff1a3c, #00d4ff)' }} />
+                <button className="px-4 py-2 text-sm rounded-full" style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }} onClick={onClose}>
+                  Close
+                </button>
               </div>
             </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input className="rounded-2xl px-4 py-3 outline-none" value={draft.displayName} onChange={(e) => setDraft({ ...draft, displayName: e.target.value })} style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }} placeholder="Name" />
-                <input className="rounded-2xl px-4 py-3 outline-none" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }} placeholder="Email" />
-                <input className="rounded-2xl px-4 py-3 outline-none" value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }} placeholder="Phone" />
-                <input className="rounded-2xl px-4 py-3 outline-none" value={draft.address} onChange={(e) => setDraft({ ...draft, address: e.target.value })} style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }} placeholder="Address" />
-                <input className="rounded-2xl px-4 py-3 outline-none" type="date" value={draft.birthday ?? ''} onChange={(e) => setDraft({ ...draft, birthday: e.target.value })} style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }} placeholder="Birthday" />
-                <input className="md:col-span-2 rounded-2xl px-4 py-3 outline-none" value={draft.city} onChange={(e) => setDraft({ ...draft, city: e.target.value })} style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }} placeholder="City" />
-                <textarea className="md:col-span-2 min-h-28 rounded-2xl px-4 py-3 outline-none" value={draft.bio} onChange={(e) => setDraft({ ...draft, bio: e.target.value })} style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }} placeholder="About you" />
+            <div className="p-6 md:p-8">
+              {/* Experience */}
+              <div className="p-4 rounded-xl mb-6" style={{ background: 'var(--color-ivory)', border: '1px solid var(--color-border-subtle)' }}>
+                <div className="flex items-center justify-between gap-4 mb-3">
+                  <div>
+                    <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Loyalty</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>{orderCount} orders completed</p>
+                  </div>
+                  <span className="text-sm font-semibold" style={{ color: 'var(--color-accent)' }}>{Math.round(experience)}%</span>
+                </div>
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${experience}%`, background: 'var(--color-accent)' }} />
+                </div>
               </div>
-              <p className="mt-3 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+
+              {/* Form Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                <input className="rounded-lg px-4 py-3 outline-none transition" value={draft.displayName} onChange={(e) => setDraft({ ...draft, displayName: e.target.value })} style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }} placeholder="Name" />
+                <input className="rounded-lg px-4 py-3 outline-none transition" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }} placeholder="Email" />
+                <input className="rounded-lg px-4 py-3 outline-none transition" value={draft.phone} onChange={(e) => setDraft({ ...draft, phone: e.target.value })} style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }} placeholder="Phone" />
+                <input className="rounded-lg px-4 py-3 outline-none transition" value={draft.address} onChange={(e) => setDraft({ ...draft, address: e.target.value })} style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }} placeholder="Address" />
+                <input className="rounded-lg px-4 py-3 outline-none transition" type="date" value={draft.birthday ?? ''} onChange={(e) => setDraft({ ...draft, birthday: e.target.value })} style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }} />
+                <input className="md:col-span-2 rounded-lg px-4 py-3 outline-none transition" value={draft.city} onChange={(e) => setDraft({ ...draft, city: e.target.value })} style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }} placeholder="City" />
+                <textarea className="md:col-span-2 min-h-28 rounded-lg px-4 py-3 outline-none transition" value={draft.bio} onChange={(e) => setDraft({ ...draft, bio: e.target.value })} style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }} placeholder="About you" />
+              </div>
+              <p className="mt-2 text-xs" style={{ color: 'var(--color-text-muted)' }}>
                 Birthday can be updated once per year.
               </p>
 
-            <div className="mt-6 flex items-center justify-between gap-3">
-              <button className="inline-flex items-center gap-2 rounded-full px-4 py-3 text-sm" style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--color-text-primary)' }} onClick={onSignOut}>
-                <LogOut size={16} />
-                Sign out
-              </button>
-                <button className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm" style={{ background: 'linear-gradient(135deg, #ff1a3c, #ff0044)', color: 'white' }} onClick={() => {
+              {/* Actions */}
+              <div className="mt-6 flex items-center justify-between gap-3">
+                <button className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm" style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }} onClick={onSignOut}>
+                  <LogOut size={16} />
+                  Sign out
+                </button>
+                <button className="inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm tracking-wider" style={{ background: 'var(--color-accent)', color: 'white' }} onClick={() => {
                   const result = onSave(draft);
                   if (result.ok) {
                     setSaveError(null);
@@ -123,24 +127,25 @@ export default function ProfileModal({
                 </button>
               </div>
 
-            {saveMessage && (
-              <p className="mt-4 text-sm" style={{ color: 'var(--color-teal)' }}>
-                {saveMessage}
-              </p>
-            )}
+              {saveMessage && (
+                <p className="mt-4 text-sm font-medium" style={{ color: 'var(--color-accent)' }}>
+                  {saveMessage}
+                </p>
+              )}
 
-            {saveError && (
-              <p className="mt-4 text-sm" style={{ color: 'var(--color-accent)' }}>
-                {saveError}
-              </p>
-            )}
+              {saveError && (
+                <p className="mt-4 text-sm">
+                  {saveError}
+                </p>
+              )}
 
-            {draft.role === 'admin' && (
-              <div className="mt-4 inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs tracking-[0.2em]" style={{ background: 'rgba(255,26,60,0.1)', color: 'var(--color-accent)' }}>
-                <ShieldCheck size={12} />
-                ADMIN ACCESS
-              </div>
-            )}
+              {draft.role === 'admin' && (
+                <div className="mt-4 inline-flex items-center gap-2 text-xs tracking-[0.15em]" style={{ color: 'var(--color-text-muted)', background: 'var(--color-ivory)', padding: '6px 12px', borderRadius: 999 }}>
+                  <ShieldCheck size={12} />
+                  Admin Access
+                </div>
+              )}
+            </div>
           </motion.div>
         </motion.div>
       )}

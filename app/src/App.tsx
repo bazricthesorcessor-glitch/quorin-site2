@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import Lenis from 'lenis';
@@ -55,11 +55,11 @@ gsap.registerPlugin(ScrollTrigger);
 const defaultTheme: AdminTheme = {
   brand: quorinData.brand,
   tagline: quorinData.tagline,
-  accent: '#ff1a3c',
-  teal: '#00d4ff',
-  dominant: '#08080d',
-  textPrimary: '#f0f0f5',
-  textSecondary: '#8a8a9a',
+  accent: '#c9a96e',
+  highlight: '#c0c0c0',
+  dominant: '#3d2b1f',
+  textPrimary: '#f5f0e8',
+  textSecondary: '#b8b0a4',
   fontFamily: '"Copperplate", "Gill Sans", "Trebuchet MS", sans-serif',
 };
 
@@ -94,11 +94,12 @@ interface HomeScreenProps {
   currentAccount: AccountRecord | null;
   onUpdateOrder: UpdateOrderFn;
   categories: Category[];
+  productsById: Map<string, Product>;
   addToCart: (product: Product) => void;
   openPreview: (product: Product) => void;
 }
 
-function HomeScreen({ currentAccount, onUpdateOrder, categories, addToCart, openPreview }: HomeScreenProps) {
+function HomeScreen({ currentAccount, onUpdateOrder, categories, productsById, addToCart, openPreview }: HomeScreenProps) {
   return (
     <main>
       <Hero />
@@ -108,6 +109,7 @@ function HomeScreen({ currentAccount, onUpdateOrder, categories, addToCart, open
       <HistorySection
         currentAccount={currentAccount}
         onUpdateOrder={onUpdateOrder}
+        productsById={productsById}
       />
       <Footer />
     </main>
@@ -233,9 +235,8 @@ export default function App() {
       const match = medusaCategories
         .flatMap((c) => c.products)
         .find((p) => p.name === product.name);
-      if (match && match.id) {
-        // Medusa products don't have variants in the mapped type, so use placeholder
-        medusaAddItem(match.id, 'placeholder_variant', match.name, match.price, match.mrp);
+      if (match && match.variantId) {
+        medusaAddItem(match.variantId, match.variantId, match.name, match.price, match.mrp);
         setCartOpen(true);
         window.dispatchEvent(new CustomEvent('quorin:addedToCart', { detail: product }));
         return;
@@ -287,11 +288,29 @@ export default function App() {
   const cartCount = medusaCart.length > 0
     ? medusaCart.reduce((sum, item) => sum + item.quantity, 0)
     : localCartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const activeCategories = medusaCategories.length > 0 ? medusaCategories : quorinData.categories;
+  const productsById = useMemo(() => {
+    const map = new Map<string, Product>();
+    activeCategories.forEach((cat) => {
+      cat.products.forEach((p) => map.set(p.id, p));
+    });
+    return map;
+  }, [activeCategories]);
+
+  const resolveOrderPrice = (order: AccountOrder): number => {
+    const live = productsById.get(order.productId);
+    return live?.price ?? order.snapshot.price ?? 0;
+  };
+
   const currentAccount = currentAccountId ? accounts[currentAccountId] ?? null : null;
   const currentOrders = currentAccount?.orders ?? [];
-  const currentSpend = currentOrders.reduce(
-    (sum, order) => sum + (order.status === 'returned' ? 0 : (order.product.price ?? 0)),
-    0
+  const currentSpend = useMemo(
+    () => currentOrders.reduce(
+      (sum, order) => sum + (order.status === 'returned' ? 0 : resolveOrderPrice(order)),
+      0
+    ),
+    [currentOrders, resolveOrderPrice]
   );
   const xpLevel = getXpLevel(currentSpend);
   const xpDiscountPercent = getXpDiscountPercent(xpLevel);
@@ -326,12 +345,12 @@ export default function App() {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty('--color-accent', theme.accent);
-    root.style.setProperty('--color-teal', theme.teal);
-    root.style.setProperty('--color-dominant', theme.dominant);
+    root.style.setProperty('--color-action', theme.accent);
+    root.style.setProperty('--color-decorative', theme.highlight);
+    root.style.setProperty('--color-structure', theme.dominant);
     root.style.setProperty('--color-text-primary', theme.textPrimary);
     root.style.setProperty('--color-text-secondary', theme.textSecondary);
-  }, [theme.accent, theme.teal, theme.dominant, theme.textPrimary, theme.textSecondary]);
+  }, [theme.accent, theme.highlight, theme.dominant, theme.textPrimary, theme.textSecondary]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -621,16 +640,16 @@ export default function App() {
         <div
           className="relative"
           style={{
-            '--color-dominant': theme.dominant,
-            '--color-accent': theme.accent,
-            '--color-teal': theme.teal,
+            '--color-structure': theme.dominant,
+            '--color-action': theme.accent,
+            '--color-decorative': theme.highlight,
             '--color-text-primary': theme.textPrimary,
             '--color-text-secondary': theme.textSecondary,
             fontFamily: theme.fontFamily,
           } as CSSProperties}
         >
-          {/* Custom cursor */}
-          <CustomCursor />
+          {/* Custom cursor - disabled */}
+          {/* <CustomCursor /> */}
 
           {/* Navigation */}
           <Navigation
@@ -664,20 +683,20 @@ export default function App() {
 
           {/* Main Content */}
           <Routes>
-            <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={medusaCategories.length > 0 ? medusaCategories : quorinData.categories} addToCart={addToCart} openPreview={openPreview} />} />
+            <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} productsById={productsById} addToCart={addToCart} openPreview={openPreview} />} />
             <Route
               path="/category/:categoryId"
-              element={<CategoryPage onAddToCart={addToCart} onPreview={openPreview} categories={medusaCategories.length > 0 ? medusaCategories : quorinData.categories} />}
+              element={<CategoryPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} />}
             />
             <Route
               path="/xp"
-              element={<XpPage currentAccount={currentAccount} onBackHome={() => navigate('/')} />}
+              element={<XpPage currentAccount={currentAccount} onBackHome={() => navigate('/')} resolveOrderPrice={resolveOrderPrice} />}
             />
-            <Route path="*" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={medusaCategories.length > 0 ? medusaCategories : quorinData.categories} addToCart={addToCart} openPreview={openPreview} />} />
+            <Route path="*" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} productsById={productsById} addToCart={addToCart} openPreview={openPreview} />} />
           </Routes>
 
           {/* Product preview modal */}
-          <ProductPreview product={previewProduct} isOpen={previewOpen} onClose={closePreview} />
+          <ProductPreview product={previewProduct} isOpen={previewOpen} onClose={closePreview} onAddToCart={addToCart} />
 
           {/* Cookie banner */}
           <CookieBanner />

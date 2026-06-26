@@ -219,15 +219,15 @@ export default function Navigation({
       },
     },
     {
-      glyph: '⟁',
-      label: 'Admin Mode',
+      glyph: '◆',
+      label: 'Atelier',
       onClick: () => {
         if (currentAccount?.profile.role === 'admin') {
           onToggleAdminMode();
           return;
         }
         if (currentAccount?.profile.role === 'customer') {
-          setAccessNotice('You do not have access to these powers.');
+          setAccessNotice('This space is reserved for atelier members.');
           window.setTimeout(() => setAccessNotice(null), 2200);
           return;
         }
@@ -246,23 +246,6 @@ export default function Navigation({
 
   return (
     <>
-      {/* Top hover detection zone indicator */}
-      <AnimatePresence>
-        {isVisible && !hasScrolled && (
-          <motion.div
-            className="fixed top-0 left-1/2 -translate-x-1/2 w-32 h-1 rounded-full z-50"
-            style={{
-              background: 'linear-gradient(90deg, transparent, var(--color-accent), transparent)',
-              opacity: 0.5,
-            }}
-            initial={{ opacity: 0, scaleX: 0 }}
-            animate={{ opacity: 0.5, scaleX: 1 }}
-            exit={{ opacity: 0, scaleX: 0 }}
-            transition={{ duration: 0.3 }}
-          />
-        )}
-      </AnimatePresence>
-
       {/* Main Navigation */}
       <AnimatePresence>
         {isVisible && (
@@ -275,24 +258,16 @@ export default function Navigation({
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
             <div
-              className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 rounded-2xl"
-              style={{
-                background: hasScrolled ? 'rgba(8, 8, 13, 0.85)' : 'rgba(8, 8, 13, 0.6)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-                boxShadow: hasScrolled ? '0 4px 30px rgba(0, 0, 0, 0.3)' : 'none',
-              }}
+              className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 rounded-2xl frosted-glass"
             >
               {/* Logo */}
               <motion.a
                 href="#"
-                className="quorin-brand text-xl font-bold"
+                className="quorin-brand text-xl font-bold tracking-wide"
                 style={{
-                  background: 'linear-gradient(135deg, #ff1a3c, #00d4ff)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
+                  color: 'var(--color-text-primary)',
                 }}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.02 }}
                 onClick={(e) => {
                   e.preventDefault();
                   if (onHomeClick) onHomeClick();
@@ -307,7 +282,7 @@ export default function Navigation({
                 {medusaCategories.map((cat) => (
                   <motion.button
                     key={cat.id}
-                    className="relative text-sm tracking-wider transition-colors"
+                    className="relative text-sm tracking-[0.15em] uppercase transition-colors"
                     style={{ color: 'var(--color-text-secondary)' }}
                     onMouseEnter={(e) => {
                       (e.target as HTMLElement).style.color = 'var(--color-text-primary)';
@@ -315,16 +290,16 @@ export default function Navigation({
                     onMouseLeave={(e) => {
                       (e.target as HTMLElement).style.color = 'var(--color-text-secondary)';
                     }}
-                    whileHover={{ y: -2 }}
+                    whileHover={{ y: -1 }}
                     onClick={() => openCategory(cat.id)}
                   >
-                    {cat.title.toUpperCase()}
+                    {cat.title}
                     <motion.div
                       className="absolute -bottom-1 left-0 h-[1px]"
                       style={{ background: 'var(--color-accent)' }}
                       initial={{ width: 0 }}
                       whileHover={{ width: '100%' }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ duration: 0.4 }}
                     />
                   </motion.button>
                 ))}
@@ -336,13 +311,13 @@ export default function Navigation({
                 <motion.button
                   className="relative p-2 rounded-full"
                   style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'var(--color-surface-hover)',
+                    border: '1px solid var(--color-border-subtle)',
                   }}
                   whileHover={{
-                    scale: 1.1,
-                    background: 'rgba(255, 26, 60, 0.1)',
-                    borderColor: 'rgba(255, 26, 60, 0.3)',
+                    scale: 1.05,
+                    background: 'var(--color-accent-soft)',
+                    borderColor: 'var(--color-accent)',
                   }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onCartClick}
@@ -350,7 +325,7 @@ export default function Navigation({
                   <ShoppingCart size={18} style={{ color: 'var(--color-text-primary)' }} />
                   {cartCount > 0 && (
                     <motion.span
-                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold"
+                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs flex items-center justify-center font-semibold"
                       style={{
                         background: 'var(--color-accent)',
                         color: 'white',
@@ -365,16 +340,16 @@ export default function Navigation({
                 </motion.button>
 
                 <motion.button
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm tracking-wider"
+                  className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm tracking-[0.12em]"
                   style={{
-                    background: currentAccount ? 'rgba(0, 212, 255, 0.08)' : 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: currentAccount ? 'var(--color-accent-soft)' : 'var(--color-surface-hover)',
+                    border: '1px solid var(--color-border-subtle)',
                     color: 'var(--color-text-primary)',
                   }}
                   whileHover={{
-                    scale: 1.05,
-                    background: currentAccount ? 'rgba(0, 212, 255, 0.14)' : 'rgba(0, 212, 255, 0.08)',
-                    borderColor: 'rgba(0, 212, 255, 0.25)',
+                    scale: 1.03,
+                    background: currentAccount ? 'var(--color-accent-medium)' : 'var(--color-surface-hover)',
+                    borderColor: 'var(--color-accent)',
                   }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => {
@@ -386,17 +361,17 @@ export default function Navigation({
                   }}
                 >
                   <UserRound size={16} />
-                  {currentAccount ? currentAccount.profile.displayName : 'Login'}
+                  {currentAccount ? currentAccount.profile.displayName : 'Sign In'}
                 </motion.button>
 
                 {/* Menu button */}
                 <motion.button
                   className="p-2 rounded-full md:hidden"
                   style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'var(--color-surface-hover)',
+                    border: '1px solid var(--color-border-subtle)',
                   }}
-                  whileHover={{ scale: 1.1 }}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => (menuOpen ? setMenuOpen(false) : openMenu())}
                 >
@@ -411,13 +386,13 @@ export default function Navigation({
                 <motion.button
                   className="hidden md:flex p-2 rounded-full"
                   style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'var(--color-surface-hover)',
+                    border: '1px solid var(--color-border-subtle)',
                   }}
                   whileHover={{
-                    scale: 1.1,
-                    background: 'rgba(255, 26, 60, 0.1)',
-                    borderColor: 'rgba(255, 26, 60, 0.3)',
+                    scale: 1.05,
+                    background: 'var(--color-accent-soft)',
+                    borderColor: 'var(--color-accent)',
                   }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => (menuOpen ? setMenuOpen(false) : openMenu())}
@@ -434,14 +409,14 @@ export default function Navigation({
         )}
       </AnimatePresence>
 
-      {/* Full Screen Menu Overlay */}
+      {/* Menu Overlay */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
             className="fixed inset-0 z-30"
             style={{
-              background: 'rgba(8, 8, 13, 0.95)',
-              backdropFilter: 'blur(30px)',
+              background: 'rgba(248, 245, 240, 0.97)',
+              backdropFilter: 'blur(20px)',
             }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -457,11 +432,11 @@ export default function Navigation({
             />
 
             <motion.aside
-              className="fixed inset-[12px] z-10 rounded-[2rem] border overflow-hidden"
+              className="fixed inset-[16px] z-10 rounded-[2rem] border overflow-hidden"
               style={{
-                background: 'rgba(12, 12, 20, 0.9)',
-                borderColor: 'rgba(255, 255, 255, 0.08)',
-                boxShadow: '0 24px 80px rgba(0, 0, 0, 0.45)',
+                background: 'var(--color-surface)',
+                borderColor: 'var(--color-border-subtle)',
+                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.08)',
               }}
               initial={{ y: 20, opacity: 0, scale: 0.98 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -470,49 +445,31 @@ export default function Navigation({
               onMouseEnter={clearMenuCloseTimer}
               onMouseLeave={scheduleMenuClose}
             >
-              <div className="grid h-full grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)]">
-                <div className="h-full p-5 border-b lg:border-b-0 lg:border-r flex flex-col items-center justify-center gap-4" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-                  <p className="text-xs tracking-[0.35em] w-full text-center" style={{ color: 'var(--color-text-muted)' }}>
-                    MENU SIGILS
+              <div className="grid h-full grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
+                <div className="h-full p-5 border-b lg:border-b-0 lg:border-r flex flex-col items-center justify-center gap-4" style={{ borderColor: 'var(--color-border-subtle)' }}>
+                  <p className="text-xs tracking-[0.25em] w-full text-center" style={{ color: 'var(--color-text-muted)' }}>
+                    NAVIGATION
                   </p>
 
                   <div className="flex flex-col gap-3 items-center pt-3">
                     {menuItems.map((item, index) => (
                       <motion.button
                         key={item.label}
-                        className="group relative flex items-center justify-center w-16 h-16 rounded-2xl overflow-visible"
+                        className="group relative flex items-center justify-center w-14 h-14 rounded-xl overflow-visible"
                         style={{
-                          background: 'rgba(255, 255, 255, 0.03)',
-                          border: '1px solid rgba(255, 255, 255, 0.05)',
-                          boxShadow: item.label === 'Admin Mode'
-                            ? '0 0 0 1px rgba(186, 85, 255, 0.18), 0 0 22px rgba(186, 85, 255, 0.22)'
-                            : 'none',
+                          background: 'transparent',
+                          border: '1px solid transparent',
                         }}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={
-                          item.label === 'Admin Mode'
-                            ? {
-                                opacity: 1,
-                                x: 0,
-                                boxShadow: [
-                                  '0 0 0 1px rgba(186, 85, 255, 0.18), 0 0 22px rgba(186, 85, 255, 0.22)',
-                                  '0 0 0 1px rgba(186, 85, 255, 0.38), 0 0 32px rgba(186, 85, 255, 0.52)',
-                                  '0 0 0 1px rgba(186, 85, 255, 0.18), 0 0 22px rgba(186, 85, 255, 0.22)',
-                                ],
-                              }
-                            : { opacity: 1, x: 0 }
-                        }
-                        exit={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, x: -16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -16 }}
                         transition={{ delay: index * 0.06 }}
                         whileHover={{
-                          x: 6,
-                          y: -2,
-                          background: item.label === 'Admin Mode' ? 'rgba(186, 85, 255, 0.12)' : 'rgba(255, 26, 60, 0.09)',
-                          borderColor: item.label === 'Admin Mode' ? 'rgba(186, 85, 255, 0.5)' : 'rgba(255, 26, 60, 0.25)',
-                          boxShadow: item.label === 'Admin Mode'
-                            ? '0 0 0 1px rgba(186, 85, 255, 0.34), 0 0 32px rgba(186, 85, 255, 0.55)'
-                            : '0 0 0 1px rgba(255, 26, 60, 0.2), 0 0 24px rgba(0, 212, 255, 0.28)',
+                          x: 4,
+                          background: 'var(--color-surface-hover)',
+                          borderColor: 'var(--color-border-subtle)',
                         }}
+                        whileTap={{ scale: 0.95 }}
                         onMouseEnter={() => {
                           showSigilLabel(item.label);
                         }}
@@ -520,14 +477,13 @@ export default function Navigation({
                         onFocus={() => showSigilLabel(item.label)}
                         onBlur={hideSigilLabel}
                         onClick={item.onClick}
-                        >
+                      >
                         <span
-                          className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full text-2xl"
+                          className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full text-lg"
                           style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            color: item.label === 'Admin Mode' ? '#d77bff' : 'var(--color-teal)',
+                            background: 'var(--color-surface-hover)',
+                            color: 'var(--color-accent)',
                             fontFamily: 'serif',
-                            textShadow: '0 0 18px rgba(0,0,0,0.6)',
                           }}
                         >
                           {item.glyph}
@@ -535,25 +491,18 @@ export default function Navigation({
                         <AnimatePresence>
                           {activeSigil === item.label && (
                             <motion.span
-                              className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-20 flex -translate-y-1/2 items-center justify-start rounded-2xl whitespace-nowrap px-3 py-1 text-left text-[11px] font-semibold leading-none tracking-[0.22em]"
+                              className="pointer-events-none absolute left-[calc(100%+10px)] top-1/2 z-20 flex -translate-y-1/2 items-center justify-start rounded-xl whitespace-nowrap px-3 py-1 text-left text-[11px] font-medium leading-none tracking-[0.18em]"
                               style={{
                                 top: 'calc(50% - 3px)',
-                                background: item.label === 'Admin Mode'
-                                  ? 'rgba(186, 85, 255, 0.16)'
-                                  : 'rgba(255,255,255,0.08)',
-                                border: item.label === 'Admin Mode'
-                                  ? '1px solid rgba(186, 85, 255, 0.35)'
-                                  : '1px solid rgba(255,255,255,0.1)',
-                                color: item.label === 'Admin Mode' ? '#f0c6ff' : 'var(--color-text-primary)',
-                                boxShadow: item.label === 'Admin Mode'
-                                  ? '0 0 22px rgba(186, 85, 255, 0.55)'
-                                  : '0 8px 20px rgba(0,0,0,0.3)',
-                                backdropFilter: 'blur(10px)',
+                                background: 'var(--color-surface)',
+                                border: '1px solid var(--color-border-subtle)',
+                                color: 'var(--color-text-primary)',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
                                 minWidth: 'max-content',
                               }}
-                              initial={{ opacity: 0, scale: 0.9 }}
+                              initial={{ opacity: 0, scale: 0.95 }}
                               animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.9 }}
+                              exit={{ opacity: 0, scale: 0.95 }}
                             >
                               {item.label}
                             </motion.span>
@@ -565,9 +514,9 @@ export default function Navigation({
                 </div>
 
                 <div className="h-full p-5 flex items-center justify-center min-w-0">
-                  <div className="w-full max-w-4xl min-w-0 rounded-[2rem] border p-5 md:p-6" style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+                  <div className="w-full max-w-4xl min-w-0 rounded-2xl border p-5 md:p-6" style={{ borderColor: 'var(--color-border-subtle)', background: 'var(--color-ivory)' }}>
                     <div className="text-center mb-5">
-                      <p className="text-xs tracking-[0.35em]" style={{ color: 'var(--color-text-muted)' }}>
+                      <p className="text-xs tracking-[0.25em]" style={{ color: 'var(--color-text-muted)' }}>
                         SHOP BY CATEGORY
                       </p>
                     </div>
@@ -575,22 +524,22 @@ export default function Navigation({
                       {medusaCategories.map((cat, index) => (
                         <motion.button
                           key={cat.id}
-                          className="group min-w-0 rounded-[1.6rem] px-4 py-5 text-center"
+                          className="group min-w-0 rounded-xl px-4 py-5 text-center"
                           style={{
-                            background: 'rgba(255,255,255,0.03)',
-                            border: '1px solid rgba(255,255,255,0.05)',
+                            background: 'var(--color-surface)',
+                            border: '1px solid var(--color-border-subtle)',
                           }}
-                          initial={{ opacity: 0, y: 10 }}
+                          initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.05 * index }}
-                          whileHover={{ y: -4, background: 'rgba(0,212,255,0.08)', borderColor: 'rgba(0,212,255,0.18)' }}
+                          whileHover={{ y: -3, background: 'var(--color-ivory)', borderColor: 'var(--color-accent)' }}
                           onClick={() => openCategory(cat.id)}
                         >
-                          <span className="block text-lg md:text-2xl font-black tracking-[0.18em] leading-tight break-words" style={{ color: 'var(--color-text-primary)' }}>
-                            {cat.title.toUpperCase()}
+                          <span className="block text-base md:text-lg font-semibold tracking-wider leading-tight" style={{ color: 'var(--color-text-primary)' }}>
+                            {cat.title}
                           </span>
-                          <span className="mt-3 block text-xl" style={{ color: 'var(--color-accent)' }}>
-                            {['✦', '✶', '⟡'][index % 3]}
+                          <span className="mt-3 block text-lg" style={{ color: 'var(--color-accent)' }}>
+                            {'◇'}
                           </span>
                         </motion.button>
                       ))}
@@ -607,7 +556,7 @@ export default function Navigation({
         {loginOpen && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center px-4"
-            style={{ background: 'rgba(8, 8, 13, 0.75)' }}
+            style={{ background: 'rgba(0, 0, 0, 0.35)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -617,34 +566,34 @@ export default function Navigation({
             }}
           >
             <motion.div
-              className="w-full max-w-md rounded-3xl border p-6"
+              className="w-full max-w-md rounded-2xl border p-6"
               style={{
-                background: 'rgba(16, 16, 24, 0.96)',
-                borderColor: 'rgba(255, 255, 255, 0.08)',
+                background: 'var(--color-surface)',
+                borderColor: 'var(--color-border-subtle)',
               }}
-              initial={{ y: 30, scale: 0.96 }}
+              initial={{ y: 24, scale: 0.97 }}
               animate={{ y: 0, scale: 1 }}
-              exit={{ y: 20, scale: 0.96 }}
+              exit={{ y: 16, scale: 0.97 }}
               transition={{ type: 'spring', damping: 24, stiffness: 260 }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-5">
-                <div className="h-11 w-11 rounded-full flex items-center justify-center" style={{ background: 'rgba(0, 212, 255, 0.1)', color: 'var(--color-teal)' }}>
+                <div className="h-11 w-11 rounded-full flex items-center justify-center" style={{ background: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}>
                   <UserRound size={18} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Login</h3>
-                  <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Access account, orders, and admin mode</p>
+                  <h3 className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>Sign In</h3>
+                  <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>Access your account, orders, and preferences</p>
                 </div>
               </div>
 
               <div className="flex gap-2 mb-5">
                 <button
-                  className="flex-1 rounded-2xl px-4 py-3 text-sm tracking-wider"
+                  className="flex-1 rounded-xl px-4 py-3 text-sm tracking-wider"
                   style={{
-                    background: loginMode === 'google' ? 'rgba(0, 212, 255, 0.12)' : 'rgba(255,255,255,0.04)',
+                    background: loginMode === 'google' ? 'var(--color-accent-soft)' : 'var(--color-ivory)',
                     color: 'var(--color-text-primary)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    border: '1px solid var(--color-border-subtle)',
                   }}
                     onClick={() => {
                       setLoginMode('google');
@@ -662,11 +611,11 @@ export default function Navigation({
                   Google
                 </button>
                 <button
-                  className="flex-1 rounded-2xl px-4 py-3 text-sm tracking-wider"
+                  className="flex-1 rounded-xl px-4 py-3 text-sm tracking-wider"
                   style={{
-                    background: loginMode === 'email' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255,255,255,0.04)',
+                    background: loginMode === 'email' ? 'var(--color-surface-hover)' : 'var(--color-ivory)',
                     color: 'var(--color-text-primary)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    border: '1px solid var(--color-border-subtle)',
                   }}
                   onClick={() => {
                     setLoginMode('email');
@@ -676,11 +625,11 @@ export default function Navigation({
                   Email
                 </button>
                 <button
-                  className="flex-1 rounded-2xl px-4 py-3 text-sm tracking-wider"
+                  className="flex-1 rounded-xl px-4 py-3 text-sm tracking-wider"
                   style={{
-                    background: loginMode === 'phone' ? 'rgba(255, 26, 60, 0.12)' : 'rgba(255,255,255,0.04)',
+                    background: loginMode === 'phone' ? 'var(--color-accent-soft)' : 'var(--color-ivory)',
                     color: 'var(--color-text-primary)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    border: '1px solid var(--color-border-subtle)',
                   }}
                   onClick={() => {
                     setLoginMode('phone');
@@ -697,18 +646,18 @@ export default function Navigation({
               {loginMode === 'google' ? (
                 <div className="space-y-3">
                   <button
-                    className="w-full rounded-2xl px-4 py-3 flex items-center justify-center gap-3"
+                    className="w-full rounded-xl px-4 py-3 flex items-center justify-center gap-3"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06))',
+                      background: 'var(--color-surface)',
                       color: 'var(--color-text-primary)',
-                      border: '1px solid rgba(255,255,255,0.08)',
+                      border: '1px solid var(--color-border-subtle)',
                     }}
                     onClick={() => {
                       setLoginOpen(false);
                       setLoginError(null);
                     }}
                   >
-                    <span className="h-5 w-5 rounded-full bg-white text-black flex items-center justify-center text-xs font-bold">G</span>
+                    <span className="h-5 w-5 rounded-full bg-[#4285F4] text-white flex items-center justify-center text-xs font-bold">G</span>
                     Continue with Google
                   </button>
                   <p className="text-xs leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
@@ -718,24 +667,24 @@ export default function Navigation({
               ) : loginMode === 'email' ? (
                 <div className="space-y-3">
                   <input
-                    className="w-full rounded-2xl px-4 py-3 outline-none"
+                    className="w-full rounded-xl px-4 py-3 outline-none"
                     placeholder="Email address or account ID"
                     value={emailAddress}
                     onChange={(e) => setEmailAddress(e.target.value)}
-                    style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }}
+                    style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
                   />
                   <input
-                    className="w-full rounded-2xl px-4 py-3 outline-none"
+                    className="w-full rounded-xl px-4 py-3 outline-none"
                     placeholder="Password"
                     type="password"
                     value={emailPassword}
                     onChange={(e) => setEmailPassword(e.target.value)}
-                    style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }}
+                    style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
                   />
                   <button
-                    className="w-full rounded-2xl px-4 py-3 text-sm tracking-wider"
+                    className="w-full rounded-xl px-4 py-3 text-sm tracking-wider"
                     style={{
-                      background: 'linear-gradient(135deg, #ff1a3c, #ff0044)',
+                      background: 'var(--color-accent)',
                       color: 'white',
                     }}
                     onClick={handleEmailLogin}
@@ -747,7 +696,7 @@ export default function Navigation({
                 <div className="space-y-3">
                   <div className="relative">
                     <input
-                      className="w-full rounded-2xl px-4 py-3 outline-none"
+                      className="w-full rounded-xl px-4 py-3 outline-none"
                       placeholder="Search country or code"
                       value={countryQuery}
                       onFocus={() => setCountryPickerOpen(true)}
@@ -764,12 +713,12 @@ export default function Navigation({
                       onBlur={() => {
                         window.setTimeout(() => setCountryPickerOpen(false), 120);
                       }}
-                      style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }}
+                      style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
                     />
                     <button
                       type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-3 py-1 text-xs"
-                      style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--color-text-secondary)' }}
+                      style={{ background: 'var(--color-surface-hover)', color: 'var(--color-text-secondary)' }}
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => {
                         setCountryQuery(selectedCountry.label);
@@ -781,25 +730,25 @@ export default function Navigation({
                     <AnimatePresence>
                       {countryPickerOpen && (
                         <motion.div
-                          className="quorin-scrollbox absolute left-0 right-0 top-[calc(100%+10px)] z-20 overflow-y-auto rounded-3xl border p-2"
+                          className="quorin-scrollbox absolute left-0 right-0 top-[calc(100%+10px)] z-20 overflow-y-auto rounded-xl border p-2"
                           style={{
                             maxHeight: 260,
-                            background: 'rgba(14, 14, 20, 0.98)',
-                            borderColor: 'rgba(255,255,255,0.08)',
-                            boxShadow: '0 24px 60px rgba(0,0,0,0.45)',
+                            background: 'var(--color-surface)',
+                            borderColor: 'var(--color-border-subtle)',
+                            boxShadow: '0 12px 32px rgba(0,0,0,0.1)',
                           }}
-                          initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                          initial={{ opacity: 0, y: -4, scale: 0.98 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                          exit={{ opacity: 0, y: -4, scale: 0.98 }}
                         >
                           {filteredCountries.length ? (
                             filteredCountries.map((country) => (
                               <button
                                 key={country.label}
-                                className="w-full rounded-2xl px-4 py-3 text-left transition-colors"
+                                className="w-full rounded-lg px-4 py-3 text-left transition-colors"
                                 style={{
                                   color: country.label === selectedCountry.label ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
-                                  background: country.label === selectedCountry.label ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
+                                  background: country.label === selectedCountry.label ? 'var(--color-accent-soft)' : 'transparent',
                                 }}
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => {
@@ -820,19 +769,19 @@ export default function Navigation({
                       )}
                     </AnimatePresence>
                     <input
-                      className="w-full rounded-2xl px-4 py-3 outline-none mt-2"
+                      className="w-full rounded-xl px-4 py-3 outline-none mt-2"
                       placeholder="Phone number"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }}
+                      style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
                     />
                   </div>
 
                   {!otpSent ? (
                     <button
-                      className="w-full rounded-2xl px-4 py-3 text-sm tracking-wider"
+                      className="w-full rounded-xl px-4 py-3 text-sm tracking-wider"
                       style={{
-                        background: 'linear-gradient(135deg, #ff1a3c, #ff0044)',
+                        background: 'var(--color-accent)',
                         color: 'white',
                       }}
                       onClick={() => {
@@ -845,17 +794,17 @@ export default function Navigation({
                     </button>
                   ) : (
                     <motion.div
-                      className="rounded-2xl p-4 border"
-                      style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}
-                      initial={{ opacity: 0, y: 10 }}
+                      className="rounded-xl p-4 border"
+                      style={{ borderColor: 'var(--color-border-subtle)', background: 'var(--color-ivory)' }}
+                      initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                     >
                       <div className="flex items-center gap-3 mb-4">
                         <motion.span
                           className="h-3 w-3 rounded-full"
-                          style={{ background: 'var(--color-teal)' }}
-                          animate={{ scale: [1, 1.5, 1], opacity: [0.4, 1, 0.4] }}
-                          transition={{ repeat: Infinity, duration: 1.2 }}
+                          style={{ background: 'var(--color-accent)' }}
+                          animate={{ scale: [1, 1.4, 1], opacity: [0.3, 1, 0.3] }}
+                          transition={{ repeat: Infinity, duration: 1.5 }}
                         />
                         <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                           OTP sent to {activeCountry.label} {phoneNumber}
@@ -874,8 +823,8 @@ export default function Navigation({
                               next[index] = e.target.value.replace(/\D/g, '').slice(-1);
                               setOtpCode(next);
                             }}
-                            className="h-14 rounded-2xl text-center text-lg outline-none"
-                            style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }}
+                            className="h-12 rounded-xl text-center text-lg outline-none"
+                            style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
                           />
                         ))}
                       </div>
@@ -885,9 +834,9 @@ export default function Navigation({
                           Change number
                         </button>
                         <button
-                          className="px-5 py-3 rounded-full text-sm tracking-wider"
+                          className="px-5 py-2 rounded-full text-sm tracking-wider"
                           style={{
-                            background: 'linear-gradient(135deg, #ff1a3c, #ff0044)',
+                            background: 'var(--color-accent)',
                             color: 'white',
                           }}
                           onClick={() => {
@@ -910,7 +859,7 @@ export default function Navigation({
               )}
 
               {loginError && (
-                <p className="mt-4 text-sm" style={{ color: 'var(--color-accent)' }}>
+                <p className="mt-4 text-sm" style={{ color: '#B85C5C' }}>
                   {loginError}
                 </p>
               )}
@@ -920,10 +869,11 @@ export default function Navigation({
                     Close
                   </button>
                 <button
-                  className="px-5 py-3 rounded-full text-sm tracking-wider"
+                  className="px-5 py-2 rounded-full text-sm tracking-wider"
                   style={{
-                    background: 'rgba(255,255,255,0.06)',
+                    background: 'var(--color-surface-hover)',
                     color: 'var(--color-text-primary)',
+                    border: '1px solid var(--color-border-subtle)',
                   }}
                   onClick={() => {
                     setLoginMode('google');
@@ -947,42 +897,42 @@ export default function Navigation({
         {customRequestOpen && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center px-4"
-            style={{ background: 'rgba(8, 8, 13, 0.78)' }}
+            style={{ background: 'rgba(0, 0, 0, 0.35)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setCustomRequestOpen(false)}
           >
             <motion.div
-              className="w-full max-w-2xl rounded-3xl border p-6"
-              style={{ background: 'rgba(16,16,24,0.98)', borderColor: 'rgba(255,255,255,0.08)' }}
-              initial={{ y: 24, scale: 0.97 }}
+              className="w-full max-w-2xl rounded-2xl border p-6"
+              style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border-subtle)' }}
+              initial={{ y: 20, scale: 0.97 }}
               animate={{ y: 0, scale: 1 }}
-              exit={{ y: 18, scale: 0.97 }}
+              exit={{ y: 14, scale: 0.97 }}
               transition={{ type: 'spring', damping: 24, stiffness: 260 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs tracking-[0.3em] mb-4" style={{ background: 'rgba(0,212,255,0.08)', color: 'var(--color-teal)' }}>
-                ⟡ CUSTOM REQUEST
+              <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs tracking-[0.2em] mb-4" style={{ background: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}>
+                ⟡ Bespoke Request
               </div>
-              <h3 className="text-3xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
-                Message to seller
+              <h3 className="text-2xl font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>
+                Message to the Atelier
               </h3>
               <p className="text-sm mb-5" style={{ color: 'var(--color-text-muted)' }}>
-                Write exactly what you want, and keep it in the same {quorinData.brand} theme.
+                Share your vision, and our artisans will craft something extraordinary for you.
               </p>
 
               <textarea
-                className="w-full min-h-44 rounded-3xl p-4 outline-none"
-                placeholder="Describe your custom order here..."
+                className="w-full min-h-40 rounded-xl p-4 outline-none"
+                placeholder="Describe your bespoke order..."
                 value={customRequestText}
                 onChange={(e) => setCustomRequestText(e.target.value)}
-                style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--color-text-primary)' }}
+                style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
               />
 
               {customRequestSent && (
-                <p className="mt-4 text-sm" style={{ color: 'var(--color-teal)' }}>
-                  Request ready: {customRequestSent}
+                <p className="mt-4 text-sm" style={{ color: 'var(--color-accent)' }}>
+                  Request received: {customRequestSent}
                 </p>
               )}
 
@@ -991,8 +941,8 @@ export default function Navigation({
                   Cancel
                 </button>
                 <button
-                  className="px-5 py-3 rounded-full text-sm tracking-wider"
-                  style={{ background: 'linear-gradient(135deg, #ff1a3c, #ff0044)', color: 'white' }}
+                  className="px-5 py-2 rounded-full text-sm tracking-wider"
+                  style={{ background: 'var(--color-accent)', color: 'white' }}
                   onClick={() => {
                     const message = customRequestText.trim();
                     if (!message) return;
@@ -1010,7 +960,7 @@ export default function Navigation({
                     setCustomRequestOpen(false);
                   }}
                 >
-                  Send request
+                  Send Request
                 </button>
               </div>
             </motion.div>
@@ -1021,11 +971,11 @@ export default function Navigation({
       <AnimatePresence>
         {accessNotice && (
           <motion.div
-            className="fixed top-24 right-6 z-50 rounded-2xl border px-4 py-3"
-            style={{ background: 'rgba(16,16,24,0.98)', borderColor: 'rgba(255,255,255,0.08)', color: 'var(--color-text-primary)' }}
-            initial={{ opacity: 0, x: 20 }}
+            className="fixed top-24 right-6 z-50 rounded-xl border px-4 py-3"
+            style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border-subtle)', color: 'var(--color-text-primary)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}
+            initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
+            exit={{ opacity: 0, x: 16 }}
           >
             {accessNotice}
           </motion.div>

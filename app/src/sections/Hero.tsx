@@ -1,272 +1,130 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import starManager from '@/utils/starManager';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { quorinData } from '@/data/products';
-import { useIsMobile } from '@/hooks/use-mobile';
 
-const hexToRgba = (hex: string, alpha: number = 1): string => {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
+const brandLetters = quorinData.brand.split('');
 
-const getThemeColors = () => {
-  const styles = getComputedStyle(document.documentElement);
-  const accent = styles.getPropertyValue('--color-accent').trim() || '#ff1a3c';
-  const teal = styles.getPropertyValue('--color-teal').trim() || '#00d4ff';
-  const accentRgba = hexToRgba(accent, 1);
-  const tealRgba = hexToRgba(teal, 1);
-  return { accent, teal, accentRgba, tealRgba };
-};
-
-interface Particle {
-  x: number;
-  y: number;
-  originX: number;
-  originY: number;
-  size: number;
-  color: string;
-  alpha: number;
-  speed: number;
-  angle: number;
-  distance: number;
-}
+const luxuryParticles = [
+  { size: 4, delay: 0, duration: 8 },
+  { size: 3, delay: 0.5, duration: 10 },
+  { size: 5, delay: 1, duration: 12 },
+  { size: 3, delay: 1.5, duration: 9 },
+  { size: 4, delay: 2, duration: 11 },
+];
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particlesRef = useRef<Particle[]>([]);
-  const mouseRef = useRef({ x: 0, y: 0 });
-  const rafRef = useRef<number>(0);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  const [themeColors, setThemeColors] = useState<ReturnType<typeof getThemeColors> | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    setThemeColors(getThemeColors());
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
   }, []);
-
-  // detect mobile to limit stars
-  const isMobile = useIsMobile();
-
-  // Initialize particles
-  const initParticles = useCallback(() => {
-    const colors = getThemeColors();
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const particles: Particle[] = [];
-    const desired = isMobile ? 25 : 100;
-    // release previous reservation if re-init
-    const prevReserved = (particlesRef as any).reservedStars || 0;
-    if (prevReserved > 0) {
-      starManager.release(prevReserved);
-      (particlesRef as any).reservedStars = 0;
-    }
-
-    const allowed = starManager.requestReserve(desired);
-
-    for (let i = 0; i < allowed; i++) {
-      const x = Math.random() * rect.width;
-      const y = Math.random() * rect.height;
-      particles.push({
-        x,
-        y,
-        originX: x,
-        originY: y,
-        size: Math.random() * 2 + 0.5,
-        color: Math.random() > 0.5 ? colors.accent : colors.teal,
-        alpha: Math.random() * 0.5 + 0.2,
-        speed: Math.random() * 0.5 + 0.2,
-        angle: Math.random() * Math.PI * 2,
-        distance: Math.random() * 100 + 50,
-      });
-    }
-    // record how many stars this Hero instance reserved so we can release on unmount/resize
-    (particlesRef as any).reservedStars = allowed;
-    particlesRef.current = particles;
-    setDimensions({ width: rect.width, height: rect.height });
-  }, []);
-
-  // Animation loop
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const animate = () => {
-      ctx.clearRect(0, 0, dimensions.width, dimensions.height);
-      const mouse = mouseRef.current;
-
-      particlesRef.current.forEach((p) => {
-        // Distance from mouse
-        const dx = mouse.x - p.x;
-        const dy = mouse.y - p.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const maxDist = 200;
-
-        // Particle behavior
-        if (dist < maxDist) {
-          const force = (maxDist - dist) / maxDist;
-          // gently repel particles from the mouse for a smooth trail
-          const damp = 2.0;
-          p.x -= (dx / (dist || 1)) * force * damp;
-          p.y -= (dy / (dist || 1)) * force * damp;
-          p.alpha = Math.min(0.9, p.alpha + 0.03);
-        } else {
-          // Return to origin faster so trails don't linger
-          p.x += (p.originX - p.x) * 0.12;
-          p.y += (p.originY - p.y) * 0.12;
-          p.alpha = Math.max(0.15, p.alpha - 0.05);
-        }
-
-        // Floating motion
-        p.angle += 0.01;
-        p.y += Math.sin(p.angle) * 0.3;
-
-        // Draw particle
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.alpha;
-        ctx.fill();
-
-        // Glow for larger particles
-        if (p.size > 1.5) {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
-          const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
-          gradient.addColorStop(0, p.color);
-          gradient.addColorStop(1, 'transparent');
-          ctx.fillStyle = gradient;
-          ctx.globalAlpha = p.alpha * 0.3;
-          ctx.fill();
-        }
-      });
-
-
-
-      ctx.globalAlpha = 1;
-      rafRef.current = requestAnimationFrame(animate);
-    };
-
-    if (dimensions.width > 0) {
-      rafRef.current = requestAnimationFrame(animate);
-    }
-
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      // release reserved stars when component unmounts
-      const reserved = (particlesRef as any).reservedStars || 0;
-      if (reserved > 0) starManager.release(reserved);
-    };
-  }, [dimensions]);
-
-  useEffect(() => {
-    initParticles();
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      mouseRef.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      };
-    };
-
-    const handleResize = () => {
-      initParticles();
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [initParticles]);
-
-  // Canvas sizing
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || dimensions.width === 0) return;
-    canvas.width = dimensions.width;
-    canvas.height = dimensions.height;
-  }, [dimensions]);
-
-  const brandLetters = quorinData.brand.split('');
 
   return (
     <section
       ref={containerRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
-      style={{ background: 'var(--color-dominant)' }}
+      style={{ background: 'var(--color-background)' }}
     >
-      {/* Particle Canvas */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 pointer-events-none"
-        style={{ width: '100%', height: '100%' }}
+      {/* Soft ambient glow */}
+      <div
+        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle, rgba(201, 169, 110, 0.06) 0%, transparent 60%)',
+        }}
       />
 
-      {/* Background grid */}
+      {/* Subtle texture overlay */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-          `,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M30 0v60M0 30h60' stroke='rgba(201,169,110,0.3)' stroke-width='0.5'/%3E%3C/svg%3E")`,
           backgroundSize: '60px 60px',
         }}
       />
 
+      {/* Floating gold particles */}
+      {isVisible && luxuryParticles.map((particle, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            width: particle.size,
+            height: particle.size,
+            background: 'rgba(201, 169, 110, 0.3)',
+            left: `${20 + i * 15}%`,
+            top: `${30 + (i % 3) * 15}%`,
+          }}
+          animate={{
+            y: [-20, 20, -20],
+            opacity: [0.1, 0.4, 0.1],
+            scale: [0.8, 1.2, 0.8],
+          }}
+          transition={{
+            duration: particle.duration,
+            delay: particle.delay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+
       {/* Main Content */}
       <div className="relative z-10 text-center px-4">
+        {/* Decorative line */}
+        <motion.div
+          className="w-16 h-[1px] mx-auto mb-8"
+          style={{ background: 'var(--color-accent)' }}
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 1.2, delay: 0.2 }}
+        />
+
         {/* Brand Typography */}
         <motion.div
-          className="flex justify-center items-center gap-1 md:gap-2 mb-6"
+          className="flex justify-center items-center mb-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.2 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
         >
           {brandLetters.map((letter, index) => (
             <motion.span
               key={index}
-              className="quorin-brand text-[12vw] md:text-[10vw] lg:text-[8vw] font-black leading-none select-none"
-              style={{
-                background: `linear-gradient(180deg, var(--color-text-primary) 0%, var(--color-text-secondary) 100%)`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                filter: themeColors ? `drop-shadow(0 0 40px ${hexToRgba(themeColors.accent, 0.3)})` : 'none',
-              }}
-              initial={{ opacity: 0, y: 100, rotateX: -90 }}
-              animate={{ opacity: 1, y: 0, rotateX: 0 }}
+              className="quorin-brand text-[12vw] md:text-[10vw] lg:text-[8vw] font-black leading-none select-none warm-gradient-text"
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{
-                duration: 1.2,
+                duration: 0.8,
                 delay: 0.1 * index,
-                ease: [0.76, 0, 0.24, 1],
+                ease: [0.25, 0.1, 0.25, 1],
               }}
-              whileHover={{
-                scale: 1.1,
-                rotateY: 10,
-                transition: { duration: 0.3 },
-              }}
+              whileHover={{ scale: 1.05 }}
             >
               {letter}
             </motion.span>
           ))}
         </motion.div>
 
+        {/* Decorative separator */}
+        <motion.div
+          className="flex items-center justify-center gap-4 mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+        >
+          <div className="w-8 h-[1px]" style={{ background: 'rgba(201, 169, 110, 0.4)' }} />
+          <div className="w-2 h-2 rounded-full" style={{ background: 'var(--color-accent)' }} />
+          <div className="w-8 h-[1px]" style={{ background: 'rgba(201, 169, 110, 0.4)' }} />
+        </motion.div>
+
         {/* Tagline */}
         <motion.p
-          className="text-lg md:text-xl tracking-[0.8em] mb-12"
+          className="text-sm md:text-base tracking-[0.5em] mb-8"
           style={{ color: 'var(--color-text-secondary)' }}
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.8 }}
+          transition={{ duration: 0.8, delay: 0.9 }}
         >
           {quorinData.tagline.toUpperCase()}
         </motion.p>
@@ -277,7 +135,7 @@ export default function Hero() {
           style={{ color: 'var(--color-text-muted)' }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1.0 }}
+          transition={{ duration: 0.8, delay: 1.1 }}
         >
           Premium crafting supplies for resin art, candle making, and soap making.
           Everything you need to bring your creative vision to life.

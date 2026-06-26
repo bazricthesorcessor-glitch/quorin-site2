@@ -1,0 +1,11 @@
+Analyze this product image in detail. Return ONLY valid JSON with these exact fields:
+{
+  "product_name": "short product name",
+  "description": "one sentence product description",
+  "category": "category this product belongs to",
+  "images_count": number_of_images_in_directory,
+  "tags": ["tag1", "tag2", "tag3"],
+  "price_hint": "budget/mid/premium"
+}
+
+Describe colors, materials, textures, and what the product is used for.

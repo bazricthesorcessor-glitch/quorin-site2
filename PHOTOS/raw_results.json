@@ -1,0 +1,117 @@
+[
+  {
+    "dir": "COMBOS",
+    "image_count": 38,
+    "result": "{\n  \"product_name\": \"Jigong Heat Tool\",\n  \"description\": \"A heat tool kit for various applications\",\n  \"category\": \"Crafting Tools\",\n  \"tags\": [\"heat tool\", \"hot air gun\", \"crafting\", \"diy\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"plastic\", \"metal\"],\n  \"colors\": [\"white\", \"blue\", \"purple\"]\n}"
+  },
+  {
+    "dir": "Candle Pigment 2.0",
+    "image_count": 25,
+    "result": "{\n  \"product_name\": \"Quorin Candle Pigment\",\n  \"description\": \"A liquid pigment for coloring candles\",\n  \"category\": \"Craft Supplies\",\n  \"tags\": [\"candle making\", \"pigment\", \"colorant\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"liquid pigment\"],\n  \"colors\": [\"Yellow\", \"Violet\", \"Brown\", \"Red\", \"Pink\", \"Green\", \"Blue\"]\n}"
+  },
+  {
+    "dir": "Crushed glass",
+    "image_count": 73,
+    "error": "Error code: 413 - {'error': {'message': 'Request Entity Too Large', 'type': 'invalid_request_error', 'code': 'request_too_large'}}"
+  },
+  {
+    "dir": "Deburring tool",
+    "image_count": 8,
+    "result": "{\n  \"product_name\": \"Deburring System\",\n  \"description\": \"A tool used for removing burrs from surfaces\",\n  \"category\": \"Hand Tools\",\n  \"tags\": [\"deburring\", \"metalworking\", \"tool\"],\n  \"price_hint\": \"mid\",\n  \"materials\": [\"plastic\", \"metal\"],\n  \"colors\": [\"blue\", \"black\", \"gold\"]\n}"
+  },
+  {
+    "dir": "Fragrances",
+    "image_count": 24,
+    "result": "{\n  \"product_name\": \"Fragrance Oil\",\n  \"description\": \"A bottle of fragrance oil for aromatherapy and perfumery\",\n  \"category\": \"Essential Oils and Fragrances\",\n  \"tags\": [\"fragrance oil\", \"sandalwood\", \"essential oil\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"oil\"],\n  \"colors\": [\"yellow\", \"green\", \"purple\", \"brown\", \"red\", \"orange\"]\n}"
+  },
+  {
+    "dir": "GLITTER",
+    "image_count": 50,
+    "result": "{\n  \"product_name\": \"Glitter\",\n  \"description\": \"Glitter powder for decorative use\",\n  \"category\": \"Craft Supplies\",\n  \"tags\": [\"glitter\", \"crafting\", \"decorative\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"Glitter powder\"],\n  \"colors\": [\"Silver\", \"Royal Blue\", \"Dusty Teal\", \"Parrot Green\", \"Sky Blue\", \"Green\"]\n}"
+  },
+  {
+    "dir": "HAND DRILL WITH 4 BITS",
+    "image_count": 9,
+    "result": "{\n  \"product_name\": \"Resin Craft Tool\",\n  \"description\": \"A versatile tool for resin crafts\",\n  \"category\": \"Crafting Tools\",\n  \"tags\": [\"resin\", \"crafting\", \"tool\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"resin\"],\n  \"colors\": [\"multicolor\"]\n}"
+  },
+  {
+    "dir": "Jet lighter",
+    "image_count": 7,
+    "result": "{\n  \"product_name\": \"Quorin Blowtorch\",\n  \"description\": \"A kitchen blowtorch for cooking and culinary applications\",\n  \"category\": \"Cooking Tools\",\n  \"tags\": [\"kitchen\", \"cooking\", \"blowtorch\"],\n  \"price_hint\": \"mid\",\n  \"materials\": [\"plastic\", \"metal\"],\n  \"colors\": [\"black\", \"red\"]\n}"
+  },
+  {
+    "dir": "Liquid deco paint",
+    "image_count": 9,
+    "result": "{\n  \"product_name\": \"Quorin Liquid Deco Paint\",\n  \"description\": \"A liquid decorative paint for various artistic applications\",\n  \"category\": \"Art Supplies\",\n  \"tags\": [\"paint\", \"liquid\", \"decorative\", \"art\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"liquid paint\"],\n  \"colors\": [\"gold\"]\n}"
+  },
+  {
+    "dir": "MOULDS COMBO",
+    "image_count": 32,
+    "result": "{\n  \"product_name\": \"Jewellery Mould\",\n  \"description\": \"A mould for making jewellery\",\n  \"category\": \"Jewelry Making Supplies\",\n  \"tags\": [\"jewelry mould\", \"resin mould\", \"jewellery making\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"Silicone\"],\n  \"colors\": [\"Transparent\"]\n}"
+  },
+  {
+    "dir": "Magnets combo",
+    "image_count": 24,
+    "result": "{\n  \"product_name\": \"Neodymium Magnets\",\n  \"description\": \"A set of round neodymium magnets in various stack sizes\",\n  \"category\": \"Magnets\",\n  \"tags\": [\"neodymium\", \"magnets\", \"round\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"Neodymium Magnet Material\"],\n  \"colors\": [\"Gray\"]\n}"
+  },
+  {
+    "dir": "Resin",
+    "image_count": 9,
+    "result": "{\n  \"product_name\": \"Epoxy Resin and Hardener\",\n  \"description\": \"A two-part epoxy resin system for art and crafting\",\n  \"category\": \"Art Supplies\",\n  \"tags\": [\"epoxy\", \"resin\", \"hardener\", \"art supplies\"],\n  \"price_hint\": \"mid\",\n  \"materials\": [\"resin\", \"hardener\"],\n  \"colors\": [\"clear\"]\n}"
+  },
+  {
+    "dir": "Soap Dye + mould",
+    "image_count": 8,
+    "error": "Error code: 413 - {'error': {'message': 'Request Entity Too Large', 'type': 'invalid_request_error', 'code': 'request_too_large'}}"
+  },
+  {
+    "dir": "Soap dye",
+    "image_count": 16,
+    "result": "{\n  \"product_name\": \"Soap Pigment\",\n  \"description\": \"Colorant for soap making\",\n  \"category\": \"Crafting Supplies\",\n  \"tags\": [\"soap making\", \"pigment\", \"colorant\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"liquid pigment\"],\n  \"colors\": [\"Pink\", \"Yellow\", \"Blue\", \"Green\", \"Violet\", \"Brown\", \"Red\", \"Orange\"]\n}"
+  },
+  {
+    "dir": "UV Resin combo",
+    "image_count": 22,
+    "result": "{\n  \"product_name\": \"UV Resin Curing Kit\",\n  \"description\": \"A kit for curing and shaping UV resin\",\n  \"category\": \"Beauty & Personal Care\",\n  \"tags\": [\"UV resin\", \"nail art\", \"crafting\"],\n  \"price_hint\": \"mid\",\n  \"materials\": [\"plastic\", \"resin\"],\n  \"colors\": [\"pink\", \"blue\", \"black\"]\n}"
+  },
+  {
+    "dir": "Wick COMBOS",
+    "image_count": 40,
+    "result": "{\n  \"product_name\": \"Cabinet Liner Holder\",\n  \"description\": \"A set of adhesive-backed holders and clips for organizing and securing liners in cabinets or drawers\",\n  \"category\": \"Home Organization\",\n  \"tags\": [\"cabinet organization\", \"drawer organization\", \"adhesive strips\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"plastic\", \"metal\"],\n  \"colors\": [\"white\", \"silver\", \"yellow\"]\n}"
+  },
+  {
+    "dir": "candle pigments",
+    "image_count": 11,
+    "result": "{\n  \"product_name\": \"Christmas Candles\",\n  \"description\": \"A set of festive Christmas candles in various shapes and colors\",\n  \"category\": \"Home Decor\",\n  \"tags\": [\"Christmas\", \"Candle\", \"Decorative\"],\n  \"price_hint\": \"mid\",\n  \"materials\": [\"wax\"],\n  \"colors\": [\"red\", \"green\", \"white\"]\n}"
+  },
+  {
+    "dir": "eco-cast",
+    "image_count": 8,
+    "result": "{\n  \"product_name\": \"Eco Create Water Based Product\",\n  \"description\": \"Water based product for creating art\",\n  \"category\": \"Art Supplies\",\n  \"tags\": [\"water based\", \"art\", \"crafts\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"water based material\"],\n  \"colors\": [\"yellow\", \"black\", \"white\", \"green\"]\n}"
+  },
+  {
+    "dir": "gilding glue",
+    "image_count": 7,
+    "result": "{\n  \"product_name\": \"Gilding Glue\",\n  \"description\": \"Gold leaf adhesive\",\n  \"category\": \"Art Supplies\",\n  \"tags\": [\"adhesive\", \"gilding\", \"gold leaf\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"chemicals\"],\n  \"colors\": [\"white\"]\n}"
+  },
+  {
+    "dir": "metal hook_",
+    "image_count": 6,
+    "result": "{\n  \"product_name\": \"Brass Latch Lock\",\n  \"description\": \"A set of brass latch locks with screws for secure fastening\",\n  \"category\": \"Hardware\",\n  \"tags\": [\"brass\", \"latch\", \"lock\", \"screws\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"Brass\"],\n  \"colors\": [\"Gold\"]\n}"
+  },
+  {
+    "dir": "resin bubble remover",
+    "image_count": 9,
+    "result": "{\n  \"product_name\": \"Resin Bubble Remover\",\n  \"description\": \"A liquid solution for removing bubbles from resin\",\n  \"category\": \"Crafting Supplies\",\n  \"tags\": [\"resin\", \"bubble remover\", \"crafting\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"liquid solution\"],\n  \"colors\": [\"clear\"]\n}"
+  },
+  {
+    "dir": "resin pigment",
+    "image_count": 15,
+    "error": "Error code: 413 - {'error': {'message': 'Request Entity Too Large', 'type': 'invalid_request_error', 'code': 'request_too_large'}}"
+  },
+  {
+    "dir": "silica 500 gm in pouch",
+    "image_count": 8,
+    "result": "{\n  \"product_name\": \"Silica\",\n  \"description\": \"A flower drying agent used to preserve natural color and shape of flowers\",\n  \"category\": \"Crafting Supplies\",\n  \"tags\": [\"flower drying\", \"resin art\", \"crafts\", \"decoration\"],\n  \"price_hint\": \"budget\",\n  \"materials\": [\"silica\"],\n  \"colors\": [\"green\", \"beige\"]\n}"
+  }
+]

@@ -1,6 +1,6 @@
 require("dotenv").config();
-const { initializeContainer } = require("./node_modules/@medusajs/medusa/dist/loaders");
-const { ContainerRegistrationKeys } = require("./node_modules/@medusajs/framework/dist/utils");
+const loaders = require("./node_modules/@medusajs/medusa/dist/loaders/index.js");
+const { initializeContainer, default: medusaLoader } = loaders;
 
 const PRODUCTS = [
   { name: "QUORIN Crystal Clear Epoxy Resin and Hardener Kit", description: "UV Resistant, High Gloss Finish, Smooth Finish, Easy to Use, Crystal Clear.", price: 999, mrp: 1549, tags: ["resin", "epoxy", "art", "jewelry", "crafts"], category: "resin-art", thumbnail: "/product-resin-kit.jpg" },
@@ -30,20 +30,40 @@ const PRODUCTS = [
 ];
 
 async function seed() {
-  const container = await initializeContainer(process.cwd(), {
-    skipMigrations: true,
-    skipDbConnection: false,
+  const { container } = await medusaLoader({
+    directory: process.cwd(),
+    expressApp: null,
+    skipLoadingEntryPoints: true,
   });
-  const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
+  const logger = container.resolve("logger");
   const productModuleService = container.resolve("product");
 
-  // Create categories
+  // Create categories (skip if they exist)
   const categories = {};
-  for (const catId of ["resin-art", "candle-making", "soap-making"]) {
-    const [cat] = await productModuleService.createProductCategories([
-      { title: catId.replace("-", " ").replace(/\b\w/g, c => c.toUpperCase()) },
-    ]);
-    categories[catId] = cat.id;
+  const catNames = { "resin-art": "Resin Art", "candle-making": "Candle Making", "soap-making": "Soap Making" };
+  const existingCats = await productModuleService.listProductCategories();
+  for (const cat of existingCats) {
+    const handle = cat.handle || cat.id;
+    for (const [catId] of Object.entries(catNames)) {
+      if (handle.includes(catId.split('-')[0]) || cat.name?.toLowerCase().includes(catId.split('-')[0])) {
+        categories[catId] = cat.id;
+      }
+    }
+  }
+  for (const [catId, name] of Object.entries(catNames)) {
+    if (!categories[catId]) {
+      const [cat] = await productModuleService.createProductCategories([
+        { name, handle: catId },
+      ]);
+      categories[catId] = cat.id;
+    }
+  }
+
+  // Check if products already exist
+  const existingProducts = await productModuleService.listProducts();
+  if (existingProducts.length > 0) {
+    logger.info(`Products already exist (${existingProducts.length}), skipping seed`);
+    process.exit(0);
   }
 
   let created = 0;

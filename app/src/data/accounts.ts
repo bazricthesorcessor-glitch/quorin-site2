@@ -14,9 +14,16 @@ export interface AccountProfile {
   birthday?: string;
 }
 
+export interface OrderSnapshot {
+  name: string;
+  thumbnail: string;
+  price: number;
+}
+
 export interface AccountOrder {
   id: string;
-  product: Product;
+  productId: string;
+  snapshot: OrderSnapshot;
   orderDate: string;
   status: 'delivered' | 'return_requested' | 'returned';
   comment?: string;
@@ -36,16 +43,62 @@ export interface AccountRecord {
 const mergeUniqueYears = (...groups: Array<number[] | undefined>) =>
   Array.from(new Set(groups.flatMap((group) => group ?? []))).sort((a, b) => a - b);
 
-const mergeOrders = (demoOrders: AccountOrder[], storedOrders?: AccountOrder[]) => {
+const buildProductsById = (): Map<string, Product> => {
+  const map = new Map<string, Product>();
+  for (const category of quorinData.categories) {
+    for (const product of category.products) {
+      map.set(product.name, product);
+    }
+  }
+  return map;
+};
+
+const convertLegacyOrder = (order: unknown): AccountOrder | null => {
+  if (!order || typeof order !== 'object') return null;
+  const o = order as Record<string, unknown>;
+  if (!o.product || typeof o.product !== 'object') return null;
+  const product = o.product as Record<string, unknown>;
+  const name = product.name as string;
+  if (!name) return null;
+
+  const productsById = buildProductsById();
+  const matched = productsById.get(name);
+  if (!matched) return null;
+
+  return {
+    id: String(o.id ?? 'unknown'),
+    productId: matched.id,
+    snapshot: {
+      name,
+      thumbnail: (product.images?.[0] as string) || '',
+      price: Number(product.price) || 0,
+    },
+    orderDate: String(o.orderDate ?? ''),
+    status: (o.status === 'delivered' || o.status === 'return_requested' || o.status === 'returned')
+      ? o.status
+      : 'delivered',
+    comment: (o.comment as string) || undefined,
+  };
+};
+
+const mergeOrders = (demoOrders: AccountOrder[], storedOrders?: Record<string, unknown>[]): AccountOrder[] => {
   const merged = new Map<string, AccountOrder>();
 
   demoOrders.forEach((order) => {
     merged.set(order.id, order);
   });
 
-  storedOrders?.forEach((order) => {
-    const existing = merged.get(order.id);
-    merged.set(order.id, existing ? { ...existing, ...order } : order);
+  storedOrders?.forEach((rawOrder) => {
+    const legacy = convertLegacyOrder(rawOrder);
+    if (legacy) {
+      const existing = merged.get(legacy.id);
+      merged.set(legacy.id, existing ? { ...existing, ...legacy } : legacy);
+      return;
+    }
+    if (rawOrder && rawOrder.id) {
+      const existing = merged.get(String(rawOrder.id));
+      merged.set(String(rawOrder.id), existing ? { ...existing, ...rawOrder } as AccountOrder : rawOrder as AccountOrder);
+    }
   });
 
   return Array.from(merged.values());
@@ -76,23 +129,38 @@ const hydrateAccountRecord = (
   },
 });
 
-const lookupProduct = (name: string): Product => {
-  for (const category of quorinData.categories) {
-    const match = category.products.find((product) => product.name === name);
-    if (match) return match;
-  }
-  throw new Error(`Missing seeded product: ${name}`);
-};
-
 const baseNow = new Date('2026-05-31T10:03:43.000Z');
 const daysAgo = (days: number) => new Date(baseNow.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
 
-const createOrder = (id: string, productName: string, orderDate: string): AccountOrder => ({
-  id,
-  product: lookupProduct(productName),
-  orderDate,
-  status: 'delivered',
-});
+const resinKitSnapshot: OrderSnapshot = {
+  name: 'QUORIN Epoxy Resin & Hardener',
+  thumbnail: 'https://images.unsplash.com/photo-1622547748229-467c81779034?w=600',
+  price: 677,
+};
+
+const resinPigmentSnapshot: OrderSnapshot = {
+  name: 'QUORIN Resin Pigment',
+  thumbnail: 'https://images.unsplash.com/photo-1596464716127-f2a82984de30?w=600',
+  price: 112,
+};
+
+const candlePigmentSnapshot: OrderSnapshot = {
+  name: 'QUORIN Candle Pigment Set',
+  thumbnail: 'https://images.unsplash.com/photo-1602523961358-f9f08dd97264?w=600',
+  price: 156,
+};
+
+const soapPigmentSnapshot: OrderSnapshot = {
+  name: 'QUORIN Soap Pigment Set',
+  thumbnail: 'https://images.unsplash.com/photo-1600435917896-349d089b4270?w=600',
+  price: 315,
+};
+
+const soapKitSnapshot: OrderSnapshot = {
+  name: 'QUORIN Soap Making Kit with Mould',
+  thumbnail: 'https://images.unsplash.com/photo-1607003390927-95c1f5f65c44?w=600',
+  price: 899,
+};
 
 export const demoAccounts: Record<string, AccountRecord> = {
   customer909: {
@@ -109,12 +177,12 @@ export const demoAccounts: Record<string, AccountRecord> = {
       birthday: '1995-05-31',
     },
     orders: [
-      createOrder('customer909-order-1', 'QUORIN Crystal Clear Epoxy Resin and Hardener Kit', daysAgo(0)),
-      createOrder('customer909-order-2', 'Liquid Resin Pigment Combo Set', daysAgo(2)),
-      createOrder('customer909-order-3', 'QUORIN Candle Colour Set', daysAgo(5)),
-      createOrder('customer909-order-4', 'QUORIN Candle Colour Set', daysAgo(9)),
-      createOrder('customer909-order-5', 'Quorin DIY Soap Colouring Kit', daysAgo(13)),
-      createOrder('customer909-order-6', 'QUORIN Liquid Soap Colour Kit with Silicone Mold', daysAgo(18)),
+      { id: 'customer909-order-1', productId: 'resin', snapshot: resinKitSnapshot, orderDate: daysAgo(0), status: 'delivered' },
+      { id: 'customer909-order-2', productId: 'resin-pigment', snapshot: resinPigmentSnapshot, orderDate: daysAgo(2), status: 'delivered' },
+      { id: 'customer909-order-3', productId: 'candle-pigment', snapshot: candlePigmentSnapshot, orderDate: daysAgo(5), status: 'delivered' },
+      { id: 'customer909-order-4', productId: 'candle-pigment', snapshot: candlePigmentSnapshot, orderDate: daysAgo(9), status: 'delivered' },
+      { id: 'customer909-order-5', productId: 'soap-dye', snapshot: soapPigmentSnapshot, orderDate: daysAgo(13), status: 'delivered' },
+      { id: 'customer909-order-6', productId: 'soap-dye-mould', snapshot: soapKitSnapshot, orderDate: daysAgo(18), status: 'delivered' },
     ],
     giftUsage: {
       level10GiftRedeemed: false,
