@@ -6,9 +6,9 @@ import { useMedusaCatalog } from '@/lib/useMedusaCatalog';
 import type { Category } from '@/data/products';
 
 const categoryImages: Record<string, string> = {
-  'resin-art': '/category-resin.jpg',
-  'candle-making': '/category-candle.jpg',
-  'soap-making': '/category-soap.jpg',
+  'resin-art': '/resin_category.webp',
+  'candle-making': '/candle_category.webp',
+  'soap-making': '/soap_category.webp',
 };
 
 interface CategoryCardProps {
@@ -48,15 +48,17 @@ function CategoryCard({ category, index }: CategoryCardProps) {
   return (
     <motion.div
       ref={cardRef}
-      className="relative w-full"
+      className="relative w-full cursor-pointer"
       style={{ scale, opacity, y }}
+      onClick={scrollToCategory}
     >
       <motion.div
-        className="relative overflow-hidden rounded-2xl group"
+        className="relative overflow-hidden rounded-[24px] group"
         style={{
-          background: 'var(--color-secondary)',
-          border: '1px solid rgba(255, 255, 255, 0.05)',
-          height: '500px',
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid var(--color-border)',
+          aspectRatio: '9/10',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
         }}
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
@@ -65,27 +67,22 @@ function CategoryCard({ category, index }: CategoryCardProps) {
           setMousePos({ x: 0, y: 0 });
         }}
         whileHover={{
-          borderColor: 'rgba(255, 26, 60, 0.3)',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
+          y: -8,
+          scale: 1.02,
+          borderColor: 'var(--color-accent)',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
         }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
       >
         {/* Background Image with Parallax */}
         <motion.div
-          className="absolute inset-0 cursor-pointer"
-          role="button"
-          tabIndex={0}
+          className="absolute inset-0"
           data-cursor="image"
-          onClick={scrollToCategory}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              scrollToCategory();
-            }
-          }}
           animate={{
             x: mousePos.x,
             y: mousePos.y,
-            scale: isHovered ? 1.1 : 1,
+            scale: isHovered ? 1.03 : 1,
+            filter: isHovered ? 'brightness(1.1)' : 'brightness(1)',
           }}
           transition={{ type: 'spring', damping: 20, stiffness: 100 }}
         >
@@ -94,55 +91,30 @@ function CategoryCard({ category, index }: CategoryCardProps) {
             alt={category.title}
             className="w-full h-full object-cover pointer-events-none"
           />
-          {/* Gradient Overlay */}
-          <div
+          {/* Bottom Gradient Overlay - 45% opacity */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-transparent pointer-events-none" />
+          {/* Hover Overlay */}
+          <motion.div
             className="absolute inset-0 pointer-events-none"
             style={{
               background: `linear-gradient(
                 to top,
-                rgba(248, 245, 240, 0.95) 0%,
-                rgba(248, 245, 240, 0.7) 40%,
-                rgba(248, 245, 240, 0.1) 100%
+                rgba(0, 0, 0, 0.85) 0%,
+                rgba(0, 0, 0, 0.45) 40%,
+                rgba(0, 0, 0, 0.05) 100%
               )`,
             }}
+            animate={{ opacity: isHovered ? 0.7 : 0.4 }}
+            transition={{ duration: 0.3 }}
           />
         </motion.div>
 
         {/* Content */}
-        <div className="absolute inset-0 flex flex-col justify-end p-8">
-          {/* Category Number */}
-          <motion.span
-            className="text-8xl font-black absolute top-6 right-6 opacity-10"
-            style={{ color: 'var(--color-accent)' }}
-            animate={{ scale: isHovered ? 1.1 : 1 }}
-            transition={{ duration: 0.4 }}
-          >
-            0{index + 1}
-          </motion.span>
-
-          {/* Product Count */}
-          <motion.div
-            className="mb-4"
-            initial={{ opacity: 0, x: -20 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ delay: 0.2 }}
-          >
-            <span
-              className="px-3 py-1 rounded-full text-xs tracking-wider"
-              style={{
-                background: 'rgba(255, 26, 60, 0.15)',
-                color: 'var(--color-accent)',
-                border: '1px solid rgba(255, 26, 60, 0.2)',
-              }}
-            >
-              {category.products.length} PRODUCTS
-            </span>
-          </motion.div>
-
-          {/* Title */}
+        <div className="absolute inset-0 flex flex-col justify-end p-7">
+{/* Title */}
           <motion.h3
-            className="text-3xl md:text-4xl font-bold mb-3"
-            style={{ color: 'var(--color-text-primary)' }}
+            className="text-2xl md:text-3xl font-bold mb-4"
+            style={{ color: '#FFFFFF' }}
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.3 }}
@@ -150,39 +122,36 @@ function CategoryCard({ category, index }: CategoryCardProps) {
             {category.title}
           </motion.h3>
 
-          {/* Description */}
+          {/* Description - reveal on hover */}
           <motion.p
-            className="text-sm leading-relaxed mb-6 max-w-md"
-            style={{ color: 'var(--color-text-secondary)' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.4 }}
+            className="text-sm leading-relaxed mb-4 max-w-md"
+            style={{ color: 'rgba(255,255,255,0.85)' }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{
+              opacity: isHovered ? 1 : 0,
+              y: isHovered ? 0 : 10,
+            }}
+            transition={{ duration: 0.25 }}
           >
             {category.description}
           </motion.p>
 
           {/* CTA Button */}
           <motion.button
-            className="flex items-center gap-2 text-sm tracking-wider group/btn"
-            style={{ color: 'var(--color-accent)' }}
+            className="flex items-center gap-2 text-xs tracking-widest uppercase group/btn"
+            style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 400 }}
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.4 }}
+            whileHover={{ color: '#FFFFFF' }}
             onClick={scrollToCategory}
           >
-            <span className="relative overflow-hidden">
-              <span className="block transition-transform duration-300 group-hover/btn:-translate-y-full">
-                VIEW ALL
-              </span>
-              <span className="absolute top-full left-0 block transition-transform duration-300 group-hover/btn:-translate-y-full">
-                VIEW ALL
-              </span>
-            </span>
+            <span>EXPLORE COLLECTION</span>
             <motion.span
-              animate={{ x: isHovered ? 5 : 0 }}
-              transition={{ duration: 0.3 }}
+              animate={{ x: isHovered ? 4 : 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <ArrowRight size={16} />
+              <ArrowRight size={14} />
             </motion.span>
           </motion.button>
         </div>
@@ -192,8 +161,8 @@ function CategoryCard({ category, index }: CategoryCardProps) {
           className="absolute inset-0 rounded-2xl pointer-events-none"
           animate={{
             boxShadow: isHovered
-              ? 'inset 0 0 0 1px rgba(255, 26, 60, 0.3), 0 0 40px rgba(255, 26, 60, 0.1)'
-              : 'inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
+              ? `inset 0 0 0 1px var(--color-accent), 0 0 40px var(--halo-gold)`
+              : 'inset 0 0 0 1px var(--color-border-subtle)',
           }}
           transition={{ duration: 0.3 }}
         />
@@ -231,8 +200,8 @@ export default function CategorySection() {
               WHAT WE SELL
             </motion.span>
             <motion.h2
-              className="text-4xl md:text-6xl font-bold"
-              style={{ color: 'var(--color-text-primary)' }}
+              className="text-4xl md:text-6xl font-bold text-[var(--color-text-primary)]"
+              style={{ isolation: 'isolate' }}
             >
               Our{' '}
               <span
@@ -266,7 +235,7 @@ export default function CategorySection() {
 
       {/* Category Cards Grid */}
       {!loading && !error && (
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-[32px]">
           {categories.map((category, index) => (
             <CategoryCard key={category.id} category={category} index={index} />
           ))}

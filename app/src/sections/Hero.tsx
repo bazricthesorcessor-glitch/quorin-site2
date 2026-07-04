@@ -31,7 +31,7 @@ export default function Hero() {
       <div
         className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none"
         style={{
-          background: 'radial-gradient(circle, rgba(201, 169, 110, 0.06) 0%, transparent 60%)',
+          background: `radial-gradient(circle, var(--color-accent-soft) 0%, transparent 60%)`,
         }}
       />
 
@@ -39,7 +39,7 @@ export default function Hero() {
       <div
         className="absolute inset-0 pointer-events-none opacity-[0.02]"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M30 0v60M0 30h60' stroke='rgba(201,169,110,0.3)' stroke-width='0.5'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M30 0v60M0 30h60' stroke='var(--color-accent-medium)' stroke-width='0.5'/%3E%3C/svg%3E")`,
           backgroundSize: '60px 60px',
         }}
       />
@@ -52,7 +52,7 @@ export default function Hero() {
           style={{
             width: particle.size,
             height: particle.size,
-            background: 'rgba(201, 169, 110, 0.3)',
+            background: 'var(--color-accent-soft)',
             left: `${20 + i * 15}%`,
             top: `${30 + (i % 3) * 15}%`,
           }}
@@ -91,7 +91,7 @@ export default function Hero() {
           {brandLetters.map((letter, index) => (
             <motion.span
               key={index}
-              className="quorin-brand text-[12vw] md:text-[10vw] lg:text-[8vw] font-black leading-none select-none warm-gradient-text"
+              className="quorin-brand text-[12vw] md:text-[10vw] lg:text-[8vw] leading-none select-none logo-gold"
               initial={{ opacity: 0, y: 60 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
@@ -113,9 +113,9 @@ export default function Hero() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.8 }}
         >
-          <div className="w-8 h-[1px]" style={{ background: 'rgba(201, 169, 110, 0.4)' }} />
+          <div className="w-8 h-[1px]" style={{ background: 'var(--color-accent-medium)' }} />
           <div className="w-2 h-2 rounded-full" style={{ background: 'var(--color-accent)' }} />
-          <div className="w-8 h-[1px]" style={{ background: 'rgba(201, 169, 110, 0.4)' }} />
+          <div className="w-8 h-[1px]" style={{ background: 'var(--color-accent-medium)' }} />
         </motion.div>
 
         {/* Tagline */}

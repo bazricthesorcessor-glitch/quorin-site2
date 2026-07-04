@@ -1,21 +1,21 @@
 require("dotenv").config();
-
-const { initializeContainer } = require("./node_modules/@medusajs/medusa/dist/loaders");
-const { ContainerRegistrationKeys } = require("./node_modules/@medusajs/framework/dist/utils");
+const loaders = require("./node_modules/@medusajs/medusa/dist/loaders/index.js");
+const { default: medusaLoader } = loaders;
 
 module.exports = async function main() {
-  const container = await initializeContainer(process.cwd(), { skipMigrations: true, skipDbConnection: false });
+  const { container } = await medusaLoader({
+    directory: process.cwd(),
+    expressApp: null,
+    skipLoadingEntryPoints: true,
+  });
   
-  // Get the module registry
-  const moduleServiceRegistry = container.resolve(ContainerRegistrationKeys.MODULE_SERVICE_REGISTRY);
-  
-  // Access the product service
-  const productModuleService = moduleServiceRegistry.get("product");
-  const pricingModuleService = moduleServiceRegistry.get("pricing");
-  const regionModuleService = moduleServiceRegistry.get("region");
+  // Access the product service directly from container
+  const productModuleService = container.resolve("product");
+  const pricingModuleService = container.resolve("pricing");
+  const regionModuleService = container.resolve("region");
   
   // Get all products
-  const products = await productModuleService.listProducts({ status: "published" }, { relations: ["variants"] });
+  const products = await productModuleService.listProducts({ status: "published" }, { relations: ["variants", "variants.prices"] });
   console.log(`Found ${products.length} products`);
   
   // Get region

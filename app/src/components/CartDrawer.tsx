@@ -12,15 +12,17 @@ interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   items: CartItem[];
-  onUpdateQuantity: (cartId: string, quantity: number) => void;
-  onRemove: (cartId: string) => void;
+  onUpdateQuantity: (cartIdKey: string, quantity: number) => void;
+  onRemove: (cartIdKey: string) => void;
   xpLevel: number;
   xpDiscountPercent: number;
   giftOffer: CheckoutGiftOffer | null;
   selectedGiftCartId: string | null;
-  onSelectGiftCartId: (cartId: string) => void;
+  onSelectGiftCartId: (cartId: string | null) => void;
   selectedGiftDiscount: number;
   onCheckout: () => void;
+  onToggleWishlist?: (productId: string) => void;
+  isInWishlist?: boolean;
 }
 
 export default function CartDrawer({
@@ -54,7 +56,7 @@ export default function CartDrawer({
           {/* Backdrop */}
           <motion.div
             className="fixed inset-0 z-50"
-            style={{ background: 'rgba(0, 0, 0, 0.25)', backdropFilter: 'blur(8px)' }}
+            style={{ background: 'rgba(42, 33, 24, 0.25)', backdropFilter: 'blur(8px)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -312,11 +314,11 @@ export default function CartDrawer({
                   style={{
                     background: 'var(--color-accent)',
                     color: 'white',
-                    boxShadow: '0 2px 12px rgba(201, 169, 110, 0.25)',
+                    boxShadow: '0 2px 12px var(--halo-gold)',
                   }}
                   whileHover={{
                     scale: 1.01,
-                    boxShadow: '0 4px 20px rgba(201, 169, 110, 0.35)',
+                    boxShadow: '0 4px 20px var(--halo-gold-strong)',
                   }}
                   whileTap={{ scale: 0.98 }}
                   onClick={onCheckout}

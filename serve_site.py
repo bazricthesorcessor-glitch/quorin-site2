@@ -30,7 +30,7 @@ URL = f'http://{HOST}:{PORT}/'
 
 
 def run_cmd(cmd, cwd=None):
-    proc = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    proc = subprocess.Popen(cmd, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     return proc
 
 

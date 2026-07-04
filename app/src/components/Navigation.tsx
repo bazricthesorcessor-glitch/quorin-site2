@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router';
-import { Menu, X, ShoppingCart, UserRound } from 'lucide-react';
+import { Menu, X, ShoppingCart, UserRound, User, Package, MessageSquare, Zap, ArrowLeft, Shield, Heart } from 'lucide-react';
 import { quorinData } from '@/data/products';
 import { useMedusaCatalog } from '@/lib/useMedusaCatalog';
 import type { AccountRecord } from '@/data/accounts';
@@ -13,7 +14,7 @@ interface NavigationProps {
   onCartClick: () => void;
   onHomeClick?: () => void;
   currentAccount: AccountRecord | null;
-  onAuthenticate: (identifier: string, password: string) => { ok: boolean; message?: string };
+  onAuthenticate: (identifier: string, password: string) => Promise<{ ok: boolean; message?: string }>;
   onOpenProfile: () => void;
   onToggleAdminMode: () => void;
 }
@@ -51,6 +52,17 @@ export default function Navigation({
   const navRef = useRef<HTMLDivElement>(null);
   const menuCloseTimer = useRef<number | null>(null);
   const sigilHideTimer = useRef<number | null>(null);
+
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    const handleOpenLogin = () => {
+      setLoginMode('email');
+      setLoginOpen(true);
+    };
+    window.addEventListener('quorin:openLogin', handleOpenLogin);
+    return () => window.removeEventListener('quorin:openLogin', handleOpenLogin);
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -142,8 +154,8 @@ export default function Navigation({
     setMenuOpen(true);
   };
 
-  const handleEmailLogin = () => {
-    const result = onAuthenticate(emailAddress.trim(), emailPassword.trim());
+  const handleEmailLogin = async () => {
+    const result = await onAuthenticate(emailAddress.trim(), emailPassword.trim());
 
     if (!result.ok) {
       setLoginError(result.message ?? 'Login failed.');
@@ -172,7 +184,7 @@ export default function Navigation({
 
   const menuItems = [
     {
-      glyph: '✦',
+      icon: User,
       label: 'Account',
       onClick: () => {
         if (currentAccount) {
@@ -191,9 +203,27 @@ export default function Navigation({
         setLoginOpen(true);
       },
     },
-    { glyph: '✶', label: 'Orders', onClick: () => openSection('orders') },
+    { icon: Package, label: 'Orders', onClick: () => openSection('orders') },
+    { icon: Heart, label: 'Wishlist', onClick: () => {
+        if (!currentAccount) {
+          setLoginMode('email');
+          setEmailAddress('');
+          setEmailPassword('');
+          setPhoneNumber('');
+          setCountryLabel(defaultPhoneCountry.label);
+          setCountryQuery(defaultPhoneCountry.label);
+          setCountryPickerOpen(false);
+          setOtpSent(false);
+          setLoginError(null);
+          setLoginOpen(true);
+          return;
+        }
+        setMenuOpen(false);
+        navigate('/wishlist');
+      }
+    },
      {
-       glyph: '⟡',
+       icon: MessageSquare,
        label: 'Custom Requests',
        onClick: () => {
          setMenuOpen(false);
@@ -202,7 +232,7 @@ export default function Navigation({
        },
      },
     {
-      glyph: '◈',
+      icon: Zap,
       label: 'XP',
       onClick: () => {
         navigate('/xp');
@@ -210,7 +240,7 @@ export default function Navigation({
       },
     },
     {
-      glyph: '✧',
+      icon: ArrowLeft,
       label: 'Back to Home',
       onClick: () => {
         setMenuOpen(false);
@@ -219,15 +249,15 @@ export default function Navigation({
       },
     },
     {
-      glyph: '◆',
-      label: 'Atelier',
+      icon: Shield,
+      label: 'Admin',
       onClick: () => {
         if (currentAccount?.profile.role === 'admin') {
-          onToggleAdminMode();
+          navigate('/admin');
           return;
         }
         if (currentAccount?.profile.role === 'customer') {
-          setAccessNotice('This space is reserved for atelier members.');
+          setAccessNotice('This space is reserved for admin members.');
           window.setTimeout(() => setAccessNotice(null), 2200);
           return;
         }
@@ -248,7 +278,7 @@ export default function Navigation({
     <>
       {/* Main Navigation */}
       <AnimatePresence>
-        {isVisible && (
+        {isVisible && !isMobile && (
           <motion.nav
             ref={navRef}
             className="fixed top-0 left-0 right-0 z-40 px-6 py-4"
@@ -263,9 +293,9 @@ export default function Navigation({
               {/* Logo */}
               <motion.a
                 href="#"
-                className="quorin-brand text-xl font-bold tracking-wide"
+                className="quorin-brand text-xl tracking-wide logo-gold"
                 style={{
-                  color: 'var(--color-text-primary)',
+                  textShadow: '0 0 20px rgba(200, 155, 82, 0.2)',
                 }}
                 whileHover={{ scale: 1.02 }}
                 onClick={(e) => {
@@ -335,6 +365,45 @@ export default function Navigation({
                       transition={{ type: 'spring', stiffness: 500, damping: 25 }}
                   >
                     {cartCount}
+                    </motion.span>
+                  )}
+                </motion.button>
+
+                {/* Wishlist button */}
+                <motion.button
+                  className="relative p-2 rounded-full"
+                  style={{
+                    background: 'var(--color-surface-hover)',
+                    border: '1px solid var(--color-border-subtle)',
+                  }}
+                  whileHover={{
+                    scale: 1.05,
+                    background: 'var(--color-accent-soft)',
+                    borderColor: 'var(--color-accent)',
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    if (!currentAccount) {
+                      setLoginMode('email');
+                      setLoginOpen(true);
+                      return;
+                    }
+                    navigate('/wishlist');
+                  }}
+                >
+                  <Heart size={18} style={{ color: currentAccount && (currentAccount.wishlist?.length ?? 0) > 0 ? 'var(--color-accent)' : 'var(--color-text-primary)' }} fill={currentAccount && (currentAccount.wishlist?.length ?? 0) > 0 ? 'var(--color-accent)' : 'none'} />
+                  {currentAccount && (currentAccount.wishlist?.length ?? 0) > 0 && (
+                    <motion.span
+                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-xs flex items-center justify-center font-semibold"
+                      style={{
+                        background: 'var(--color-accent)',
+                        color: 'white',
+                      }}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                    >
+                      {currentAccount.wishlist.length}
                     </motion.span>
                   )}
                 </motion.button>
@@ -415,7 +484,7 @@ export default function Navigation({
           <motion.div
             className="fixed inset-0 z-30"
             style={{
-              background: 'rgba(248, 245, 240, 0.97)',
+              background: 'rgba(42, 33, 24, 0.9)',
               backdropFilter: 'blur(20px)',
             }}
             initial={{ opacity: 0 }}
@@ -436,7 +505,7 @@ export default function Navigation({
               style={{
                 background: 'var(--color-surface)',
                 borderColor: 'var(--color-border-subtle)',
-                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.08)',
+                boxShadow: '0 12px 40px var(--shadow-deep)',
               }}
               initial={{ y: 20, opacity: 0, scale: 0.98 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
@@ -479,14 +548,12 @@ export default function Navigation({
                         onClick={item.onClick}
                       >
                         <span
-                          className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full text-lg"
+                          className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full"
                           style={{
                             background: 'var(--color-surface-hover)',
-                            color: 'var(--color-accent)',
-                            fontFamily: 'serif',
                           }}
                         >
-                          {item.glyph}
+                          {React.createElement(item.icon, { size: 20, style: { color: 'var(--color-accent)' } })}
                         </span>
                         <AnimatePresence>
                           {activeSigil === item.label && (
@@ -497,7 +564,7 @@ export default function Navigation({
                                 background: 'var(--color-surface)',
                                 border: '1px solid var(--color-border-subtle)',
                                 color: 'var(--color-text-primary)',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                                boxShadow: '0 4px 12px var(--shadow-card)',
                                 minWidth: 'max-content',
                               }}
                               initial={{ opacity: 0, scale: 0.95 }}
@@ -556,7 +623,7 @@ export default function Navigation({
         {loginOpen && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center px-4"
-            style={{ background: 'rgba(0, 0, 0, 0.35)' }}
+            style={{ background: 'rgba(42, 33, 24, 0.35)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -657,7 +724,7 @@ export default function Navigation({
                       setLoginError(null);
                     }}
                   >
-                    <span className="h-5 w-5 rounded-full bg-[#4285F4] text-white flex items-center justify-center text-xs font-bold">G</span>
+                    <span className="h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}>G</span>
                     Continue with Google
                   </button>
                   <p className="text-xs leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
@@ -735,7 +802,7 @@ export default function Navigation({
                             maxHeight: 260,
                             background: 'var(--color-surface)',
                             borderColor: 'var(--color-border-subtle)',
-                            boxShadow: '0 12px 32px rgba(0,0,0,0.1)',
+                            boxShadow: '0 12px 32px var(--shadow-deep)',
                           }}
                           initial={{ opacity: 0, y: -4, scale: 0.98 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -839,8 +906,8 @@ export default function Navigation({
                             background: 'var(--color-accent)',
                             color: 'white',
                           }}
-                          onClick={() => {
-                            const result = onAuthenticate(phoneNumber.trim(), 'Asdfg909');
+                          onClick={async () => {
+                            const result = await onAuthenticate(phoneNumber.trim(), 'Asdfg909');
                             if (!result.ok) {
                               setLoginError(result.message ?? 'Login failed.');
                               return;
@@ -859,7 +926,7 @@ export default function Navigation({
               )}
 
               {loginError && (
-                <p className="mt-4 text-sm" style={{ color: '#B85C5C' }}>
+                <p className="mt-4 text-sm" style={{ color: 'var(--color-destructive)' }}>
                   {loginError}
                 </p>
               )}
@@ -897,7 +964,7 @@ export default function Navigation({
         {customRequestOpen && (
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center px-4"
-            style={{ background: 'rgba(0, 0, 0, 0.35)' }}
+            style={{ background: 'rgba(42, 33, 24, 0.35)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -916,7 +983,7 @@ export default function Navigation({
                 ⟡ Bespoke Request
               </div>
               <h3 className="text-2xl font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>
-                Message to the Atelier
+                Message to the Manager
               </h3>
               <p className="text-sm mb-5" style={{ color: 'var(--color-text-muted)' }}>
                 Share your vision, and our artisans will craft something extraordinary for you.
@@ -972,7 +1039,7 @@ export default function Navigation({
         {accessNotice && (
           <motion.div
             className="fixed top-24 right-6 z-50 rounded-xl border px-4 py-3"
-            style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border-subtle)', color: 'var(--color-text-primary)', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}
+            style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border-subtle)', color: 'var(--color-text-primary)', boxShadow: '0 4px 16px var(--shadow-card)' }}
             initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 16 }}

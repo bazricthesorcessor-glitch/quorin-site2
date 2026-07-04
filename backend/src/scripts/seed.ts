@@ -195,7 +195,7 @@ const PRODUCT_DATA = [
   },
 ];
 
-async function seed(container: MedusaContainer) {
+async function seed({ container }: { container: MedusaContainer }) {
   console.log("🌱 Seeding Medusa database with QUORIN products...");
 
   const regionWorkflow = createRegionsWorkflow(container);
@@ -206,7 +206,7 @@ async function seed(container: MedusaContainer) {
   try {
     await regionWorkflow.run({
       input: {
-        create: [
+        regions: [
           {
             name: "India",
             currency_code: "inr",
@@ -225,7 +225,7 @@ async function seed(container: MedusaContainer) {
   try {
     const { result } = await salesChannelWorkflow.run({
       input: {
-        create: [
+        salesChannelsData: [
           {
             name: "QUORIN Store",
             description: "QUORIN Made for Makers online store",
@@ -239,6 +239,29 @@ async function seed(container: MedusaContainer) {
     console.log("⚠ Sales channel may already exist");
   }
 
+  // Get the product service to pre-create tags
+  const productModuleService = container.resolve(Modules.PRODUCT);
+
+  // Pre-create all tags to obtain their IDs
+  const allTagValues = [...new Set(PRODUCT_DATA.flatMap(p => p.tags || []))];
+  const tagsMap: Record<string, string> = {};
+  for (const t of allTagValues) {
+    try {
+      const existing = await productModuleService.listProductTags({ value: t });
+      if (existing.length > 0) {
+        tagsMap[t] = existing[0].id;
+      } else {
+        const [createdTag] = await productModuleService.createProductTags([{ value: t }]);
+        tagsMap[t] = createdTag.id;
+      }
+    } catch (e) {
+      const existing = await productModuleService.listProductTags({ value: t });
+      if (existing.length > 0) {
+        tagsMap[t] = existing[0].id;
+      }
+    }
+  }
+
   // Create product categories
   const categories = [
     { id: "resin-art", name: "Resin Art" },
@@ -250,21 +273,48 @@ async function seed(container: MedusaContainer) {
   let totalCreated = 0;
   for (const productData of PRODUCT_DATA) {
     try {
+      // Dynamically build the options array based on variant options to prevent validation errors
+      const optionsMap: Record<string, Set<string>> = {};
+      for (const variant of productData.variants) {
+        if (variant.options) {
+          for (const [key, val] of Object.entries(variant.options)) {
+            if (!optionsMap[key]) {
+              optionsMap[key] = new Set();
+            }
+            optionsMap[key].add(String(val));
+          }
+        }
+      }
+
+      const derivedOptions = Object.entries(optionsMap).map(([title, valuesSet]) => ({
+        title,
+        values: Array.from(valuesSet),
+      }));
+
+      const mappedVariants = productData.variants.map(v => ({
+        title: v.options ? Object.values(v.options).join(" / ") : "Default",
+        ...v,
+      }));
+
       const { result } = await productWorkflow.run({
         input: {
-          create: [
+          products: [
             {
-              ...productData,
+              title: productData.title,
+              description: productData.description,
+              options: derivedOptions.length > 0 ? derivedOptions : undefined,
+              variants: mappedVariants,
+              tags: productData.tags ? productData.tags.map(t => ({ id: tagsMap[t], value: t })) : undefined,
               status: "published",
-              sales_channel_ids: salesChannelId ? [salesChannelId] : undefined,
+              sales_channels: salesChannelId ? [{ id: salesChannelId }] : undefined,
             },
           ],
-        },
+        } as any,
       });
       totalCreated += result.length;
       console.log(`✓ Product: ${productData.title}`);
-    } catch (e) {
-      console.log(`⚠ Product may already exist: ${productData.title}`);
+    } catch (e: any) {
+      console.log(`⚠ Product failed to seed: ${productData.title}. Error: ${e.message || e}`);
     }
   }
 

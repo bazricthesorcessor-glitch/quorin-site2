@@ -1,13 +1,16 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { ShoppingCart, Sparkles } from 'lucide-react';
 import type { Category, Product } from '@/data/products';
+import { getProductId } from '@/data/products';
 
-const fallbackImage = '/product-resin-kit.jpg';
+const fallbackImage = '/product-resin-kit.webp';
 
 function getProductImage(product: Product): string {
   if (product.images && product.images.length > 0) {
-    return product.images[0];
+    const img = product.images[0];
+    return typeof img === 'string' ? img : img?.url || 'http://localhost:9000/product-resin-kit.webp';
   }
   return fallbackImage;
 }
@@ -17,9 +20,11 @@ interface ProductCardProps {
   index: number;
   onAddToCart: (product: Product) => void;
   onPreview?: (product: Product) => void;
+  onNavigateToProduct?: (product: Product) => void;
 }
 
-function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProps) {
+function ProductCard({ product, index, onAddToCart, onPreview, onNavigateToProduct }: ProductCardProps) {
+  const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(cardRef, { once: true, margin: '-50px' });
   const [isHovered, setIsHovered] = useState(false);
@@ -34,6 +39,14 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
   const scale = useTransform(scrollYProgress, [0, 1], [0.95, 1]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [0, 1]);
 
+  const handleDoubleClick = useCallback(() => {
+    if (onNavigateToProduct) {
+      onNavigateToProduct(product);
+    } else {
+      navigate(`/product/${encodeURIComponent(getProductId(product))}`);
+    }
+  }, [onNavigateToProduct, product, navigate]);
+
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
@@ -42,7 +55,7 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
     setMousePos({ x, y });
   };
 
-  const discount = parseInt(product.discount);
+  const discount = parseInt(product.discount ?? '0');
   const image = getProductImage(product);
 
   return (
@@ -87,7 +100,7 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
           <div
             className="absolute inset-0"
             style={{
-              background: 'linear-gradient(to bottom, transparent 50%, rgba(248, 245, 240, 0.5) 100%)',
+              background: 'linear-gradient(to bottom, transparent 50%, rgba(42, 33, 24, 0.3) 100%)',
             }}
           />
 
@@ -130,7 +143,7 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
                 key={tag}
                 className="px-2 py-0.5 rounded-full text-[10px] tracking-wider font-medium"
                 style={{
-                  background: 'rgba(201, 169, 110, 0.1)',
+                  background: 'var(--color-accent-soft)',
                   color: 'var(--color-accent)',
                 }}
               >
@@ -143,10 +156,9 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
         {/* Content */}
         <div className="p-5">
           {/* Product Name */}
-          <div className="overflow-hidden mb-2">
+          <div className="overflow-hidden mb-2" style={{ isolation: 'isolate' }}>
             <motion.h4
-              className="text-sm font-medium leading-snug"
-              style={{ color: 'var(--color-text-primary)' }}
+              className="text-sm font-medium leading-snug text-[var(--color-text-primary)]"
               animate={{ y: isHovered ? -2 : 0 }}
               transition={{ duration: 0.3 }}
             >
@@ -165,10 +177,10 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
               {product.size && (
                 <span
                   className="text-xs px-2 py-0.5 rounded-md"
-                  style={{
-                    background: 'rgba(201, 169, 110, 0.08)',
-                    color: 'var(--color-text-secondary)',
-                  }}
+                    style={{
+                      background: 'var(--color-accent-soft)',
+                      color: 'var(--color-text-secondary)',
+                    }}
                 >
                   {product.size}
                 </span>
@@ -200,8 +212,8 @@ function ProductCard({ product, index, onAddToCart, onPreview }: ProductCardProp
             <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
               ₹{product.mrp}
             </span>
-            <span className="text-xs font-medium" style={{ background: 'rgba(201, 169, 110, 0.1)', color: 'var(--color-accent)' }}>
-              Save ₹{product.mrp - product.price}
+            <span className="text-xs font-medium" style={{ background: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}>
+              Save ₹{Math.round((product.mrp - product.price) * 100) / 100}
             </span>
           </div>
         </div>
@@ -214,9 +226,10 @@ interface CategoryProductsProps {
   category: Category;
   onAddToCart: (product: Product) => void;
   onPreview?: (product: Product) => void;
+  onNavigateToProduct?: (product: Product) => void;
 }
 
-function CategoryProducts({ category, onAddToCart, onPreview }: CategoryProductsProps) {
+function CategoryProducts({ category, onAddToCart, onPreview, onNavigateToProduct }: CategoryProductsProps) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
 
@@ -277,6 +290,7 @@ function CategoryProducts({ category, onAddToCart, onPreview }: CategoryProducts
             index={index}
             onAddToCart={onAddToCart}
             onPreview={onPreview}
+            onNavigateToProduct={onNavigateToProduct}
           />
         ))}
       </div>
@@ -287,11 +301,12 @@ function CategoryProducts({ category, onAddToCart, onPreview }: CategoryProducts
 interface ProductShowcaseProps {
   onAddToCart: (product: Product) => void;
   onPreview?: (product: Product) => void;
+  onNavigateToProduct?: (product: Product) => void;
   categories: Category[];
   categoryId?: string;
 }
 
-export default function ProductShowcase({ onAddToCart, onPreview, categories, categoryId }: ProductShowcaseProps) {
+export default function ProductShowcase({ onAddToCart, onPreview, onNavigateToProduct, categories, categoryId }: ProductShowcaseProps) {
   const filtered = categoryId
     ? categories.filter((category) => category.id === categoryId)
     : categories;
@@ -304,6 +319,7 @@ export default function ProductShowcase({ onAddToCart, onPreview, categories, ca
           category={category}
           onAddToCart={onAddToCart}
           onPreview={onPreview}
+          onNavigateToProduct={onNavigateToProduct}
         />
       ))}
     </div>

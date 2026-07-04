@@ -1,18 +1,35 @@
 import Client from "@medusajs/js-sdk";
 
-const MEDUSA_BACKEND_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || "http://localhost:9000";
+const MEDUSA_BACKEND_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || "";
 
-const client = new Client({
-  baseUrl: MEDUSA_BACKEND_URL,
-  publishableKey: import.meta.env.VITE_MEDUSA_PUBLISHABLE_KEY || "pk_d24dd21f67e355e5c0b962f86f8402379a26d67a85eab02334b201085f563b62",
-});
+const PUBLISHABLE_KEY = import.meta.env.VITE_MEDUSA_PUBLISHABLE_KEY;
+
+if (!PUBLISHABLE_KEY) {
+  console.warn("No VITE_MEDUSA_PUBLISHABLE_KEY found. Medusa integration disabled. Set the env var or disable the integration.");
+}
+
+const client = PUBLISHABLE_KEY
+  ? new Client({
+      baseUrl: MEDUSA_BACKEND_URL,
+      publishableKey: PUBLISHABLE_KEY,
+    })
+  : null;
+
+const ensureClient = () => {
+  if (!client) {
+    throw new Error(
+      "Medusa client is not initialized. Set VITE_MEDUSA_PUBLISHABLE_KEY in your environment."
+    );
+  }
+  return client;
+};
 
 export const medusaApi = {
   async getProducts(params = {}) {
     try {
-      const { products } = await client.store.product.list({
+      const { products } = await ensureClient().store.product.list({
         ...params,
-        fields: "id,title,handle,description,tags,variants.calculated_price,variants.prices,variants.id,variants.title,variants.options,variants.sku,variants.manage_inventory,variants.allow_backorder,variants.thumbnail,variants.inventory_quantity,images",
+        fields: "id,title,handle,description,tags,variants.prices,variants.id,variants.title,variants.options,variants.sku,variants.manage_inventory,variants.allow_backorder,variants.thumbnail,*images",
       });
       return { products };
     } catch (error) {
@@ -23,7 +40,7 @@ export const medusaApi = {
 
   async getProduct(id: string) {
     try {
-      const { product } = await client.store.product.retrieve(id);
+      const { product } = await ensureClient().store.product.retrieve(id);
       return { product };
     } catch (error) {
       console.error("Error fetching product:", error);
@@ -33,7 +50,7 @@ export const medusaApi = {
 
   async createProduct(data: Record<string, unknown>) {
     try {
-      const { product } = await client.admin.product.create(data);
+      const { product } = await ensureClient().admin.product.create(data);
       return { product };
     } catch (error) {
       console.error("Error creating product:", error);
@@ -43,7 +60,7 @@ export const medusaApi = {
 
   async updateProduct(id: string, data: Record<string, unknown>) {
     try {
-      const { product } = await client.admin.product.update(id, data);
+      const { product } = await ensureClient().admin.product.update(id, data);
       return { product };
     } catch (error) {
       console.error("Error updating product:", error);
@@ -53,7 +70,7 @@ export const medusaApi = {
 
   async deleteProduct(id: string) {
     try {
-      await client.admin.product.delete(id);
+      await ensureClient().admin.product.delete(id);
       return { success: true };
     } catch (error) {
       console.error("Error deleting product:", error);
@@ -63,7 +80,7 @@ export const medusaApi = {
 
   async getRegions() {
     try {
-      const { regions } = await client.store.region.list();
+      const { regions } = await ensureClient().store.region.list();
       return { regions };
     } catch (error) {
       console.error("Error fetching regions:", error);
@@ -73,7 +90,7 @@ export const medusaApi = {
 
   async createCart() {
     try {
-      const { cart } = await client.store.cart.create({});
+      const { cart } = await ensureClient().store.cart.create({});
       return { cart };
     } catch (error) {
       console.error("Error creating cart:", error);
@@ -83,7 +100,7 @@ export const medusaApi = {
 
   async getCart(id: string) {
     try {
-      const { cart } = await client.store.cart.retrieve(id);
+      const { cart } = await ensureClient().store.cart.retrieve(id);
       return { cart };
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -93,7 +110,7 @@ export const medusaApi = {
 
   async addCartItem(cartId: string, variantId: string, quantity: number = 1) {
     try {
-      const { cart } = await client.store.cart.createLineItem(cartId, {
+      const { cart } = await ensureClient().store.cart.createLineItem(cartId, {
         variant_id: variantId,
         quantity,
       });
@@ -106,7 +123,7 @@ export const medusaApi = {
 
   async updateCartItem(cartId: string, itemId: string, quantity: number) {
     try {
-      const { cart } = await client.store.cart.updateLineItem(cartId, itemId, {
+      const { cart } = await ensureClient().store.cart.updateLineItem(cartId, itemId, {
         quantity,
       });
       return { cart };
@@ -118,7 +135,7 @@ export const medusaApi = {
 
   async removeCartItem(cartId: string, itemId: string) {
     try {
-      const { deleted } = await client.store.cart.deleteLineItem(cartId, itemId);
+      const { deleted } = await ensureClient().store.cart.deleteLineItem(cartId, itemId);
       return { deleted, success: true };
     } catch (error) {
       console.error("Error removing cart item:", error);
@@ -128,7 +145,7 @@ export const medusaApi = {
 
   async updateCart(cartId: string, data: Record<string, unknown>) {
     try {
-      const { cart } = await client.store.cart.update(cartId, data);
+      const { cart } = await ensureClient().store.cart.update(cartId, data);
       return { cart };
     } catch (error) {
       console.error("Error updating cart:", error);
@@ -138,7 +155,7 @@ export const medusaApi = {
 
   async completeCart(cartId: string) {
     try {
-      const result = await client.store.cart.complete(cartId);
+      const result = await ensureClient().store.cart.complete(cartId);
       return result;
     } catch (error) {
       console.error("Error completing cart:", error);
@@ -148,12 +165,12 @@ export const medusaApi = {
 
   async createCustomer(data: { email: string; password: string }) {
     try {
-      const token = await client.auth.register("customer", "emailpass", {
+      const token = await ensureClient().auth.register("customer", "emailpass", {
         email: data.email,
         password: data.password,
       });
       // Now create customer with token
-      const { customer } = await client.store.customer.create(
+      const { customer } = await ensureClient().store.customer.create(
         { email: data.email },
         {},
         { Authorization: `Bearer ${token}` }
@@ -167,7 +184,7 @@ export const medusaApi = {
 
   async authenticate(email: string, password: string) {
     try {
-      const result = await client.auth.login("customer", "emailpass", {
+      const result = await ensureClient().auth.login("customer", "emailpass", {
         email,
         password,
       });
@@ -179,6 +196,46 @@ export const medusaApi = {
     } catch (error) {
       console.error("Error authenticating:", error);
       throw error;
+    }
+  },
+
+  async getCustomer() {
+    const token = localStorage.getItem("medusa_auth_token");
+    if (!token) return null;
+    try {
+      const res = await fetch(`${MEDUSA_BACKEND_URL}/store/customers/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "x-publishable-api-key": PUBLISHABLE_KEY ?? "",
+        },
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.customer ?? null;
+    } catch {
+      return null;
+    }
+  },
+
+  async updateCustomer(body: Record<string, unknown>) {
+    const token = localStorage.getItem("medusa_auth_token");
+    if (!token) return null;
+    try {
+      const res = await fetch(`${MEDUSA_BACKEND_URL}/store/customers/me`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          "x-publishable-api-key": PUBLISHABLE_KEY ?? "",
+        },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.customer ?? null;
+    } catch {
+      return null;
     }
   },
 };

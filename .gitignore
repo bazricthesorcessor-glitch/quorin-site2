@@ -29,3 +29,11 @@ clean_codebase.txt
 *.ttf
 *.woff
 *.woff2
+
+# Do not ignore local catalog assets
+!app/public/PHOTOS/**
+!app/public/*.webp
+!app/public/*.png
+!app/public/*.jpg
+!app/public/*.jpeg
+

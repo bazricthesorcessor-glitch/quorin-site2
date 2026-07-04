@@ -9,6 +9,22 @@ export default defineConfig({
   plugins: [inspectAttr(), react()],
   server: {
     port: 3000,
+    host: true,
+    allowedHosts: true,
+    proxy: {
+      '/store': {
+        target: 'http://localhost:9000',
+        changeOrigin: true,
+      },
+      '/auth': {
+        target: 'http://localhost:9000',
+        changeOrigin: true,
+      },
+      '/admin': {
+        target: 'http://localhost:9000',
+        changeOrigin: true,
+      },
+    },
     fs: {
       allow: [
         path.resolve(__dirname),

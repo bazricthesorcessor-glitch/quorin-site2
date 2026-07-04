@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QUORIN - Cache Cleaner</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 16px;
+      padding: 40px;
+    }
+    h1 { font-size: 24px; margin-bottom: 8px; color: #c9a96e; text-align: center; letter-spacing: 4px; }
+    p.subtitle { text-align: center; color: #888; margin-bottom: 32px; font-size: 14px; }
+    .warning { background: rgba(201, 169, 110, 0.1); border: 1px solid rgba(201, 169, 110, 0.3); border-radius: 8px; padding: 16px; margin-bottom: 24px; font-size: 13px; line-height: 1.6; color: #c9a96e; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 1px; }
+    .btn-clear { background: #c9a96e; color: #0a0a0a; }
+    .btn-clear:hover { background: #d8b97a; }
+    .btn-clear:active { background: #b8995e; }
+    .btn-home { background: transparent; color: #888; border: 1px solid #333; margin-top: 12px; }
+    .btn-home:hover { border-color: #c9a96e; color: #c9a96e; }
+    .status { text-align: center; margin-top: 20px; font-size: 13px; color: #666; }
+    .status.done { color: #6B8E5A; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>QUORIN</h1>
+    <p class="subtitle">Browser Cache Cleaner</p>
+    <div class="warning">
+      <strong>Warning:</strong> This will clear all stored session data, login states, and preferences for every profile. You will need to log in again. This is necessary when the UI looks different between Chrome and Firefox.
+    </div>
+    <button class="btn btn-clear" onclick="clearAll()">CLEAR EVERYTHING</button>
+    <button class="btn btn-home" onclick="window.location.href='/'">Back to QUORIN</button>
+    <div class="status" id="status"></div>
+  </div>
+  <script>
+    function clearAll() {
+      const items = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        localStorage.removeItem(key);
+        items.push(key);
+      }
+      sessionStorage.clear();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          regs.forEach(reg => reg.unregister());
+        });
+      }
+      document.cookie.split(';').forEach(c => {
+        document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+      });
+      const status = document.getElementById('status');
+      status.textContent = 'Cleared ' + items.length + ' items + sessionStorage + cookies. Reloading...';
+      status.className = 'status done';
+      setTimeout(() => { window.location.href = '/'; }, 1500);
+    }
+  </script>
+</body>
+</html>

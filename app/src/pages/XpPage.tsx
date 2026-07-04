@@ -4,6 +4,7 @@ import { ArrowLeft, Crown, Wallet } from 'lucide-react';
 import type { AccountRecord, AccountOrder } from '@/data/accounts';
 import { getXpLevel, xpLevelLadder, XP_MAX_ORDER_VALUE, XP_LEVEL_COUNT } from '@/data/xp';
 import { rgba, getThemeColors } from '@/lib/theme';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const colors = getThemeColors();
 
@@ -36,8 +37,10 @@ export default function XpPage({ currentAccount, onBackHome, resolveOrderPrice }
   const progressEnd = nextLevelData?.cumulative ?? XP_MAX_ORDER_VALUE;
   const progress = Math.max(0, Math.min(1, (totalSpend - progressStart) / Math.max(1, progressEnd - progressStart)));
 
+  const isMobile = useIsMobile();
+
   return (
-    <main className="pt-28 pb-14">
+    <main className={isMobile ? "pt-16 pb-24 bg-[var(--color-background)] min-h-screen" : "pt-28 pb-14"}>
       <section className="max-w-7xl mx-auto px-4 md:px-8">
         <motion.button
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-sm"
@@ -49,7 +52,7 @@ export default function XpPage({ currentAccount, onBackHome, resolveOrderPrice }
           Back Home
         </motion.button>
 
-        <div className="rounded-2xl p-6 md:p-8" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', boxShadow: 'var(--color-shadow-sm)' }}>
+        <div className="rounded-2xl p-6 md:p-8"           style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', boxShadow: '0 2px 8px var(--shadow-card)' }}>
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
             <div>
               <p className="text-xs tracking-[0.15em] text-[var(--color-text-muted)]">LOYALTY PROGRAM</p>
@@ -87,7 +90,7 @@ export default function XpPage({ currentAccount, onBackHome, resolveOrderPrice }
                   <span style={{ color: 'var(--color-text-muted)' }}>{formatRupees(progressStart)}</span>
                   <span style={{ color: 'var(--color-text-muted)' }}>{formatRupees(progressEnd)}</span>
                 </div>
-                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(42, 33, 24, 0.1)' }}>
                   <motion.div
                     className="h-full rounded-full"
                     style={{ background: 'var(--color-accent)' }}
@@ -132,7 +135,7 @@ export default function XpPage({ currentAccount, onBackHome, resolveOrderPrice }
                       key={item.level}
                       className="rounded-lg border px-4 py-3"
                       style={{
-                        background: active ? 'var(--color-surface)' : 'rgba(0,0,0,0.02)',
+                        background: active ? 'var(--color-surface)' : 'rgba(42, 33, 24, 0.04)',
                         borderColor: active ? 'var(--color-accent)' : 'var(--color-border-subtle)',
                       }}
                     >

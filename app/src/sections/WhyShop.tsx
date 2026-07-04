@@ -62,12 +62,12 @@ export default function WhyShop() {
                   style={{
                     background: 'var(--color-surface)',
                     border: '1px solid var(--color-border)',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
+                    boxShadow: '0 2px 8px var(--shadow-card)',
                   }}
                   whileHover={{
                     y: -4,
-                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.06)',
-                    borderColor: 'rgba(201, 169, 110, 0.3)',
+                    boxShadow: '0 8px 24px var(--shadow-hover)',
+                    borderColor: 'var(--color-accent)',
                   }}
                   transition={{ duration: 0.4 }}
                 >
@@ -75,7 +75,7 @@ export default function WhyShop() {
                   <motion.div
                     className="w-12 h-12 rounded-xl flex items-center justify-center mb-6"
                     style={{
-                      background: 'rgba(201, 169, 110, 0.08)',
+                      background: 'var(--color-accent-soft)',
                     }}
                     whileHover={{ scale: 1.05 }}
                   >

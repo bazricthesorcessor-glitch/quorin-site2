@@ -20,9 +20,15 @@ export function useMedusaCatalog(): MedusaCatalogState {
     setError(null);
     console.log('[Medusa] Starting catalog fetch...');
     try {
+      // Fetch regions first to get active region_id for calculated prices
+      const { regions } = await medusaApi.getRegions();
+      const regionId = regions?.[0]?.id;
+      console.log('[Medusa] Using regionId for pricing:', regionId);
+
       const { products } = await medusaApi.getProducts({
         limit: 100,
         order: '-created_at',
+        region_id: regionId,
       });
       console.log('[Medusa] Fetched', products?.length || 0, 'products');
       const cats = buildCategoriesFromProducts(products || []);

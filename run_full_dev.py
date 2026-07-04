@@ -175,7 +175,7 @@ def npm_install_and_start():
         subprocess.run(['bash', '-lc', f'{bash_prefix} && npm install --silent'], cwd=str(npm_cwd), check=True)
         start_cmd_str = ' '.join(shlex.quote(x) for x in start_cmd)
         log(f"Starting dev server (via nvm): {start_cmd_str} (cwd={npm_cwd})")
-        proc = subprocess.Popen(['bash', '-lc', f'{bash_prefix} && {start_cmd_str}'], cwd=str(npm_cwd), stdout=logfile, stderr=logfile)
+        proc = subprocess.Popen(['bash', '-lc', f'{bash_prefix} && {start_cmd_str}'], cwd=str(npm_cwd), stdin=subprocess.DEVNULL, stdout=logfile, stderr=logfile)
     else:
         if not shutil.which('npm'):
             raise SystemExit('npm not found on PATH after installation attempt')
@@ -184,7 +184,7 @@ def npm_install_and_start():
         run(['npm', 'install', '--silent'], cwd=npm_cwd)
         # start the dev server in background, redirect stdout/stderr to log
         log(f"Starting dev server: {' '.join(start_cmd)} (cwd={npm_cwd})")
-        proc = subprocess.Popen(start_cmd, cwd=npm_cwd, stdout=logfile, stderr=logfile)
+        proc = subprocess.Popen(start_cmd, cwd=npm_cwd, stdin=subprocess.DEVNULL, stdout=logfile, stderr=logfile)
 
     log(f"Dev server PID: {proc.pid}")
     return proc

@@ -8,6 +8,8 @@ import { Routes, Route, useLocation, useNavigate } from 'react-router';
 
 import LoadingScreen from '@/components/LoadingScreen';
 import Navigation from '@/components/Navigation';
+import MobileProductCard from '@/components/MobileProductCard';
+import MobileNavigation from '@/components/MobileNavigation';
 import CartDrawer from '@/components/CartDrawer';
 import ProductPreview from '@/components/ProductPreview';
 import CookieBanner from '@/components/CookieBanner';
@@ -21,19 +23,23 @@ import HistorySection from '@/sections/History';
 import Footer from '@/sections/Footer';
 import ProductShowcase from '@/sections/ProductShowcase';
 import CategoryPage from '@/pages/CategoryPage';
+import ProductDetailPage from '@/pages/ProductDetailPage';
 import XpPage from '@/pages/XpPage';
+import WishlistPage from '@/pages/WishlistPage';
+import SearchPage from '@/pages/SearchPage';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Toaster } from '@/components/ui/sonner';
 import { getProductId, quorinData, type Category, type Product } from '@/data/products';
 import {
-  demoAccounts,
   findAccountByIdentifierInAccounts,
-
+  type AccountOrder,
   type AccountProfile,
   type AccountRecord,
 } from '@/data/accounts';
 import { getXpDiscountPercent, getXpLevel } from '@/data/xp';
 import { getCheckoutGiftOffer, getGiftDiscountForProduct, getGiftLockKey, redeemCheckoutGift } from '@/data/gifts';
+import { getCssVar } from '@/lib/theme';
 import {
-
   loadAccounts,
   loadCatalog,
   loadCheckoutLocks,
@@ -46,20 +52,74 @@ import {
   saveCurrentAccountId,
   saveTheme,
 } from '@/lib/quorinStore';
+import { FullProductModeProvider, useFullProductMode } from '@/contexts/FullProductModeContext';
+import FullProductOverlay from '@/components/FullProductOverlay';
 import { useMedusaCart } from '@/lib/useMedusaCart';
 import { useMedusaCatalog } from '@/lib/useMedusaCatalog';
 import { medusaApi } from '@/lib/medusa';
+import { AdminAuthProvider } from '@/contexts/AdminAuthContext';
+import AdminLayout from '@/components/admin/AdminLayout';
+import AdminGuard from '@/components/admin/AdminGuard';
+import AdminLoginPage from '@/pages/admin/AdminLoginPage';
+import AdminDashboard from '@/pages/admin/AdminDashboard';
+import { AdminProductsPage } from '@/pages/admin/AdminProductsPage';
+import {
+  AdminCategoriesPage, AdminCollectionsPage, AdminOrdersPage, AdminCustomersPage,
+  AdminInventoryPage, AdminCouponsPage, AdminAnalyticsPage, AdminMediaPage,
+  AdminSettingsPage, AdminAdminsPage, AdminActivityPage,
+} from '@/pages/admin/AdminPages';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const defaultTheme: AdminTheme = {
   brand: quorinData.brand,
   tagline: quorinData.tagline,
-  accent: '#c9a96e',
-  highlight: '#c0c0c0',
-  dominant: '#3d2b1f',
-  textPrimary: '#f5f0e8',
-  textSecondary: '#b8b0a4',
+  
+  /* Colors */
+  background: getCssVar('--color-background') || '#F8F5EF',
+  surface: getCssVar('--color-surface') || '#FFFDF7',
+  surfaceHover: getCssVar('--color-surface-hover') || 'rgba(255, 253, 247, 0.6)',
+  ivory: getCssVar('--color-ivory') || '#FDF8F0',
+  structure: getCssVar('--color-structure') || '#2A2118',
+  structureDark: getCssVar('--color-structure-dark') || '#1F1812',
+  structureLight: getCssVar('--color-structure-light') || '#3D2B1F',
+  action: getCssVar('--color-action') || '#C9A96E',
+  actionBright: getCssVar('--color-action-bright') || '#D8B97A',
+  accent: getCssVar('--color-action') || '#C9A96E',
+  accentSoft: getCssVar('--color-accent-soft') || 'rgba(201, 169, 110, 0.1)',
+  accentMedium: getCssVar('--color-accent-medium') || 'rgba(201, 169, 110, 0.15)',
+  logoColor: getCssVar('--color-logo') || '#C89B52',
+  decorative: getCssVar('--color-decorative') || '#BFC2C8',
+  
+  /* Text */
+  textPrimary: getCssVar('--color-text-primary') || '#1A1410',
+  textOnCream: getCssVar('--color-text-on-cream') || '#1A1410',
+  textOnWhite: getCssVar('--color-text-on-white') || '#1A1410',
+  textSecondary: getCssVar('--color-text-secondary') || '#3D2B1F',
+  textMuted: getCssVar('--color-text-muted') || '#5B5045',
+  
+  /* Borders & Inputs */
+  border: getCssVar('--color-border') || '#E8E2D9',
+  borderSubtle: getCssVar('--color-border-subtle') || 'rgba(232, 226, 217, 0.5)',
+  borderHover: getCssVar('--color-border-hover') || '#C9A96E',
+  input: getCssVar('--color-input') || '#FFFDF7',
+  dominant: getCssVar('--color-structure') || '#2A2118',
+  
+  /* Shadows */
+  shadowCard: getCssVar('shadow-card') || 'rgba(42, 33, 24, 0.06)',
+  shadowHover: getCssVar('shadow-hover') || 'rgba(201, 169, 110, 0.12)',
+  shadowDeep: getCssVar('shadow-deep') || 'rgba(42, 33, 24, 0.1)',
+  
+  /* Halos */
+  haloGold: getCssVar('halo-gold') || 'rgba(201, 169, 110, 0.2)',
+  haloGoldStrong: getCssVar('halo-gold-strong') || 'rgba(201, 169, 110, 0.3)',
+  
+  /* Status */
+  destructive: getCssVar('--color-destructive') || '#8B4513',
+  destructiveHover: getCssVar('--color-destructive-hover') || '#A0522D',
+  success: getCssVar('--color-success') || '#6B8E5A',
+  
+  /* Typography */
   fontFamily: '"Copperplate", "Gill Sans", "Trebuchet MS", sans-serif',
 };
 
@@ -83,9 +143,10 @@ const getInitialPreviewProduct = () => {
   }
 };
 
-interface CartItem extends Product {
+interface CartItem extends Omit<Product, 'images'> {
   cartId: string;
   quantity: number;
+  images: string[];
 }
 
 type UpdateOrderFn = (orderId: string, patch: Partial<AccountRecord['orders'][number]>) => void;
@@ -97,15 +158,82 @@ interface HomeScreenProps {
   productsById: Map<string, Product>;
   addToCart: (product: Product) => void;
   openPreview: (product: Product) => void;
+  navigateToProduct?: (product: Product) => void;
+  onToggleWishlist?: (productId: string) => void;
+  currentAccountWishlist?: string[];
 }
 
-function HomeScreen({ currentAccount, onUpdateOrder, categories, productsById, addToCart, openPreview }: HomeScreenProps) {
+function HomeScreen({ currentAccount, onUpdateOrder, categories, productsById, addToCart, openPreview, navigateToProduct, onToggleWishlist, currentAccountWishlist }: HomeScreenProps) {
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
+
+  const activeProducts = useMemo(() => {
+    const allProds = categories.flatMap((c) => c.products);
+    if (!selectedCatId) return allProds;
+    return allProds.filter((p) => p.category === selectedCatId || p.category?.id === selectedCatId);
+  }, [selectedCatId, categories]);
+
+  if (isMobile) {
+    return (
+      <main className="bg-[var(--color-background)] min-h-screen pb-32">
+        <Hero />
+        
+        {/* Horizontal Category Chips */}
+        <div className="px-4 py-2 sticky top-0 bg-[var(--color-background)]/90 backdrop-blur-md z-30 border-b border-[var(--color-border-subtle)]">
+          <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-1">
+            <button
+              onClick={() => setSelectedCatId(null)}
+              className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all cursor-pointer ${
+                selectedCatId === null
+                  ? 'bg-black text-white'
+                  : 'bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-secondary)]'
+              }`}
+            >
+              All Supplies
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCatId(cat.id)}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all cursor-pointer ${
+                  selectedCatId === cat.id
+                    ? 'bg-black text-white'
+                    : 'bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-secondary)]'
+                }`}
+              >
+                {cat.title}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 2-Column Feed Grid */}
+        <div className="px-4 mt-6">
+          <h3 className="text-xs font-bold tracking-wider text-[var(--color-text-muted)] uppercase mb-4">
+            {selectedCatId ? categories.find(c => c.id === selectedCatId)?.title : 'All Supplies'} ({activeProducts.length})
+          </h3>
+          <div className="grid grid-cols-2 gap-4">
+            {activeProducts.map((product, idx) => (
+              <MobileProductCard
+                key={`${product.name}-${idx}`}
+                product={product}
+                onAddToCart={addToCart}
+                onClick={() => navigate(`/product/${getProductId(product)}`)}
+              />
+            ))}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main>
       <Hero />
       <CategorySection />
       <WhyShop />
-      <ProductShowcase categories={categories} onAddToCart={addToCart} onPreview={openPreview} />
+      <ProductShowcase categories={categories} onAddToCart={addToCart} onPreview={openPreview} onNavigateToProduct={navigateToProduct} />
       <HistorySection
         currentAccount={currentAccount}
         onUpdateOrder={onUpdateOrder}
@@ -116,13 +244,126 @@ function HomeScreen({ currentAccount, onUpdateOrder, categories, productsById, a
   );
 }
 
+/**
+ * This component sits inside FullProductModeProvider so it can access open/close.
+ * It handles:
+ *  1. Opening full product mode from ProductPreview (F key, double-click, expand button)
+ *  2. Keeping preview + full-product in sync
+ */
+function FullProductManager({
+  previewProduct,
+  previewOpen,
+}: {
+  previewProduct: Product | null;
+  previewOpen: boolean;
+}) {
+  const { open, isFullProductMode } = useFullProductMode();
+
+  // When preview opens for a product, also open full-product mode if user is already in it
+  const prevPreviewOpenRef = useRef(previewOpen);
+  useEffect(() => {
+    if (previewOpen && prevPreviewOpenRef.current === false) {
+      // Preview just opened – do nothing special; preview stays as overlay
+    }
+    prevPreviewOpenRef.current = previewOpen;
+  }, [previewOpen]);
+
+  // Keyboard: F in preview → full product mode
+  useEffect(() => {
+    if (!previewOpen || !previewProduct) return;
+    const handler = (e: KeyboardEvent) => {
+      // Don't fire if user is in an input
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        open(getProductId(previewProduct));
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [previewOpen, previewProduct, open]);
+
+  // Listen for explicit requests to open full-screen product mode
+  // (e.g. the expand button in ProductPreview / ProductDetailPage).
+  useEffect(() => {
+    const onRequest = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      if (detail) open(detail);
+    };
+    window.addEventListener('quorin:openFullProduct', onRequest as EventListener);
+    return () => window.removeEventListener('quorin:openFullProduct', onRequest as EventListener);
+  }, [open]);
+
+  // Close full product → also close preview
+  useEffect(() => {
+    if (!isFullProductMode && previewOpen) {
+      // full product was closed; close preview too
+      // handled by parent via closePreview
+    }
+  }, [isFullProductMode, previewOpen]);
+
+  return null; // no visual output
+}
+
+/**
+ * Wrapper that passes preview state down to FullProductManager.
+ * This is needed because the manager lives inside the provider but needs
+ * to react to preview opens from outside.
+ */
+function FullProductSync({
+  previewProduct,
+  previewOpen,
+  categories,
+  productsById,
+  addToCart,
+  onToggleWishlist,
+  currentAccountWishlist,
+  currentOrders,
+}: {
+  previewProduct: Product | null;
+  previewOpen: boolean;
+  categories: Category[];
+  productsById: Map<string, Product>;
+  addToCart: (product: Product) => void;
+  onToggleWishlist?: (productId: string) => void;
+  currentAccountWishlist?: string[];
+  currentOrders: AccountOrder[];
+}) {
+  const { isFullProductMode } = useFullProductMode();
+  const navigate = useNavigate();
+
+  // FullProductOverlay renders the full-page experience
+  if (!isFullProductMode) return null;
+
+  const activeId = previewProduct ? getProductId(previewProduct) : '';
+  const inWishlist = activeId ? currentAccountWishlist?.includes(activeId) : false;
+  const canReview = !!activeId && currentOrders.some((o) => o.productId === activeId && o.status === 'delivered');
+
+  return (
+    <FullProductOverlay
+      productId={activeId}
+      categories={categories}
+      productsById={productsById}
+      onAddToCart={addToCart}
+      onToggleWishlist={onToggleWishlist}
+      isInWishlist={inWishlist}
+      onClose={() => {
+        navigate(-1);
+      }}
+      canReview={canReview}
+    />
+  );
+}
+
 export default function App() {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
   const [cartOpen, setCartOpen] = useState(false);
   const lenisRef = useRef<Lenis | null>(null);
-  const [accounts, setAccounts] = useState<Record<string, AccountRecord>>(() => loadAccounts() ?? demoAccounts);
+  const [accounts, setAccounts] = useState<Record<string, AccountRecord>>(() => loadAccounts() ?? {});
   const [currentAccountId, setCurrentAccountId] = useState<string | null>(() => loadCurrentAccountId());
   const [catalogVersion, setCatalogVersion] = useState(() => {
     const persistedCatalog = loadCatalog();
@@ -163,6 +404,7 @@ export default function App() {
 
   const cartItems: CartItem[] = medusaCart.length > 0
     ? medusaCart.map((item) => ({
+        id: item.lineId,
         cartId: item.lineId,
         name: item.name,
         variant: undefined,
@@ -170,18 +412,18 @@ export default function App() {
         price: item.price,
         mrp: item.mrp,
         discount: '0',
-        description: undefined,
+        description: '',
         images: item.image ? [item.image] : [],
         features: undefined,
         tags: [],
         type: '',
+        category: '',
         quantity: item.quantity,
       }))
     : localCartItems;
 
   const [previewProduct, setPreviewProduct] = useState<Product | null>(() => getInitialPreviewProduct());
   const [previewOpen, setPreviewOpen] = useState(() => Boolean(getInitialPreviewProduct()));
-  const openedViaPushRef = useRef(false);
 
   // Initialize Lenis smooth scroll
   useEffect(() => {
@@ -285,6 +527,29 @@ export default function App() {
     setLocalCartItems((prev) => prev.filter((item) => item.cartId !== cartIdKey));
   }, [medusaCart, medusaRemoveItem]);
 
+  // Wishlist state & toggle
+  const toggleWishlist = useCallback((productId: string) => {
+    if (!currentAccountId) return;
+    setAccounts((prev) => {
+      const account = prev[currentAccountId];
+      if (!account) return prev;
+      const wishlist = account.wishlist ?? [];
+      const exists = wishlist.includes(productId);
+      const updated = exists
+        ? wishlist.filter((id) => id !== productId)
+        : [...wishlist, productId];
+      // Sync to Medusa customer metadata in background
+      medusaApi.updateCustomer({ metadata: { wishlist: updated } }).catch(() => {});
+      return {
+        ...prev,
+        [currentAccountId]: {
+          ...account,
+          wishlist: updated,
+        },
+      };
+    });
+  }, [currentAccountId]);
+
   const cartCount = medusaCart.length > 0
     ? medusaCart.reduce((sum, item) => sum + item.quantity, 0)
     : localCartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -298,9 +563,9 @@ export default function App() {
     return map;
   }, [activeCategories]);
 
-  const resolveOrderPrice = (order: AccountOrder): number => {
+  const resolveOrderPrice = (order: { productId: string; snapshot?: { price?: number } }): number => {
     const live = productsById.get(order.productId);
-    return live?.price ?? order.snapshot.price ?? 0;
+    return live?.price ?? order.snapshot?.price ?? 0;
   };
 
   const currentAccount = currentAccountId ? accounts[currentAccountId] ?? null : null;
@@ -345,12 +610,62 @@ export default function App() {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty('--color-action', theme.accent);
-    root.style.setProperty('--color-decorative', theme.highlight);
-    root.style.setProperty('--color-structure', theme.dominant);
+    
+    /* Colors */
+    root.style.setProperty('--color-background', theme.background);
+    root.style.setProperty('--color-surface', theme.surface);
+    root.style.setProperty('--color-surface-hover', theme.surfaceHover);
+    root.style.setProperty('--color-ivory', theme.ivory);
+    root.style.setProperty('--color-structure', theme.structure);
+    root.style.setProperty('--color-structure-dark', theme.structureDark);
+    root.style.setProperty('--color-structure-light', theme.structureLight);
+    root.style.setProperty('--color-action', theme.action);
+    root.style.setProperty('--color-action-bright', theme.actionBright);
+    root.style.setProperty('--color-accent', theme.accent);
+    root.style.setProperty('--color-accent-soft', theme.accentSoft);
+    root.style.setProperty('--color-accent-medium', theme.accentMedium);
+    root.style.setProperty('--color-logo', theme.logoColor);
+    root.style.setProperty('--color-decorative', theme.decorative);
+    
+    /* Text */
     root.style.setProperty('--color-text-primary', theme.textPrimary);
+    root.style.setProperty('--color-text-on-cream', theme.textOnCream);
+    root.style.setProperty('--color-text-on-white', theme.textOnWhite);
     root.style.setProperty('--color-text-secondary', theme.textSecondary);
-  }, [theme.accent, theme.highlight, theme.dominant, theme.textPrimary, theme.textSecondary]);
+    root.style.setProperty('--color-text-muted', theme.textMuted);
+    
+    /* Borders & Inputs */
+    root.style.setProperty('--color-border', theme.border);
+    root.style.setProperty('--color-border-subtle', theme.borderSubtle);
+    root.style.setProperty('--color-border-hover', theme.borderHover);
+    root.style.setProperty('--color-input', theme.input);
+    
+    /* Shadows */
+    root.style.setProperty('--shadow-card', theme.shadowCard);
+    root.style.setProperty('--shadow-hover', theme.shadowHover);
+    root.style.setProperty('--shadow-deep', theme.shadowDeep);
+    
+    /* Halos */
+    root.style.setProperty('--halo-gold', theme.haloGold);
+    root.style.setProperty('--halo-gold-strong', theme.haloGoldStrong);
+    
+    /* Status */
+    root.style.setProperty('--color-destructive', theme.destructive);
+    root.style.setProperty('--color-destructive-hover', theme.destructiveHover);
+    root.style.setProperty('--color-success', theme.success);
+    
+  }, [
+    theme.background, theme.surface, theme.surfaceHover, theme.ivory,
+    theme.structure, theme.structureDark, theme.structureLight,
+    theme.action, theme.actionBright, theme.accent, theme.accentSoft, theme.accentMedium,
+    theme.logoColor, theme.decorative,
+    theme.textPrimary, theme.textOnCream, theme.textOnWhite,
+    theme.textSecondary, theme.textMuted,
+    theme.border, theme.borderSubtle, theme.borderHover, theme.input,
+    theme.shadowCard, theme.shadowHover, theme.shadowDeep,
+    theme.haloGold, theme.haloGoldStrong,
+    theme.destructive, theme.destructiveHover, theme.success,
+  ]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -378,7 +693,7 @@ export default function App() {
           };
 
           if (product.images && product.images.length > 0) {
-            productData.thumbnail = product.images[0] as string;
+            productData.thumbnail = typeof product.images?.[0] === 'string' ? product.images[0] : product.images?.[0]?.url || '/product-resin-kit.webp';
           }
 
           if (existing?.id) {
@@ -489,26 +804,57 @@ export default function App() {
     setCartOpen(false);
   };
 
-  const authenticate = useCallback((identifier: string, password: string) => {
-    // Try local accounts first (fast, sync)
-    const account = findAccountByIdentifierInAccounts(accounts, identifier) ?? findAccountByIdentifierInAccounts(demoAccounts, identifier);
-
-    if (!account || account.password !== password) {
-      return { ok: false, message: 'Invalid account or password.' };
+  const authenticate = useCallback(async (identifier: string, password: string) => {
+    // Try Medusa backend auth
+    try {
+      await medusaApi.authenticate(identifier, password);
+    } catch {
+      // Check local accounts as fallback
+      const account = findAccountByIdentifierInAccounts(accounts, identifier);
+      if (account && account.password === password) {
+        setCurrentAccountId(account.profile.id);
+        return { ok: true };
+      }
+      return { ok: false, message: 'Invalid email or password.' };
     }
 
-    setAccounts((prev) => ({
-      ...prev,
-      [account.profile.id]: prev[account.profile.id] ?? account,
-    }));
-    setCurrentAccountId(account.profile.id);
+    // Medusa auth succeeded — create/update local account from Medusa data
+    try {
+      const customer = await medusaApi.getCustomer();
+      if (customer) {
+        const id = customer.id;
+        const existing = accounts[id];
+        const meta = customer.metadata ?? {};
+        setAccounts((prev) => ({
+          ...prev,
+          [id]: {
+            password,
+            profile: {
+              id,
+              role: 'customer' as const,
+              displayName: (meta.displayName ?? [customer.first_name, customer.last_name].filter(Boolean).join(' ')) || customer.email,
+              email: customer.email,
+              phone: customer.phone ?? meta.phone ?? '',
+              address: meta.address ?? '',
+              city: meta.city ?? '',
+              bio: meta.bio ?? '',
+            },
+            orders: meta.orders ?? existing?.orders ?? [],
+            giftUsage: meta.giftUsage ?? existing?.giftUsage ?? {
+              level10GiftRedeemed: false,
+              birthdayGiftYears: [],
+              birthdayChangeYears: [],
+            },
+            wishlist: meta.wishlist ?? existing?.wishlist ?? [],
+          },
+        }));
+        setCurrentAccountId(id);
+      }
+    } catch {
+      // Medusa customer fetch failed
+    }
 
-    // Try Medusa auth in background (non-blocking)
-    medusaApi.authenticate(identifier, password).catch(() => {
-      // Medusa backend may be offline; local auth succeeded
-    });
-
-    return { ok: true, account };
+    return { ok: true };
   }, [accounts]);
 
   useEffect(() => {
@@ -579,25 +925,9 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [isLoading]);
 
-  // Preview helpers: open/close and history handling
+  // Preview helpers: open/close
   useEffect(() => {
     const onPop = () => {
-      // if the URL now points to a product, open it, otherwise close preview
-      try {
-        const m = window.location.pathname.match(/^\/product\/(.+)$/);
-        if (m) {
-          const id = decodeURIComponent(m[1]);
-          const found = findProductById(id);
-          if (found) {
-            setPreviewProduct(found);
-            setPreviewOpen(true);
-            openedViaPushRef.current = false; // navigation via history
-            return;
-          }
-        }
-      } catch { /* ignore */ }
-
-      // otherwise close
       setPreviewOpen(false);
       setPreviewProduct(null);
     };
@@ -606,50 +936,71 @@ export default function App() {
   }, []);
 
   const openPreview = (product: Product) => {
-    try {
-      const productId = getProductId(product);
-      const url = `/product/${encodeURIComponent(productId)}`;
-      window.history.pushState({ preview: productId }, '', url);
-      openedViaPushRef.current = true;
-    } catch {
-      window.location.hash = `preview-${getProductId(product)}`;
-      openedViaPushRef.current = true;
-    }
     setPreviewProduct(product);
     setPreviewOpen(true);
   };
 
   const closePreview = () => {
-    if (openedViaPushRef.current) {
-      try { window.history.back(); } catch { /* ignore */ }
-    } else {
-      try { window.history.replaceState({}, '', '/'); } catch { /* ignore */ }
-    }
     setPreviewOpen(false);
     setPreviewProduct(null);
-    openedViaPushRef.current = false;
   };
 
   return (
-    <>
+    <FullProductModeProvider>
       <AnimatePresence>
         {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
       </AnimatePresence>
 
       {!isLoading && (
+        <>
+        {location.pathname.startsWith('/admin') ? (
+          <AdminAuthProvider>
+            <Routes>
+              <Route path="/admin/login" element={<AdminLoginPage />} />
+              <Route
+                path="/admin"
+                element={<AdminGuard><AdminLayout /></AdminGuard>}
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="products" element={<AdminProductsPage />} />
+                <Route path="categories" element={<AdminCategoriesPage />} />
+                <Route path="collections" element={<AdminCollectionsPage />} />
+                <Route path="inventory" element={<AdminInventoryPage />} />
+                <Route path="orders" element={<AdminOrdersPage />} />
+                <Route path="customers" element={<AdminCustomersPage />} />
+                <Route path="coupons" element={<AdminCouponsPage />} />
+                <Route path="analytics" element={<AdminAnalyticsPage />} />
+                <Route path="media" element={<AdminMediaPage />} />
+                <Route path="settings" element={<AdminSettingsPage />} />
+                <Route path="admins" element={<AdminAdminsPage />} />
+                <Route path="activity" element={<AdminActivityPage />} />
+              </Route>
+            </Routes>
+          </AdminAuthProvider>
+        ) : (
         <div
           className="relative"
           style={{
-            '--color-structure': theme.dominant,
-            '--color-action': theme.accent,
-            '--color-decorative': theme.highlight,
+            '--color-background': theme.background,
+            '--color-surface': theme.surface,
+            '--color-ivory': theme.ivory,
+            '--color-structure': theme.structure,
+            '--color-action': theme.action,
+            '--color-accent': theme.accent,
+            '--color-decorative': theme.decorative,
             '--color-text-primary': theme.textPrimary,
             '--color-text-secondary': theme.textSecondary,
+            '--color-text-muted': theme.textMuted,
+            '--color-border': theme.border,
+            '--color-border-subtle': theme.borderSubtle,
+            '--color-logo': theme.logoColor,
             fontFamily: theme.fontFamily,
           } as CSSProperties}
         >
           {/* Custom cursor - disabled */}
           {/* <CustomCursor /> */}
+
+          <Toaster position="top-center" />
 
           {/* Navigation */}
           <Navigation
@@ -664,6 +1015,16 @@ export default function App() {
               navigate('/');
             }}
           />
+
+          {isMobile && (
+            <MobileNavigation
+              cartCount={cartCount}
+              onCartClick={() => setCartOpen(true)}
+              currentAccount={currentAccount}
+              onOpenProfile={() => setProfileOpen(true)}
+              onOpenLogin={() => window.dispatchEvent(new CustomEvent('quorin:openLogin'))}
+            />
+          )}
 
           {/* Cart Drawer */}
           <CartDrawer
@@ -683,7 +1044,11 @@ export default function App() {
 
           {/* Main Content */}
           <Routes>
-            <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} productsById={productsById} addToCart={addToCart} openPreview={openPreview} />} />
+            <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
+            <Route
+              path="/product/:productId"
+              element={<ProductDetailPage currentAccount={currentAccount} onAddToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} categories={activeCategories} />}
+            />
             <Route
               path="/category/:categoryId"
               element={<CategoryPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} />}
@@ -692,11 +1057,40 @@ export default function App() {
               path="/xp"
               element={<XpPage currentAccount={currentAccount} onBackHome={() => navigate('/')} resolveOrderPrice={resolveOrderPrice} />}
             />
-            <Route path="*" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} productsById={productsById} addToCart={addToCart} openPreview={openPreview} />} />
+            <Route
+              path="/wishlist"
+              element={<WishlistPage currentAccount={currentAccount} onToggleWishlist={toggleWishlist} onAddToCart={addToCart} categories={activeCategories} />}
+            />
+            <Route path="/search" element={<SearchPage onAddToCart={addToCart} />} />
+            <Route path="*" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
           </Routes>
 
-          {/* Product preview modal */}
-          <ProductPreview product={previewProduct} isOpen={previewOpen} onClose={closePreview} onAddToCart={addToCart} />
+          <ProductPreview
+            product={previewProduct}
+            isOpen={previewOpen && !isMobile}
+            onClose={closePreview}
+            onAddToCart={addToCart}
+            onToggleWishlist={toggleWishlist}
+            isInWishlist={currentAccount?.wishlist?.includes(previewProduct ? getProductId(previewProduct) : '') ?? false}
+            onOpenFullProduct={(id) => {
+              setPreviewOpen(false);
+              setPreviewProduct(null);
+              navigate(`/product/${id}`, { replace: true });
+            }}
+          />
+
+          {/* Full Product Mode sync & overlay */}
+          <FullProductManager previewProduct={previewProduct} previewOpen={previewOpen} />
+          <FullProductSync
+            previewProduct={previewProduct}
+            previewOpen={previewOpen}
+            categories={activeCategories}
+            productsById={productsById}
+            addToCart={addToCart}
+            onToggleWishlist={toggleWishlist}
+            currentAccountWishlist={currentAccount?.wishlist}
+            currentOrders={currentOrders}
+          />
 
           {/* Cookie banner */}
           <CookieBanner />
@@ -718,7 +1112,9 @@ export default function App() {
           />
 
         </div>
+        )}
+        </>
       )}
-    </>
+    </FullProductModeProvider>
   );
 }

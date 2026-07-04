@@ -23,15 +23,18 @@
     --color-accent-soft: rgba(201, 169, 110, 0.1);
     --color-accent-medium: rgba(201, 169, 110, 0.15);
     
+    /* Logo gold — dedicated token for the brand Q logo */
+    --color-logo: #C89B52;
+    
     /* 2% Silver — Decorative, tiny accents, dividers */
     --color-decorative: #BFC2C8;
     
     /* Typography Hierarchy */
-    --color-text-primary: #2A2118;
-    --color-text-on-cream: #2A2118;
-    --color-text-on-white: #2A2118;
-    --color-text-secondary: #5B5045;
-    --color-text-muted: #8A8176;
+    --color-text-primary: #1A1410;
+    --color-text-on-cream: #1A1410;
+    --color-text-on-white: #1A1410;
+    --color-text-secondary: #2A1F14;
+    --color-text-muted: #4A3F33;
     
     /* Borders & inputs */
     --color-border: #E8E2D9;
@@ -222,6 +225,24 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  /* Logo gold — gradient + shimmer for Q branding */
+  .logo-gold {
+    background: linear-gradient(180deg, #D4A843 0%, var(--color-logo) 50%, #B8862E 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 2px rgba(200, 155, 82, 0.2));
+    font-weight: 900;
+  }
+
+  .logo-gold:hover {
+    background: linear-gradient(180deg, #E0B84F 0%, var(--color-logo) 50%, #C89B52 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 4px rgba(200, 155, 82, 0.4));
   }
 
   /* Ivory card */

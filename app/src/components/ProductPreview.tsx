@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Maximize2, ExternalLink, Heart } from 'lucide-react';
 import { getProductId, type Product, type ProductReview } from '@/data/products';
 
 interface ProductPreviewProps {
@@ -8,9 +9,14 @@ interface ProductPreviewProps {
   isOpen: boolean;
   onClose: () => void;
   onAddToCart?: (product: Product) => void;
+  onOpenFullProduct?: (productId: string) => void;
+  onNavigateFromProduct?: (productId: string) => void;
+  onToggleWishlist?: (productId: string) => void;
+  isInWishlist?: boolean;
 }
 
-export default function ProductPreview({ product, isOpen, onClose, onAddToCart }: ProductPreviewProps) {
+export default function ProductPreview({ product, isOpen, onClose, onAddToCart, onOpenFullProduct, onNavigateFromProduct, onToggleWishlist, isInWishlist }: ProductPreviewProps) {
+  const navigate = useNavigate();
   const [showReviews, setShowReviews] = useState(false);
   const [descriptionText, setDescriptionText] = useState('');
   const [reviews, setReviews] = useState<ProductReview[]>([]);
@@ -37,6 +43,38 @@ export default function ProductPreview({ product, isOpen, onClose, onAddToCart }
     return () => window.removeEventListener('keydown', onKey);
   }, [isOpen, onClose]);
 
+  // Full Product Mode triggers: F key, double-click, expand button
+  const triggerFullProduct = useCallback(() => {
+    if (product) {
+      onOpenFullProduct?.(getProductId(product));
+    }
+  }, [product, onOpenFullProduct]);
+
+  const [lastClickTime, setLastClickTime] = useState(0);
+
+  const handleDoubleClick = useCallback(() => {
+    const now = Date.now();
+    if (now - lastClickTime < 350) {
+      triggerFullProduct();
+    }
+    setLastClickTime(now);
+  }, [lastClickTime, triggerFullProduct]);
+
+  // F key handler for full product mode (only when preview is open, not in inputs)
+  useEffect(() => {
+    if (!isOpen || !product) return;
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        triggerFullProduct();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isOpen, product, triggerFullProduct]);
+
   // prevent background scroll when open
   useEffect(() => {
     if (isOpen) {
@@ -58,7 +96,7 @@ export default function ProductPreview({ product, isOpen, onClose, onAddToCart }
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          style={{ background: 'rgba(0,0,0,0.3)' }}
+          style={{ background: 'rgba(42, 33, 24, 0.25)' }}
         >
           <motion.div
             className="relative max-w-5xl w-full rounded-2xl overflow-hidden"
@@ -67,6 +105,7 @@ export default function ProductPreview({ product, isOpen, onClose, onAddToCart }
             exit={{ y: 32, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
+            onDoubleClick={handleDoubleClick}
             style={{ background: 'var(--color-surface)' }}
           >
             <div className="p-6 md:p-10">
@@ -76,7 +115,7 @@ export default function ProductPreview({ product, isOpen, onClose, onAddToCart }
                     <div className="relative w-full h-full">
                       <motion.img
                         key={selectedImage}
-                        src={product.images[selectedImage] || '/product-resin-kit.jpg'}
+                        src={typeof product.images[selectedImage] === 'string' ? (product.images[selectedImage] as string) : product.images[selectedImage]?.url || '/product-resin-kit.webp'}
                         alt={`${product.name} - Image ${selectedImage + 1}`}
                         className="w-full h-full object-cover"
                         initial={{ opacity: 0 }}
@@ -107,10 +146,11 @@ export default function ProductPreview({ product, isOpen, onClose, onAddToCart }
                     </div>
                   ) : (
                     <motion.img
-                      src={product.images?.[0] || '/product-resin-kit.jpg'}
+                      src={typeof product.images?.[0] === 'string' ? product.images[0] : product.images?.[0]?.url || '/product-resin-kit.webp'}
                       alt={product.name}
                       className="w-full h-full object-cover"
-                      keyframes={{ '0%': { opacity: 0 }, '100%': { opacity: 1 } }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       transition={{ duration: 0.4 }}
                     />
                   )}
@@ -244,6 +284,30 @@ export default function ProductPreview({ product, isOpen, onClose, onAddToCart }
               whileTap={{ scale: 0.9 }}
             >
               <X size={18} />
+            </motion.button>
+
+            {/* Navigate to full product page — left button (opens full-screen mode) */}
+            <motion.button
+              aria-label="Open full product page"
+              onClick={(e) => { e.stopPropagation(); onOpenFullProduct?.(getProductId(product)); }}
+              className="absolute top-4 left-4 p-2 rounded-full"
+              style={{ background: 'var(--color-surface-hover)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)' }}
+              whileHover={{ scale: 1.1, background: 'var(--color-action)', color: 'white' }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Maximize2 size={18} />
+            </motion.button>
+
+            {/* Wishlist heart — moved to avoid overlapping close (top-right area, offset) */}
+            <motion.button
+              aria-label="Toggle wishlist"
+              onClick={(e) => { e.stopPropagation(); onToggleWishlist?.(getProductId(product)); }}
+              className="absolute top-4 left-16 p-2 rounded-full"
+              style={{ background: 'var(--color-surface-hover)', border: '1px solid var(--color-border-subtle)', color: isInWishlist ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
+              whileHover={{ scale: 1.1, background: isInWishlist ? 'var(--color-accent-soft)' : 'var(--color-surface-hover)' }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Heart size={18} fill={isInWishlist ? 'var(--color-accent)' : 'none'} />
             </motion.button>
           </motion.div>
         </motion.div>

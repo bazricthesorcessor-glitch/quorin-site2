@@ -1,4 +1,4 @@
-import type { Product } from '@/data/products';
+import { quorinData, type Product } from '@/data/products';
 
 const CATEGORY_SLUG_MAP: Record<string, string> = {
   'resin-kit': 'resin-art',
@@ -30,7 +30,8 @@ const CATEGORY_INFO: Record<string, { title: string; description: string }> = {
   },
 };
 
-const defaultImage = '/product-resin-kit.jpg';
+const defaultImage = 'http://localhost:9000/product-resin-kit.webp';
+const MEDUSA_BACKEND_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'http://localhost:9000';
 
 interface MedusaCalculatedPrice {
   calculated_amount: number;
@@ -97,14 +98,16 @@ function getPrimaryImageUrl(images: MedusaProductImage[] | undefined): string {
   if (primary) {
     const url = primary.url;
     if (url.startsWith('http')) return url;
+    return `${MEDUSA_BACKEND_URL}${url}`;
   }
   const first = images[0];
   const url = first.url;
   if (url.startsWith('http')) return url;
-  return `https:${url}`;
+  return `${MEDUSA_BACKEND_URL}${url}`;
 }
 
 function getVariantInfo(variants: MedusaVariant[]) {
+  // Collect all prices from all variants
   const prices = variants.flatMap((v) => {
     if (v.calculated_price) {
       return [{ variantId: v.id, amount: v.calculated_price.calculated_amount, currency: v.calculated_price.currency_code }];
@@ -114,13 +117,20 @@ function getVariantInfo(variants: MedusaVariant[]) {
     }
     return [];
   });
-  const cheapest = prices.reduce(
+
+  // Medusa stores prices in micro-units (cents), convert to rupees
+  const rupeePrices = prices.map((p) => ({ ...p, amount: p.amount / 100 }));
+  const cheapest = rupeePrices.reduce(
     (min, p) => (p.amount < min.amount ? p : min),
-    prices[0] ?? { amount: 0, currency: 'inr' }
+    rupeePrices[0] ?? { amount: 0, currency: 'inr', variantId: '' }
   );
+
+  // Extract variant metadata
   const primaryVariant = variants[0];
   const variantTitle = primaryVariant?.title ?? 'Default';
   const variantOptions = primaryVariant?.options ?? {};
+  const mrp = Math.round(cheapest.amount * 1.8 * 100) / 100;
+
   let size: string | undefined;
   let variantLabel: string | undefined;
   if (variantOptions.size) {
@@ -129,7 +139,6 @@ function getVariantInfo(variants: MedusaVariant[]) {
   if (variantTitle && variantTitle !== 'Default Title') {
     variantLabel = variantTitle;
   }
-  const mrp = Math.round(cheapest.amount * 1.8);
   const discount = mrp > 0 ? `${Math.round(((mrp - cheapest.amount) / mrp) * 100)}%` : '0%';
   return {
     price: cheapest.amount,
@@ -159,6 +168,25 @@ function mapFeatures(description: string | undefined): string[] | undefined {
   return found.length > 0 ? found : undefined;
 }
 
+const TITLE_TO_LOCAL_ID_MAP: Record<string, string> = {
+  "QUORIN Crystal Clear Epoxy Resin and Hardener Kit": "resin",
+  "Liquid Resin Pigment Combo Set": "resin-pigment",
+  "QUORIN Eco Tones Pigment Paste Set": "eco-cast",
+  "QUORIN Eco-Create Eco Resin": "eco-cast",
+  "QUORIN Resin Tools Kit": "deburring-tool",
+  "Quorin 15-Piece Resin Art Tool Kit": "resin-bubble-remover",
+  "QUORIN Hand Drill for Resin Art": "hand-drill",
+  "QUORIN Resin Art Tools Combo Kit": "combo-heat-tool",
+  "Resin Glitter for Epoxy Art": "glitter",
+  "Crushed Clear Glass for Resin Art": "crushed-glass",
+  "QUORIN Candle Colour Set": "candle-pigment",
+  "QUORIN Candle Wicks": "wick-combo",
+  "QUORIN Blow Torch Fire Gun": "jet-lighter",
+  "Premium Fragrance Oil Set": "fragrance-oil",
+  "Quorin DIY Soap Colouring Kit": "soap-dye",
+  "QUORIN Liquid Soap Colour Kit with Silicone Mold": "soap-dye-mould"
+};
+
 export function mapMedusaProduct(product: MedusaProduct): Product {
   const { price, mrp, discount, variantId, variantLabel, size } = getVariantInfo(product.variants);
   const tags = product.tags?.map((t) => t.value.toLowerCase()) ?? [];
@@ -166,20 +194,39 @@ export function mapMedusaProduct(product: MedusaProduct): Product {
   const features = mapFeatures(product.description);
   const images = product.images ? product.images.map((img) => getPrimaryImageUrl([img])) : [defaultImage];
 
+  // Find local product fallback to retrieve rich images and details
+  const allLocalProducts = quorinData.categories.flatMap(c => c.products);
+  
+  const mappedId = TITLE_TO_LOCAL_ID_MAP[product.title];
+  const localProd = allLocalProducts.find(lp => lp.id === mappedId) || 
+                    allLocalProducts.find(lp => lp.id === product.id) ||
+                    allLocalProducts.find(lp => {
+                      const normalize = (s: string) => s.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+                      return normalize(lp.name) === normalize(product.title);
+                    });
+
+  const finalPrice = localProd ? localProd.price : (price > 0 ? price : 0);
+  const finalMrp = localProd ? localProd.mrp : (mrp > 0 ? mrp : 0);
+  const finalDiscount = localProd ? localProd.discount : discount;
+  const finalImages = localProd ? (localProd.images_local ?? localProd.images) : images;
+
   return {
     id: product.id,
     variantId,
     name: product.title,
     variant: variantLabel,
     size,
-    price,
-    mrp,
-    discount,
-    description: product.description,
-    images: images.length > 0 ? images : [defaultImage],
-    features,
+    price: finalPrice,
+    mrp: finalMrp,
+    discount: finalDiscount,
+    description: product.description ?? (localProd ? localProd.description : ''),
+    images: finalImages,
+    images_local: localProd ? localProd.images_local : undefined,
+    features: features ?? (localProd ? localProd.tags : undefined),
+    category,
     tags: [...new Set([...tags, category])],
     type: tags[0] ?? slugify(product.title),
+    stock: 0,
   };
 }
 

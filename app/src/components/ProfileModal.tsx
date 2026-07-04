@@ -36,7 +36,7 @@ export default function ProfileModal({
       {isOpen && draft && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          style={{ background: 'rgba(0,0,0,0.3)' }}
+          style={{ background: 'rgba(42, 33, 24, 0.25)' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -82,7 +82,7 @@ export default function ProfileModal({
                   </div>
                   <span className="text-sm font-semibold" style={{ color: 'var(--color-accent)' }}>{Math.round(experience)}%</span>
                 </div>
-                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(42, 33, 24, 0.1)' }}>
                   <div className="h-full rounded-full transition-all duration-500" style={{ width: `${experience}%`, background: 'var(--color-accent)' }} />
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { hydrateAccounts, type AccountRecord } from '@/data/accounts';
+import { type AccountRecord } from '@/data/accounts';
 import { quorinData } from '@/data/products';
 import type { AdminTheme } from '@/components/AdminCenter';
 
@@ -38,7 +38,7 @@ export interface CustomRequestRecord {
 }
 
 export const loadAccounts = () =>
-  hydrateAccounts(readJson<Record<string, Partial<AccountRecord>>>(STORAGE_KEYS.accounts, {}));
+  readJson<Record<string, AccountRecord>>(STORAGE_KEYS.accounts, {}) ?? {};
 
 export const saveAccounts = (accounts: Record<string, AccountRecord>) => {
   writeJson(STORAGE_KEYS.accounts, accounts);
@@ -59,19 +59,69 @@ export const saveCurrentAccountId = (accountId: string | null) => {
   }
 };
 
-export const loadCatalog = () => readJson<Partial<typeof quorinData> | null>(STORAGE_KEYS.catalog, null);
+const CATALOG_VERSION = 2;
+const THEME_VERSION = 1;
 
-export const saveCatalog = (catalog: typeof quorinData) => {
-  writeJson(STORAGE_KEYS.catalog, catalog);
+interface VersionedStore<T> {
+  version: number;
+  data: T;
+}
+
+export const loadCatalog = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.catalog);
+    if (!raw) return null;
+    const stored: VersionedStore<Partial<typeof quorinData>> = JSON.parse(raw);
+    if (!stored || stored.version !== CATALOG_VERSION) {
+      return null;
+    }
+    return stored.data;
+  } catch {
+    return null;
+  }
 };
 
+export const saveCatalog = (catalog: typeof quorinData) => {
+  const store: VersionedStore<typeof quorinData> = {
+    version: CATALOG_VERSION,
+    data: catalog,
+  };
+  try {
+    localStorage.setItem(STORAGE_KEYS.catalog, JSON.stringify(store));
+  } catch {
+    // Persistence is best-effort in the browser.
+  }
+};
+
+interface AdminThemeStore {
+  version: number;
+  data: Partial<AdminTheme>;
+}
+
 export const loadTheme = (defaultTheme: AdminTheme) => {
-  const persisted = readJson<Partial<AdminTheme>>(STORAGE_KEYS.theme, {});
-  return { ...defaultTheme, ...persisted };
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.theme);
+    if (!raw) return defaultTheme;
+    const stored: AdminThemeStore = JSON.parse(raw);
+    if (!stored || stored.version !== THEME_VERSION) {
+      return defaultTheme;
+    }
+    return { ...defaultTheme, ...stored.data };
+  } catch {
+    return defaultTheme;
+  }
 };
 
 export const saveTheme = (theme: AdminTheme) => {
-  writeJson(STORAGE_KEYS.theme, theme);
+  const store: AdminThemeStore = {
+    version: THEME_VERSION,
+    data: theme,
+  };
+  try {
+    localStorage.setItem(STORAGE_KEYS.theme, JSON.stringify(store));
+  } catch {
+    // Persistence is best-effort in the browser.
+  }
 };
 
 export const loadClientFingerprint = () => {

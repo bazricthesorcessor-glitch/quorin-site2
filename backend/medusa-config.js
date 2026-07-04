@@ -1,4 +1,5 @@
 const dotenv = require("dotenv");
+const path = require("path");
 
 dotenv.config();
 
@@ -12,9 +13,9 @@ module.exports = {
       ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
     },
     http: {
-      authCors: process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:3000",
-      storeCors: process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:3000",
-      adminCors: process.env.CORS_ORIGIN || "http://localhost:3000",
+      authCors: "http://localhost:3000",
+      storeCors: "http://localhost:3000",
+      adminCors: "http://localhost:3000",
       cookieSecret: process.env.COOKIE_SECRET,
     },
     redisUrl: "redis://localhost:6379",
@@ -79,6 +80,15 @@ module.exports = {
     },
     auth: {
       resolve: "@medusajs/auth",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/auth-emailpass",
+            id: "emailpass",
+            options: {},
+          },
+        ],
+      },
     },
     event_bus: {
       resolve: "@medusajs/event-bus-redis",
@@ -99,6 +109,20 @@ module.exports = {
       resolve: "@medusajs/cache-redis",
       options: {
         redisUrl: "redis://localhost:6379",
+      },
+    },
+    file: {
+      resolve: "@medusajs/file",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/file-local",
+            id: "local",
+            options: {
+              upload_dir: path.join(__dirname, "public/uploads"),
+            },
+          },
+        ],
       },
     },
   },

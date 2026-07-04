@@ -52,18 +52,47 @@ async function seed() {
   }
   for (const [catId, name] of Object.entries(catNames)) {
     if (!categories[catId]) {
-      const [cat] = await productModuleService.createProductCategories([
-        { name, handle: catId },
-      ]);
-      categories[catId] = cat.id;
+      try {
+        const [cat] = await productModuleService.createProductCategories([
+          { name, handle: catId },
+        ]);
+        categories[catId] = cat.id;
+      } catch (e) {
+        const existing = await productModuleService.listProductCategories({ handle: catId });
+        if (existing.length > 0) {
+          categories[catId] = existing[0].id;
+        } else {
+          logger.warn(`Could not create or find category: ${catId}`);
+        }
+      }
     }
   }
 
-  // Check if products already exist
+  // Clear existing products to run a clean seed
   const existingProducts = await productModuleService.listProducts();
   if (existingProducts.length > 0) {
-    logger.info(`Products already exist (${existingProducts.length}), skipping seed`);
-    process.exit(0);
+    logger.info(`Clearing ${existingProducts.length} existing products for clean seed...`);
+    await productModuleService.deleteProducts(existingProducts.map(p => p.id));
+  }
+
+  // Create tags first to get their IDs
+  const allTags = [...new Set(PRODUCTS.flatMap(p => p.tags || []))];
+  const tagsMap = {};
+  for (const t of allTags) {
+    try {
+      const existing = await productModuleService.listProductTags({ value: t });
+      if (existing.length > 0) {
+        tagsMap[t] = existing[0].id;
+      } else {
+        const [createdTag] = await productModuleService.createProductTags([{ value: t }]);
+        tagsMap[t] = createdTag.id;
+      }
+    } catch (e) {
+      const existing = await productModuleService.listProductTags({ value: t });
+      if (existing.length > 0) {
+        tagsMap[t] = existing[0].id;
+      }
+    }
   }
 
   let created = 0;
@@ -80,11 +109,11 @@ async function seed() {
             {
               title: p.name,
               prices: [{ currency_code: "inr", amount: Math.round(p.price * 100) }],
-              options: [{ option_id: "size", value: "default" }],
+              options: { Size: "default" },
             },
           ],
           categories: p.category ? [{ id: categories[p.category] }] : undefined,
-          tags: p.tags.map(t => ({ value: t })),
+          tags: p.tags.map(t => ({ id: tagsMap[t] })),
         },
       ]);
       created++;
