@@ -10,7 +10,9 @@ module.exports = {
     databaseUrl: process.env.DATABASE_URL,
     databaseType: "pg",
     databaseDriverOptions: {
-      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+      ssl: process.env.DATABASE_URL && (process.env.DATABASE_URL.includes("localhost") || process.env.DATABASE_URL.includes("127.0.0.1"))
+        ? false
+        : { rejectUnauthorized: false },
     },
     http: {
       authCors: process.env.AUTH_CORS || "http://localhost:3000,http://localhost:5173",
