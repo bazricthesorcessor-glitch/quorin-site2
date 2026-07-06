@@ -144,6 +144,6 @@ module.exports = {
   featureFlags: {},
   admin: {
     disable: false,
-    path: "/admin",
+    path: "/app",
   },
 };
