@@ -18,7 +18,7 @@ import type { ISettingsModuleService } from '@medusajs/framework/types'
 import type { IUserModuleService } from '@medusajs/framework/types'
 import type { IAuthModuleService } from '@medusajs/framework/types'
 import type { IEventBusModuleService } from '@medusajs/framework/types'
-import type WorkflowEngine from '@medusajs/workflow-engine-redis'
+import type WorkflowEngine from '@medusajs/workflow-engine-inmemory'
 import type { ICacheService } from '@medusajs/framework/types'
 import type { IFileModuleService } from '@medusajs/framework/types'
 
