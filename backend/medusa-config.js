@@ -13,12 +13,12 @@ module.exports = {
       ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
     },
     http: {
-      authCors: "http://localhost:3000",
-      storeCors: "http://localhost:3000",
-      adminCors: "http://localhost:3000",
+      authCors: process.env.AUTH_CORS || "http://localhost:3000,http://localhost:5173",
+      storeCors: process.env.STORE_CORS || "http://localhost:3000,http://localhost:5173",
+      adminCors: process.env.ADMIN_CORS || "http://localhost:3000,http://localhost:5173",
       cookieSecret: process.env.COOKIE_SECRET,
     },
-    redisUrl: "redis://localhost:6379",
+    redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
   },
   modules: {
     api_key: {
@@ -90,27 +90,38 @@ module.exports = {
         ],
       },
     },
-    event_bus: {
-      resolve: "@medusajs/event-bus-redis",
-      options: {
-        redisUrl: "redis://localhost:6379",
-      },
-    },
-    workflow_engine: {
-      resolve: "@medusajs/workflow-engine-redis",
-      options: {
-        redis: {
-          redisUrl: "redis://localhost:6379",
+    event_bus: process.env.REDIS_URL
+      ? {
+          resolve: "@medusajs/event-bus-redis",
+          options: {
+            redisUrl: process.env.REDIS_URL,
+          },
+        }
+      : {
+          resolve: "@medusajs/event-bus-local",
         },
-      },
-    },
-
-    cache: {
-      resolve: "@medusajs/cache-redis",
-      options: {
-        redisUrl: "redis://localhost:6379",
-      },
-    },
+    workflow_engine: process.env.REDIS_URL
+      ? {
+          resolve: "@medusajs/workflow-engine-redis",
+          options: {
+            redis: {
+              redisUrl: process.env.REDIS_URL,
+            },
+          },
+        }
+      : {
+          resolve: "@medusajs/workflow-engine-inmemory",
+        },
+    cache: process.env.REDIS_URL
+      ? {
+          resolve: "@medusajs/cache-redis",
+          options: {
+            redisUrl: process.env.REDIS_URL,
+          },
+        }
+      : {
+          resolve: "@medusajs/cache-inmemory",
+        },
     file: {
       resolve: "@medusajs/file",
       options: {

@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: quorin-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npx medusa db:migrate && npx medusa start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: COOKIE_SECRET
+        generateValue: true
+      - key: AUTH_CORS
+        value: http://localhost:3000
+      - key: STORE_CORS
+        value: http://localhost:3000
+      - key: ADMIN_CORS
+        value: http://localhost:3000
