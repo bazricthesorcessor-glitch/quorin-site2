@@ -140,6 +140,6 @@ module.exports = {
   plugins: [],
   featureFlags: {},
   admin: {
-    disable: true,
+    disable: false,
   },
 };
