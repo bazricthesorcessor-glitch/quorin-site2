@@ -17,10 +17,9 @@ import type { IFulfillmentModuleService } from '@medusajs/framework/types'
 import type { ISettingsModuleService } from '@medusajs/framework/types'
 import type { IUserModuleService } from '@medusajs/framework/types'
 import type { IAuthModuleService } from '@medusajs/framework/types'
-import type { IEventBusModuleService } from '@medusajs/framework/types'
-import type WorkflowEngine from '@medusajs/workflow-engine-inmemory'
-import type { ICacheService } from '@medusajs/framework/types'
 import type { IFileModuleService } from '@medusajs/framework/types'
+import type { IEventBusModuleService } from '@medusajs/framework/types'
+import type { ICacheService } from '@medusajs/framework/types'
 
 declare module '@medusajs/framework/types' {
   interface ModuleImplementations {
@@ -43,9 +42,8 @@ declare module '@medusajs/framework/types' {
     'settings': ISettingsModuleService,
     'user': IUserModuleService,
     'auth': IAuthModuleService,
+    'file': IFileModuleService,
     'event_bus': IEventBusModuleService,
-    'workflow_engine': InstanceType<(typeof WorkflowEngine)['service']>,
-    'cache': ICacheService,
-    'file': IFileModuleService
+    'cache': ICacheService
   }
 }

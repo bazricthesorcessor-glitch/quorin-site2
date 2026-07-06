@@ -39,13 +39,6 @@ function ProductCard({ product, index, onAddToCart, onPreview, onNavigateToProdu
   const scale = useTransform(scrollYProgress, [0, 1], [0.95, 1]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [0, 1]);
 
-  const handleDoubleClick = useCallback(() => {
-    if (onNavigateToProduct) {
-      onNavigateToProduct(product);
-    } else {
-      navigate(`/product/${encodeURIComponent(getProductId(product))}`);
-    }
-  }, [onNavigateToProduct, product, navigate]);
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!cardRef.current) return;

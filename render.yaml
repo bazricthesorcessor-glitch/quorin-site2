@@ -16,8 +16,8 @@ services:
       - key: COOKIE_SECRET
         generateValue: true
       - key: AUTH_CORS
-        value: http://localhost:3000
+        value: http://localhost:3000,http://localhost:5173
       - key: STORE_CORS
-        value: http://localhost:3000
+        value: http://localhost:3000,http://localhost:5173
       - key: ADMIN_CORS
-        value: http://localhost:3000
+        value: http://localhost:3000,http://localhost:5173

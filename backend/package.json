@@ -8,7 +8,7 @@
     "build": "medusa build",
     "start": "mkdir -p public && cp -r dist/public/admin public/ && medusa start",
     "dev": "medusa develop",
-    "seed": "medusa execute src/scripts/seed.ts"
+    "seed": "medusa exec src/scripts/seed.ts"
   },
   "dependencies": {
     "@medusajs/medusa": "^2.16.0",
