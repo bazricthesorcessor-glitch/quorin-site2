@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "medusa build",
-    "start": "medusa build && medusa start",
+    "start": "mkdir -p public && cp -r dist/public/admin public/ && medusa start",
     "dev": "medusa develop",
     "seed": "medusa execute src/scripts/seed.ts"
   },
