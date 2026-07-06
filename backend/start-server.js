@@ -10,7 +10,7 @@ async function main() {
   let isShuttingDown = false;
 
   try {
-    process.env.NODE_ENV = "development";
+    process.env.NODE_ENV = process.env.NODE_ENV || "development";
     const directory = process.cwd();
 
     const container = await initializeContainer(directory, { skipDbConnection: true });
