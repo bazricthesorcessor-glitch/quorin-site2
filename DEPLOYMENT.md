@@ -23,11 +23,11 @@ This guide details how to deploy the QUORIN platform on a free-tier cloud archit
 
 1. Go to [Neon.tech](https://neon.tech/) and sign up for a free account.
 2. Create a new project named `quorin-db`.
-3. In the project dashboard, select the database connection string. Make sure to select **Pooled Connection** (which uses PgBouncer on port `5432` or transaction pooling) and copy the URL. It will look like this:
+3. In the project dashboard, select the database connection string. Make sure to select **Direct Connection** (which connects directly to PostgreSQL without PgBouncer/transaction pooling) and copy the URL. It will look like this:
    ```
    postgresql://[user]:[password]@[host]/neondb?sslmode=require
    ```
-   *(Note: The `?sslmode=require` query parameter is required for connecting from external servers securely).*
+   *(Note: Direct Connection is required because Medusa's migration system uses advisory locks and transaction features that are unsupported by PgBouncer / Pooled Connections).*
 
 ---
 
