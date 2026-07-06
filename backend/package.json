@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "medusa build",
-    "start": "medusa db:migrate && medusa start",
+    "start": "medusa start",
     "dev": "medusa develop",
     "seed": "medusa execute src/scripts/seed.ts"
   },
