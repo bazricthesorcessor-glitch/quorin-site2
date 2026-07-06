@@ -27,6 +27,7 @@ import ProductDetailPage from '@/pages/ProductDetailPage';
 import XpPage from '@/pages/XpPage';
 import WishlistPage from '@/pages/WishlistPage';
 import SearchPage from '@/pages/SearchPage';
+import AuthGoogleCallback from '@/pages/AuthGoogleCallback';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Toaster } from '@/components/ui/sonner';
 import { getProductId, quorinData, type Category, type Product } from '@/data/products';
@@ -732,6 +733,7 @@ export default function App() {
     setCurrentAccountId(null);
     setProfileOpen(false);
     setAdminOpen(false);
+    medusaApi.clearAuth();
   };
 
   const saveProfile = (profile: AccountProfile) => {
@@ -1002,19 +1004,21 @@ export default function App() {
 
           <Toaster position="top-center" />
 
-          {/* Navigation */}
-          <Navigation
-            cartCount={cartCount}
-            onCartClick={() => setCartOpen(true)}
-            currentAccount={currentAccount}
-            onAuthenticate={authenticate}
-            onOpenProfile={() => setProfileOpen(true)}
-            onToggleAdminMode={toggleAdminMode}
-            onHomeClick={() => {
-              closePreview();
-              navigate('/');
-            }}
-          />
+          {/* Navigation - hidden on search page */}
+          {location.pathname !== '/search' && (
+            <Navigation
+              cartCount={cartCount}
+              onCartClick={() => setCartOpen(true)}
+              currentAccount={currentAccount}
+              onAuthenticate={authenticate}
+              onOpenProfile={() => setProfileOpen(true)}
+              onToggleAdminMode={toggleAdminMode}
+              onHomeClick={() => {
+                closePreview();
+                navigate('/');
+              }}
+            />
+          )}
 
           {isMobile && (
             <MobileNavigation
@@ -1044,6 +1048,7 @@ export default function App() {
 
           {/* Main Content */}
           <Routes>
+            <Route path="/auth/google/callback" element={<AuthGoogleCallback />} />
             <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
             <Route
               path="/product/:productId"

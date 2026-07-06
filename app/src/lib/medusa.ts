@@ -238,5 +238,62 @@ export const medusaApi = {
       return null;
     }
   },
+
+  // --- Google OAuth ---
+
+  async googleAuthLogin(callbackUrl: string) {
+    const result = await ensureClient().auth.login("customer", "google", {
+      callback_url: callbackUrl,
+    });
+    if (typeof result === "object" && result !== null && "location" in result) {
+      return { location: result.location as string };
+    }
+    throw new Error("Google login did not return a redirect URL");
+  },
+
+  async googleAuthCallback(code: string, state: string) {
+    const res = await fetch(
+      `${MEDUSA_BACKEND_URL}/auth/customer/google/callback-plus?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "x-publishable-api-key": PUBLISHABLE_KEY ?? "",
+        },
+      }
+    );
+    if (!res.ok) {
+      throw new Error("Google OAuth callback failed");
+    }
+    return res.json() as Promise<{
+      token: string;
+      user: { email: string; name: string; picture: string };
+    }>;
+  },
+
+  async getOrCreateCustomerFromGoogleAuth(
+    token: string,
+    user: { email: string; name?: string }
+  ) {
+    localStorage.setItem("medusa_auth_token", token);
+
+    const existing = await this.getCustomer();
+    if (existing) return { customer: existing, created: false };
+
+    const parts = (user.name || "").split(" ");
+    const { customer } = await ensureClient().store.customer.create(
+      {
+        email: user.email,
+        first_name: parts[0] || "",
+        last_name: parts.slice(1).join(" ") || "",
+      },
+      {},
+      { Authorization: `Bearer ${token}` }
+    );
+    return { customer, created: true };
+  },
+
+  async clearAuth() {
+    localStorage.removeItem("medusa_auth_token");
+  },
 };
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router';
-import { Menu, X, ShoppingCart, UserRound, User, Package, MessageSquare, Zap, ArrowLeft, Shield, Heart } from 'lucide-react';
+import { Menu, X, ShoppingCart, UserRound, User, Package, MessageSquare, Zap, ArrowLeft, Shield, Heart, Search } from 'lucide-react';
 import { quorinData } from '@/data/products';
 import { useMedusaCatalog } from '@/lib/useMedusaCatalog';
 import type { AccountRecord } from '@/data/accounts';
@@ -49,6 +49,9 @@ export default function Navigation({
   const [customRequestOpen, setCustomRequestOpen] = useState(false);
   const [customRequestText, setCustomRequestText] = useState('');
   const [customRequestSent, setCustomRequestSent] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchMode, setSearchMode] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
   const menuCloseTimer = useRef<number | null>(null);
   const sigilHideTimer = useRef<number | null>(null);
@@ -290,53 +293,159 @@ export default function Navigation({
             <div
               className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 rounded-2xl frosted-glass"
             >
-              {/* Logo */}
-              <motion.a
-                href="#"
-                className="quorin-brand text-xl tracking-wide logo-gold"
-                style={{
-                  textShadow: '0 0 20px rgba(200, 155, 82, 0.2)',
-                }}
-                whileHover={{ scale: 1.02 }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (onHomeClick) onHomeClick();
-                  else window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-              >
-                {quorinData.brand}
-              </motion.a>
-
-              {/* Center links - hidden on mobile */}
-              <div className="hidden md:flex items-center gap-8">
-                {medusaCategories.map((cat) => (
-                  <motion.button
-                    key={cat.id}
-                    className="relative text-sm tracking-[0.15em] uppercase transition-colors"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                    onMouseEnter={(e) => {
-                      (e.target as HTMLElement).style.color = 'var(--color-text-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.target as HTMLElement).style.color = 'var(--color-text-secondary)';
-                    }}
-                    whileHover={{ y: -1 }}
-                    onClick={() => openCategory(cat.id)}
+              {/* Animated content: normal mode vs search mode */}
+              <AnimatePresence mode="wait">
+                {searchMode ? (
+                  <motion.div
+                    key="search-bar"
+                    className="flex items-center gap-3 w-full"
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    {cat.title}
-                    <motion.div
-                      className="absolute -bottom-1 left-0 h-[1px]"
-                      style={{ background: 'var(--color-accent)' }}
-                      initial={{ width: 0 }}
-                      whileHover={{ width: '100%' }}
-                      transition={{ duration: 0.4 }}
-                    />
-                  </motion.button>
-                ))}
-              </div>
+                    <motion.button
+                      className="p-2 rounded-full flex-shrink-0"
+                      style={{
+                        background: 'var(--color-surface-hover)',
+                        border: '1px solid var(--color-border-subtle)',
+                      }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        setSearchMode(false);
+                        setSearchQuery('');
+                      }}
+                    >
+                      <ArrowLeft size={18} style={{ color: 'var(--color-text-primary)' }} />
+                    </motion.button>
+                    <div
+                      className="flex-1 flex items-center rounded-full px-4 py-2.5 border transition-all"
+                      style={{
+                        background: 'var(--color-surface)',
+                        borderColor: 'var(--color-accent)',
+                      }}
+                    >
+                      <Search size={16} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        placeholder="Search premium craft supplies..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setSearchMode(false);
+                            setSearchQuery('');
+                          }
+                          if (e.key === 'Enter' && searchQuery.trim()) {
+                            navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                            setSearchMode(false);
+                            setSearchQuery('');
+                          }
+                        }}
+                        className="w-full bg-transparent outline-none text-sm ml-3"
+                        style={{ color: 'var(--color-text-primary)' }}
+                        autoFocus
+                      />
+                    </div>
+                    <motion.button
+                      className="p-2 rounded-full flex-shrink-0"
+                      style={{
+                        background: 'var(--color-accent)',
+                      }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        if (searchQuery.trim()) {
+                          navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+                          setSearchMode(false);
+                          setSearchQuery('');
+                        }
+                      }}
+                    >
+                      <Search size={18} style={{ color: 'white' }} />
+                    </motion.button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="normal-nav"
+                    className="flex items-center justify-between w-full"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    {/* Logo */}
+                    <motion.a
+                      href="#"
+                      className="quorin-brand text-xl tracking-wide logo-gold"
+                      style={{
+                        textShadow: '0 0 20px rgba(200, 155, 82, 0.2)',
+                      }}
+                      whileHover={{ scale: 1.02 }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (onHomeClick) onHomeClick();
+                        else window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                    >
+                      {quorinData.brand}
+                    </motion.a>
+
+                    {/* Center links - hidden on mobile */}
+                    <div className="hidden md:flex items-center gap-8">
+                      {medusaCategories.map((cat) => (
+                        <motion.button
+                          key={cat.id}
+                          className="relative text-sm tracking-[0.15em] uppercase transition-colors"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                          onMouseEnter={(e) => {
+                            (e.target as HTMLElement).style.color = 'var(--color-text-primary)';
+                          }}
+                          onMouseLeave={(e) => {
+                            (e.target as HTMLElement).style.color = 'var(--color-text-secondary)';
+                          }}
+                          whileHover={{ y: -1 }}
+                          onClick={() => openCategory(cat.id)}
+                        >
+                          {cat.title}
+                          <motion.div
+                            className="absolute -bottom-1 left-0 h-[1px]"
+                            style={{ background: 'var(--color-accent)' }}
+                            initial={{ width: 0 }}
+                            whileHover={{ width: '100%' }}
+                            transition={{ duration: 0.4 }}
+                          />
+                        </motion.button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Right side */}
               <div className="flex items-center gap-4">
+                {/* Search button */}
+                <motion.button
+                  className="relative p-2 rounded-full"
+                  style={{
+                    background: 'var(--color-surface-hover)',
+                    border: '1px solid var(--color-border-subtle)',
+                  }}
+                  whileHover={{
+                    scale: 1.05,
+                    background: 'var(--color-accent-soft)',
+                    borderColor: 'var(--color-accent)',
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setSearchMode(true);
+                    setTimeout(() => searchInputRef.current?.focus(), 100);
+                  }}
+                >
+                  <Search size={18} style={{ color: 'var(--color-text-primary)' }} />
+                </motion.button>
                 {/* Cart button */}
                 <motion.button
                   className="relative p-2 rounded-full"
@@ -719,9 +828,23 @@ export default function Navigation({
                       color: 'var(--color-text-primary)',
                       border: '1px solid var(--color-border-subtle)',
                     }}
-                    onClick={() => {
-                      setLoginOpen(false);
-                      setLoginError(null);
+                    onClick={async () => {
+                      try {
+                        setLoginError(null);
+                        const { medusaApi } = await import('@/lib/medusa');
+                        const callbackUrl =
+                          window.location.origin +
+                          '/auth/google/callback';
+                        const result =
+                          await medusaApi.googleAuthLogin(callbackUrl);
+                        if (result.location) {
+                          window.location.href = result.location;
+                        }
+                      } catch {
+                        setLoginError(
+                          'Failed to start Google login. Please try again.'
+                        );
+                      }
                     }}
                   >
                     <span className="h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}>G</span>
