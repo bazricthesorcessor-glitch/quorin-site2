@@ -5,7 +5,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm install && npm run build
-    startCommand: npx medusa db:migrate && npx medusa start
+    startCommand: npx medusa db:migrate && mkdir -p public && cp -r dist/public/admin public/ && npx medusa start
     envVars:
       - key: NODE_ENV
         value: production

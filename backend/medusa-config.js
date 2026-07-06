@@ -29,7 +29,7 @@ module.exports = {
       adminCors: process.env.ADMIN_CORS || "http://localhost:3000,http://localhost:5173",
       cookieSecret: process.env.COOKIE_SECRET,
     },
-    redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
+    redisUrl: process.env.REDIS_URL,
   },
   modules: {
     api_key: {
