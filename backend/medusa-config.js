@@ -3,9 +3,13 @@ const path = require("path");
 
 dotenv.config();
 
-// Enforce SSL connection parameter for Neon and other external databases
-if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("localhost") && !process.env.DATABASE_URL.includes("127.0.0.1") && !process.env.DATABASE_URL.includes("sslmode=")) {
-  process.env.DATABASE_URL = `${process.env.DATABASE_URL}${process.env.DATABASE_URL.includes("?") ? "&" : "?"}sslmode=require`;
+// Enforce SSL globally via env variables for node-postgres and all Medusa modules
+if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("localhost") && !process.env.DATABASE_URL.includes("127.0.0.1")) {
+  process.env.PGSSLMODE = "require";
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+  if (!process.env.DATABASE_URL.includes("sslmode=")) {
+    process.env.DATABASE_URL = `${process.env.DATABASE_URL}${process.env.DATABASE_URL.includes("?") ? "&" : "?"}sslmode=require`;
+  }
 }
 
 module.exports = {
