@@ -101,38 +101,30 @@ module.exports = {
         ],
       },
     },
-    event_bus: process.env.REDIS_URL
+    ...(process.env.REDIS_URL
       ? {
-          resolve: "@medusajs/event-bus-redis",
-          options: {
-            redisUrl: process.env.REDIS_URL,
+          event_bus: {
+            resolve: "@medusajs/event-bus-redis",
+            options: {
+              redisUrl: process.env.REDIS_URL,
+            },
           },
-        }
-      : {
-          resolve: "@medusajs/event-bus-local",
-        },
-    workflow_engine: process.env.REDIS_URL
-      ? {
-          resolve: "@medusajs/workflow-engine-redis",
-          options: {
-            redis: {
+          workflow_engine: {
+            resolve: "@medusajs/workflow-engine-redis",
+            options: {
+              redis: {
+                redisUrl: process.env.REDIS_URL,
+              },
+            },
+          },
+          cache: {
+            resolve: "@medusajs/cache-redis",
+            options: {
               redisUrl: process.env.REDIS_URL,
             },
           },
         }
-      : {
-          resolve: "@medusajs/workflow-engine-inmemory",
-        },
-    cache: process.env.REDIS_URL
-      ? {
-          resolve: "@medusajs/cache-redis",
-          options: {
-            redisUrl: process.env.REDIS_URL,
-          },
-        }
-      : {
-          resolve: "@medusajs/cache-inmemory",
-        },
+      : {}),
     file: {
       resolve: "@medusajs/file",
       options: {
