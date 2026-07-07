@@ -5,7 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import ProductShowcase from '@/sections/ProductShowcase';
 import MobileProductCard from '@/components/MobileProductCard';
 import { useIsMobile } from '@/hooks/use-mobile';
-import type { Category, Product } from '@/data/products';
+import { getProductId, type Category, type Product } from '@/data/products';
 
 interface CategoryPageProps {
   onAddToCart: (product: Product) => void;
