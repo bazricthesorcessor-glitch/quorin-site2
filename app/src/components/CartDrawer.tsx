@@ -115,7 +115,12 @@ export default function CartDrawer({
             {/* Cart Items */}
             <div className="flex-1 overflow-y-auto p-6">
               {items.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full">
+                <motion.div
+                  className="flex flex-col items-center justify-center h-full"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
                   <motion.div
                     className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
                     style={{
@@ -133,7 +138,7 @@ export default function CartDrawer({
                   <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
                     Discover our curated collection
                   </p>
-                </div>
+                </motion.div>
               ) : (
                 <AnimatePresence mode="popLayout">
                   {items.map((item) => (

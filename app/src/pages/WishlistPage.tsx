@@ -129,7 +129,7 @@ export default function WishlistPage({ currentAccount, onToggleWishlist, onAddTo
                   onClick={() => navigate(`/product/${getProductId(product)}`)}
                 >
                   <img
-                    src={typeof product.images?.[0] === 'string' ? product.images[0] : product.images?.[0]?.url ?? '/product-resin-kit.webp'}
+                    src={product.images_local?.[0] ?? (typeof product.images?.[0] === 'string' ? product.images[0] : product.images?.[0]?.url) ?? '/product-resin-kit.webp'}
                     alt={product.name}
                     className="w-20 h-20 rounded-lg object-cover shrink-0"
                   />

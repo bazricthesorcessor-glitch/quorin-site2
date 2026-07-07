@@ -15,8 +15,13 @@ interface HistorySectionProps {
 
 const resolveThumbnail = (order: AccountOrder, productsById: Map<string, Product>): string => {
   const liveProduct = productsById.get(order.productId);
+  // Prefer local product photos, then any live image, then order snapshot
+  if (liveProduct?.images_local?.[0]) {
+    return liveProduct.images_local[0];
+  }
   if (liveProduct?.images?.[0]) {
-    return liveProduct.images[0];
+    const img = liveProduct.images[0];
+    return typeof img === 'string' ? img : img?.url ?? order.snapshot.thumbnail;
   }
   return order.snapshot.thumbnail || '/product-resin-kit.webp';
 };
@@ -25,14 +30,14 @@ const resolveProduct = (order: AccountOrder, productsById: Map<string, Product>)
   const liveProduct = productsById.get(order.productId);
 
   if (liveProduct) {
+    const resolvedImage = liveProduct.images_local?.[0]
+      ?? (liveProduct.images?.[0] ? (typeof liveProduct.images[0] === 'string' ? liveProduct.images[0] : liveProduct.images[0]?.url) : undefined);
     return {
       ...order.snapshot,
       id: order.productId,
       description: liveProduct.description || order.snapshot.name,
       mrp: liveProduct.mrp ?? Math.round(order.snapshot.price * 1.8),
-      images: liveProduct.images?.[0]?.startsWith('http')
-        ? [liveProduct.images[0]]
-        : [order.snapshot.thumbnail],
+      images: resolvedImage ? [resolvedImage] : [order.snapshot.thumbnail],
       category: liveProduct.category || '',
       tags: liveProduct.tags || [],
       featured: liveProduct.featured,

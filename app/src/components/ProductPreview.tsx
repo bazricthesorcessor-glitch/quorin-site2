@@ -24,6 +24,16 @@ export default function ProductPreview({ product, isOpen, onClose, onAddToCart, 
   const [showWrite, setShowWrite] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
 
+  // Prefer local product photos over stock/Unsplash images
+  const effectiveImages = product?.images_local && product.images_local.length > 0
+    ? product.images_local
+    : product?.images ?? [];
+  const resolveImage = (idx: number): string => {
+    const img = effectiveImages[idx];
+    if (!img) return '/product-resin-kit.webp';
+    return typeof img === 'string' ? img : img?.url ?? '/product-resin-kit.webp';
+  };
+
   useEffect(() => {
     if (isOpen && product) {
       setDescriptionText(product.description || 'Premium quality crafting supply from QUORIN. Carefully selected materials for the best results in your creative projects.');
@@ -110,11 +120,11 @@ export default function ProductPreview({ product, isOpen, onClose, onAddToCart, 
             <div className="p-6 md:p-10">
               <div className="flex flex-col md:flex-row gap-8">
                 <div className="flex-shrink-0 w-full md:w-2/5 h-56 md:h-[420px] rounded-xl overflow-hidden bg-[var(--color-ivory)]">
-                  {product.images && product.images.length > 1 ? (
+                  {effectiveImages.length > 1 ? (
                     <div className="relative w-full h-full">
                       <motion.img
                         key={selectedImage}
-                        src={typeof product.images[selectedImage] === 'string' ? (product.images[selectedImage] as string) : product.images[selectedImage]?.url || '/product-resin-kit.webp'}
+                        src={resolveImage(selectedImage)}
                         alt={`${product.name} - Image ${selectedImage + 1}`}
                         className="w-full h-full object-cover"
                         initial={{ opacity: 0 }}
@@ -122,19 +132,19 @@ export default function ProductPreview({ product, isOpen, onClose, onAddToCart, 
                         transition={{ duration: 0.3 }}
                       />
                       <button
-                        onClick={(e) => { e.stopPropagation(); setSelectedImage(prev => prev === 0 ? product.images!.length - 1 : prev - 1); }}
+                        onClick={(e) => { e.stopPropagation(); setSelectedImage(prev => prev === 0 ? effectiveImages.length - 1 : prev - 1); }}
                         className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
                       >
                         <ChevronLeft size={16} />
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); setSelectedImage(prev => prev === product.images!.length - 1 ? 0 : prev + 1); }}
+                        onClick={(e) => { e.stopPropagation(); setSelectedImage(prev => prev === effectiveImages.length - 1 ? 0 : prev + 1); }}
                         className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors"
                       >
                         <ChevronRight size={16} />
                       </button>
                       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-                        {product.images.map((_, idx) => (
+                        {effectiveImages.map((_, idx) => (
                           <button
                             key={idx}
                             onClick={(e) => { e.stopPropagation(); setSelectedImage(idx); }}
@@ -145,7 +155,7 @@ export default function ProductPreview({ product, isOpen, onClose, onAddToCart, 
                     </div>
                   ) : (
                     <motion.img
-                      src={typeof product.images?.[0] === 'string' ? product.images[0] : product.images?.[0]?.url || '/product-resin-kit.webp'}
+                      src={resolveImage(0)}
                       alt={product.name}
                       className="w-full h-full object-cover"
                       initial={{ opacity: 0 }}

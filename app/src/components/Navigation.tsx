@@ -128,7 +128,7 @@ export default function Navigation({
     clearSigilHideTimer();
     sigilHideTimer.current = window.setTimeout(() => {
       setActiveSigil(null);
-    }, 2000);
+    }, 5000);
   };
 
   useEffect(() => {
@@ -149,7 +149,7 @@ export default function Navigation({
     clearMenuCloseTimer();
     menuCloseTimer.current = window.setTimeout(() => {
       setMenuOpen(false);
-    }, 2000);
+    }, 5000);
   };
 
   const openMenu = () => {
@@ -370,7 +370,7 @@ export default function Navigation({
                 ) : (
                   <motion.div
                     key="normal-nav"
-                    className="flex items-center justify-between w-full"
+                    className="flex items-center w-full"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -379,7 +379,7 @@ export default function Navigation({
                     {/* Logo */}
                     <motion.a
                       href="#"
-                      className="quorin-brand text-xl tracking-wide logo-gold"
+                      className="quorin-brand text-xl tracking-wide logo-gold flex-shrink-0"
                       style={{
                         textShadow: '0 0 20px rgba(200, 155, 82, 0.2)',
                       }}
@@ -394,7 +394,7 @@ export default function Navigation({
                     </motion.a>
 
                     {/* Center links - hidden on mobile */}
-                    <div className="hidden md:flex items-center gap-8">
+                    <div className="hidden md:flex items-center justify-center flex-1 gap-8">
                       {medusaCategories.map((cat) => (
                         <motion.button
                           key={cat.id}
@@ -1030,7 +1030,7 @@ export default function Navigation({
                             color: 'white',
                           }}
                           onClick={async () => {
-                            const result = await onAuthenticate(phoneNumber.trim(), 'Asdfg909');
+                            const result = await onAuthenticate(phoneNumber.trim(), otp.join(''));
                             if (!result.ok) {
                               setLoginError(result.message ?? 'Login failed.');
                               return;

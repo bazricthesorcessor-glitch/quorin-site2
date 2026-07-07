@@ -173,10 +173,14 @@ export default function SearchPage({ onAddToCart }: SearchPageProps) {
   const PLACEHOLDER_IMAGE = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" fill="#F8F5EF"><rect width="400" height="400"/><text x="200" y="200" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="48" fill="#C9A96E">Q</text></svg>')}`;
 
   const getProductImage = (product: Product): string => {
+    // Prefer local product photos over stock/Unsplash images
+    if (product.images_local && product.images_local.length > 0) {
+      return product.images_local[0];
+    }
     if (product.images && product.images.length > 0) {
       const img = product.images[0];
       const url = typeof img === 'string' ? img : img?.url;
-      if (url && !url.includes('localhost:9000')) return url;
+      if (url && !url.includes('localhost:9000') && !url.includes('unsplash')) return url;
     }
     return PLACEHOLDER_IMAGE;
   };
