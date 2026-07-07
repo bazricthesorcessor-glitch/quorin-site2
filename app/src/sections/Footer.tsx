@@ -8,7 +8,7 @@ export default function Footer() {
   const navigate = useNavigate();
   const [showEmail, setShowEmail] = useState(false);
   const [copied, setCopied] = useState(false);
-  const email = 'bazricthesorcessor@gmail.com';
+  const email = 'support@quorin.com';
 
   const copyEmail = async () => {
     try {

@@ -36,9 +36,9 @@ export default function MobileNavigation({
         return;
       }
 
-      if (currentScrollY > lastScrollY) {
-        setIsVisible(false); // scrolling down
-      } else {
+      if (currentScrollY > lastScrollY && currentScrollY - lastScrollY > 10) {
+        setIsVisible(false); // scrolling down fast
+      } else if (lastScrollY - currentScrollY > 5) {
         setIsVisible(true); // scrolling up
       }
       setLastScrollY(currentScrollY);
@@ -76,19 +76,30 @@ export default function MobileNavigation({
       } 
     },
     { id: 'cart', label: 'Cart', icon: ShoppingCart, onClick: onCartClick, badge: cartCount },
-    { id: 'profile', label: 'Profile', icon: User, onClick: handleProfileClick },
+    { id: 'profile', label: 'Account', icon: User, onClick: handleProfileClick },
   ];
 
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-[380px] bg-black/85 backdrop-blur-xl border border-white/10 rounded-full py-2.5 px-4 flex items-center justify-between shadow-[0_12px_40px_rgba(0,0,0,0.4)] pointer-events-auto"
-          initial={{ y: 80, x: '-50%', opacity: 0 }}
-          animate={{ y: 0, x: '-50%', opacity: 1 }}
-          exit={{ y: 80, x: '-50%', opacity: 0 }}
-          transition={{ type: 'spring', damping: 20, stiffness: 260 }}
+          className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[9999] w-[92%] max-w-[400px] backdrop-blur-2xl rounded-2xl py-2 px-2 flex items-center justify-between pointer-events-auto"
+          style={{
+            background: 'linear-gradient(135deg, rgba(31, 24, 18, 0.92) 0%, rgba(42, 33, 24, 0.95) 100%)',
+            border: '1px solid rgba(201, 169, 110, 0.25)',
+            boxShadow: '0 8px 32px rgba(42, 33, 24, 0.5), 0 0 0 1px rgba(201, 169, 110, 0.08) inset, 0 1px 0 rgba(253, 248, 240, 0.05) inset',
+          }}
+          initial={{ y: 100, x: '-50%', opacity: 0, scale: 0.9 }}
+          animate={{ y: 0, x: '-50%', opacity: 1, scale: 1 }}
+          exit={{ y: 100, x: '-50%', opacity: 0, scale: 0.9 }}
+          transition={{ type: 'spring', damping: 22, stiffness: 280 }}
         >
+          {/* Subtle gold top border */}
+          <div 
+            className="absolute top-0 left-4 right-4 h-[1px] rounded-full"
+            style={{ background: 'linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.4), transparent)' }}
+          />
+
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -97,32 +108,57 @@ export default function MobileNavigation({
               <button
                 key={item.id}
                 onClick={item.onClick}
-                className="relative flex flex-col items-center justify-center p-2 rounded-full cursor-pointer group active:scale-95 transition-transform"
+                className="relative flex flex-col items-center justify-center py-1.5 px-3 rounded-xl cursor-pointer active:scale-90 transition-all duration-150"
+                style={{
+                  background: isActive ? 'rgba(201, 169, 110, 0.15)' : 'transparent',
+                }}
               >
                 <motion.div
                   animate={{
-                    color: isActive ? 'var(--color-action)' : 'rgba(255, 255, 255, 0.6)',
-                    scale: isActive ? 1.1 : 1,
+                    color: isActive ? 'var(--color-action-bright)' : 'rgba(253, 248, 240, 0.55)',
+                    scale: isActive ? 1.15 : 1,
+                  }}
+                  transition={{ duration: 0.2, type: 'spring', stiffness: 300 }}
+                >
+                  <Icon size={19} strokeWidth={isActive ? 2.5 : 1.8} />
+                </motion.div>
+                
+                {/* Label */}
+                <motion.span
+                  className="text-[9px] font-semibold tracking-wider mt-0.5"
+                  animate={{
+                    color: isActive ? 'var(--color-action-bright)' : 'rgba(253, 248, 240, 0.4)',
                   }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Icon size={20} />
-                </motion.div>
-                
+                  {item.label}
+                </motion.span>
+
                 {/* Active Indicator Dot */}
                 {isActive && (
                   <motion.div
-                    className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-[var(--color-action)]"
+                    className="absolute -top-0.5 w-5 h-[2px] rounded-full"
+                    style={{ background: 'var(--color-action)' }}
                     layoutId="mobileNavIndicator"
-                    transition={{ type: 'spring', damping: 15, stiffness: 300 }}
+                    transition={{ type: 'spring', damping: 18, stiffness: 350 }}
                   />
                 )}
 
                 {/* Badge for Cart */}
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-[var(--color-action)] text-white text-[9px] font-bold flex items-center justify-center px-1 shadow-[0_2px_8px_rgba(201,169,110,0.4)]">
+                  <motion.span
+                    className="absolute -top-1 -right-0.5 min-w-[18px] h-[18px] rounded-full text-[9px] font-bold flex items-center justify-center px-1"
+                    style={{
+                      background: 'var(--color-action)',
+                      color: 'white',
+                      boxShadow: '0 2px 8px rgba(201, 169, 110, 0.5)',
+                    }}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                  >
                     {item.badge}
-                  </span>
+                  </motion.span>
                 )}
               </button>
             );

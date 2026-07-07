@@ -5,14 +5,15 @@ import { ShoppingCart, Sparkles } from 'lucide-react';
 import type { Category, Product } from '@/data/products';
 import { getProductId } from '@/data/products';
 
-const fallbackImage = '/product-resin-kit.webp';
+const PLACEHOLDER_IMAGE = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" fill="#F8F5EF"><rect width="400" height="400"/><text x="200" y="200" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="48" fill="#C9A96E">Q</text></svg>')}`;
 
 function getProductImage(product: Product): string {
   if (product.images && product.images.length > 0) {
     const img = product.images[0];
-    return typeof img === 'string' ? img : img?.url || 'http://localhost:9000/product-resin-kit.webp';
+    const url = typeof img === 'string' ? img : img?.url;
+    if (url && !url.includes('localhost:9000')) return url;
   }
-  return fallbackImage;
+  return PLACEHOLDER_IMAGE;
 }
 
 interface ProductCardProps {
@@ -72,7 +73,7 @@ function ProductCard({ product, index, onAddToCart, onPreview, onNavigateToProdu
         transition={{ duration: 0.4 }}
       >
         {/* Image Container */}
-        <div className="relative h-56 overflow-hidden cursor-pointer" onClick={() => onPreview?.(product)}>
+        <div className="relative h-56 overflow-hidden cursor-pointer" onClick={() => { onPreview?.(product); navigate(`/product/${getProductId(product)}`); }}>
           <motion.div
             className="absolute inset-0"
             animate={{
@@ -86,6 +87,15 @@ function ProductCard({ product, index, onAddToCart, onPreview, onNavigateToProdu
               src={image}
               alt={product.name}
               className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.dataset.fallback) {
+                  target.dataset.fallback = 'true';
+                  target.src = PLACEHOLDER_IMAGE;
+                }
+              }}
             />
           </motion.div>
 

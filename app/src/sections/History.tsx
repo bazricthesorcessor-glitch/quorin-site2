@@ -46,7 +46,7 @@ const resolveProduct = (order: AccountOrder, productsById: Map<string, Product>)
     description: order.snapshot.name,
     price: order.snapshot.price,
     mrp: Math.round(order.snapshot.price * 1.8),
-    images: [order.snapshot.thumbnail, 'http://localhost:9000/product-resin-kit.webp'],
+    images: [order.snapshot.thumbnail, '/product-resin-kit.webp'],
     category: '',
     tags: [],
   };
@@ -354,7 +354,7 @@ export default function HistorySection({ currentAccount, onUpdateOrder, products
             onClick={() => setReviewing(null)}
           >
             <motion.div
-              className="w-full max-w-lg bg-white rounded-2xl p-6"
+              className="relative w-full max-w-lg bg-white rounded-2xl p-6"
               style={{ border: '1px solid var(--color-border-subtle)' }}
               initial={{ y: 30, scale: 0.96 }}
               animate={{ y: 0, scale: 1 }}

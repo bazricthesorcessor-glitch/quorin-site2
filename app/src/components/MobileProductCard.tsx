@@ -11,14 +11,15 @@ interface MobileProductCardProps {
   onClick: () => void;
 }
 
-const fallbackImage = 'http://localhost:9000/product-resin-kit.webp';
+const PLACEHOLDER_IMAGE = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" fill="#F8F5EF"><rect width="400" height="400"/><text x="200" y="200" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="48" fill="#C9A96E">Q</text></svg>')}`;
 
 function getProductImage(product: Product): string {
   if (product.images && product.images.length > 0) {
     const img = product.images[0];
-    return typeof img === 'string' ? img : img?.url || 'http://localhost:9000/product-resin-kit.webp';
+    const url = typeof img === 'string' ? img : img?.url;
+    if (url && !url.includes('localhost:9000')) return url;
   }
-  return fallbackImage;
+  return PLACEHOLDER_IMAGE;
 }
 
 export default function MobileProductCard({
@@ -27,16 +28,17 @@ export default function MobileProductCard({
   onClick,
 }: MobileProductCardProps) {
   const dragX = useMotionValue(0);
+  const [isDragging, setIsDragging] = useState(false);
   
   // Transform drag distance to background opacity and scale
   const backgroundOpacity = useTransform(dragX, [0, 80], [0, 1]);
   const backgroundScale = useTransform(dragX, [0, 80], [0.8, 1]);
-  const cardX = useTransform(dragX, [0, 120], [0, 120]);
   
   const discount = parseInt(product.discount ?? '0');
   const image = getProductImage(product);
 
-  const handleDragEnd = (event: any, info: any) => {
+  const handleDragEnd = (_event: any, info: any) => {
+    setIsDragging(false);
     // If dragged right past the threshold (80px), trigger add to cart
     if (info.offset.x > 80) {
       onAddToCart(product);
@@ -44,8 +46,20 @@ export default function MobileProductCard({
     }
   };
 
+  const handleClick = () => {
+    // Don't trigger click if we were dragging
+    if (!isDragging) {
+      onClick();
+    }
+  };
+
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] shadow-[0_4px_16px_var(--shadow-card)] h-full">
+    <motion.div
+      className="relative overflow-hidden rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border-subtle)] shadow-[0_4px_16px_var(--shadow-card)] h-full"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
       {/* Background Swipe Action Indicator */}
       <motion.div
         className="absolute inset-y-0 left-0 bg-[var(--color-action)] flex items-center justify-start pl-6 rounded-l-2xl z-0 pointer-events-none"
@@ -67,9 +81,10 @@ export default function MobileProductCard({
         drag="x"
         dragConstraints={{ left: 0, right: 120 }}
         dragElastic={{ left: 0, right: 0.15 }}
-        style={{ x: cardX }}
+        dragSnapToOrigin
+        onDragStart={() => setIsDragging(true)}
         onDragEnd={handleDragEnd}
-        onClick={onClick}
+        onClick={handleClick}
         className="bg-[var(--color-surface)] p-3 z-10 relative flex flex-col h-full cursor-pointer select-none active:scale-[0.98] transition-transform duration-100"
       >
         {/* Product Image */}
@@ -79,6 +94,14 @@ export default function MobileProductCard({
             alt={product.name}
             className="w-full h-full object-cover pointer-events-none"
             loading="lazy"
+            decoding="async"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.dataset.fallback) {
+                target.dataset.fallback = 'true';
+                target.src = PLACEHOLDER_IMAGE;
+              }
+            }}
           />
           {discount > 0 && (
             <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-semibold bg-[var(--color-accent)] text-white shadow-sm">
@@ -109,6 +132,6 @@ export default function MobileProductCard({
           </span>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

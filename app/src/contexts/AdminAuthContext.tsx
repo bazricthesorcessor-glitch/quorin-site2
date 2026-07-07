@@ -14,7 +14,7 @@ const AdminAuthCtx = createContext<AdminAuthContextValue | null>(null);
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AdminUser | null>(() => adminApi.getCachedUser());
   const [token, setToken] = useState<string | null>(() => (adminApi.isAuthenticated() ? 'present' : null));
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(() => adminApi.isAuthenticated());
 
   // On mount, if a token exists, refresh the user profile to validate the session.
   useEffect(() => {
@@ -22,11 +22,29 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     adminApi
       .me()
-      .then(setUser)
-      .catch(() => {
-        adminApi.logout();
-        setUser(null);
-        setToken(null);
+      .then((u) => {
+        setUser(u);
+        adminApi.localMode = false;
+      })
+      .catch((err) => {
+        // If it's a 401 (expired token), clear auth and redirect to login
+        if (err?.status === 401) {
+          adminApi.logout();
+          adminApi.localMode = false;
+          setUser(null);
+          setToken(null);
+        } else {
+          // Network error — backend is offline. Enable local mode so admin pages
+          // show fallback UI instead of crashing.
+          console.warn('[Admin] Backend unreachable, enabling local mode:', err?.message);
+          adminApi.localMode = true;
+          // Keep cached user so the guard doesn't redirect
+          const cached = adminApi.getCachedUser();
+          if (cached) {
+            setUser(cached);
+            setToken('present');
+          }
+        }
       })
       .finally(() => setLoading(false));
   }, []);

@@ -214,7 +214,7 @@ export default function FullProductOverlay({
             <ExternalLink size={16} style={{ color: 'var(--color-text-primary)' }} />
           </motion.button>
 
-          <div className="max-w-7xl mx-auto px-6 pt-6 pb-24" onDoubleClick={handleOpenFullPage}>
+          <div className="max-w-7xl mx-auto px-6 pt-6 pb-24">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 pt-20">
               {/* Image gallery */}
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>

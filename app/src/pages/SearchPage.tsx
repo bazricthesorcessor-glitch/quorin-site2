@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { quorinData, getProductId, type Product } from '@/data/products';
 import { toast } from 'sonner';
+import MobileProductCard from '@/components/MobileProductCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SearchPageProps {
   onAddToCart: (product: Product) => void;
@@ -16,6 +18,7 @@ const BRANDS = ['QUORIN', 'Generic', 'Others'];
 
 export default function SearchPage({ onAddToCart }: SearchPageProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -167,12 +170,15 @@ export default function SearchPage({ onAddToCart }: SearchPageProps) {
     setQuery(term);
   };
 
+  const PLACEHOLDER_IMAGE = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" fill="#F8F5EF"><rect width="400" height="400"/><text x="200" y="200" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="48" fill="#C9A96E">Q</text></svg>')}`;
+
   const getProductImage = (product: Product): string => {
     if (product.images && product.images.length > 0) {
       const img = product.images[0];
-      return typeof img === 'string' ? img : img?.url || 'http://localhost:9000/product-resin-kit.webp';
+      const url = typeof img === 'string' ? img : img?.url;
+      if (url && !url.includes('localhost:9000')) return url;
     }
-    return 'http://localhost:9000/product-resin-kit.webp';
+    return PLACEHOLDER_IMAGE;
   };
 
   // Dual range slider handler
@@ -640,60 +646,79 @@ export default function SearchPage({ onAddToCart }: SearchPageProps) {
                       </div>
                     </div>
 
-                    {/* Product Grid — 5 columns on xl */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5">
-                      {paginatedResults.map((product) => (
-                        <motion.div
-                          key={getProductId(product)}
-                          layout
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="group bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg hover:border-[var(--color-border-hover)] hover:-translate-y-0.5 transition-all duration-200"
-                          onClick={() => navigate(`/product/${encodeURIComponent(getProductId(product))}`)}
-                        >
-                          {/* Image */}
-                          <div className="relative aspect-square bg-[var(--color-background)] overflow-hidden">
-                            <img
-                              src={getProductImage(product)}
-                              alt={product.name}
-                              onError={(e) => {
-                                const target = e.currentTarget;
-                                if (!target.dataset.fallback) {
-                                  target.dataset.fallback = 'true';
-                                  target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" fill="%23f1f1f1"><rect width="200" height="200"/><text x="100" y="100" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="40" fill="%23ccc">📦</text></svg>';
-                                }
-                              }}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                            {/* Cart button — top right of image like image4 */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onAddToCart(product);
-                                addRecentSearch(query);
-                                toast.success(`Added ${product.name} to cart!`);
-                              }}
-                              className="absolute top-2.5 right-2.5 w-9 h-9 rounded-lg bg-white/90 backdrop-blur-sm border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm hover:bg-[var(--color-accent)] hover:text-white hover:border-[var(--color-accent)]"
-                            >
-                              <ShoppingCart size={15} />
-                            </button>
-                          </div>
+                    {/* Product Grid — mobile uses swipe-to-cart cards */}
+                    {isMobile ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        {paginatedResults.map((product) => (
+                          <MobileProductCard
+                            key={getProductId(product)}
+                            product={product}
+                            onAddToCart={(p) => {
+                              onAddToCart(p);
+                              addRecentSearch(query);
+                            }}
+                            onClick={() => navigate(`/product/${encodeURIComponent(getProductId(product))}`)}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5">
+                        {paginatedResults.map((product) => (
+                          <motion.div
+                            key={getProductId(product)}
+                            layout
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="group bg-[var(--color-surface)] border border-[var(--color-border-subtle)] rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg hover:border-[var(--color-border-hover)] hover:-translate-y-0.5 transition-all duration-200"
+                            onClick={() => navigate(`/product/${encodeURIComponent(getProductId(product))}`)}
+                          >
+                            {/* Image */}
+                            <div className="relative aspect-square bg-[var(--color-background)] overflow-hidden">
+                              <img
+                                src={getProductImage(product)}
+                                alt={product.name}
+                                loading="lazy"
+                                decoding="async"
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  if (!target.dataset.fallback) {
+                                    target.dataset.fallback = 'true';
+                                    target.src = PLACEHOLDER_IMAGE;
+                                  }
+                                }}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                              {/* Cart button — visible on hover (desktop) */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onAddToCart(product);
+                                  addRecentSearch(query);
+                                  toast.success(`Added ${product.name} to cart!`);
+                                }}
+                                className="absolute top-2.5 right-2.5 w-9 h-9 rounded-lg bg-white/90 backdrop-blur-sm border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm hover:bg-[var(--color-accent)] hover:text-white hover:border-[var(--color-accent)] z-10 relative"
+                              >
+                                <ShoppingCart size={15} />
+                              </button>
+                            </div>
 
-                          {/* Info */}
-                          <div className="p-3.5">
-                            <h4 className="text-sm font-semibold text-[var(--color-text-primary)] line-clamp-2 leading-snug mb-1">
-                              {product.name}
-                            </h4>
-                            <p className="text-xs text-[var(--color-text-muted)] mb-2">
-                              {product.category}
-                            </p>
-                            <p className="text-base font-bold text-[var(--color-text-primary)]">
-                              ₹{product.price}
-                            </p>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
+                            {/* Info */}
+                            <div className="p-3.5">
+                              <h4 className="text-sm font-semibold text-[var(--color-text-primary)] line-clamp-2 leading-snug mb-1">
+                                {product.name}
+                              </h4>
+                              <p className="text-xs text-[var(--color-text-muted)] mb-2">
+                                {product.category}
+                              </p>
+                              <p className="text-base font-bold text-[var(--color-text-primary)]">
+                                ₹{product.price}
+                              </p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Pagination */}
                     {totalPages > 1 && (

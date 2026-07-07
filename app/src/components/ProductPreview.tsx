@@ -26,8 +26,7 @@ export default function ProductPreview({ product, isOpen, onClose, onAddToCart, 
 
   useEffect(() => {
     if (isOpen && product) {
-      const random = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia, nunc non posuere luctus, justo nulla convallis urna, nec fermentum nibh sapien a nunc.';
-      setDescriptionText((product.description ? product.description + ' ' : '') + random);
+      setDescriptionText(product.description || 'Premium quality crafting supply from QUORIN. Carefully selected materials for the best results in your creative projects.');
       setReviews(product.reviews ? [...product.reviews] : []);
       setShowWrite(false);
       setNewReviewText('');

@@ -141,6 +141,49 @@ export default function Hero() {
           Everything you need to bring your creative vision to life.
         </motion.p>
 
+        {/* CTA Button */}
+        <motion.button
+          className="px-8 py-3.5 rounded-full text-sm font-semibold tracking-wider"
+          style={{
+            background: 'var(--color-accent)',
+            color: 'white',
+            boxShadow: '0 4px 24px rgba(201, 169, 110, 0.3)',
+          }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1.3 }}
+          whileHover={{
+            scale: 1.05,
+            boxShadow: '0 8px 32px rgba(201, 169, 110, 0.5)',
+          }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {
+            const el = document.getElementById('resin-art');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+        >
+          EXPLORE COLLECTION
+        </motion.button>
+
+        {/* Scroll indicator */}
+        <motion.div
+          className="mt-16"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <div
+            className="w-6 h-10 rounded-full flex items-start justify-center pt-2 mx-auto"
+            style={{ border: '1px solid var(--color-accent-medium)' }}
+          >
+            <motion.div
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: 'var(--color-accent)' }}
+              animate={{ y: [0, 12, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </div>
+        </motion.div>
+
       </div>
     </section>
   );

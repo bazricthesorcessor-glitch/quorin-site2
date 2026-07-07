@@ -150,6 +150,28 @@ export default function CartDrawer({
                       }}
                     >
                       <div className="flex gap-4">
+                        {/* Product Image */}
+                        <div
+                          className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0"
+                          style={{ background: 'var(--color-background)', border: '1px solid var(--color-border-subtle)' }}
+                        >
+                          {item.image ? (
+                            <img
+                              src={typeof item.image === 'string' ? item.image : item.image?.[0] || ''}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                target.style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[var(--color-accent)] text-lg font-bold">
+                              Q
+                            </div>
+                          )}
+                        </div>
                         {/* Product Info */}
                         <div className="flex-1">
                           <h4

@@ -31,7 +31,7 @@ export default function ProductDetailPage({ currentAccount, onAddToCart, openPre
   const findProduct = (id: string) => allProducts.find((p) => getProductId(p) === id) ?? allProducts[0];
   const getProductById = (id: string) => allProducts.find((p) => p.id === id);
   const [product, setProduct] = useState<Product>(findProduct(productId ?? ''));
-  const [quantity, setQuantity] = useState(2);
+  const [quantity, setQuantity] = useState(1);
   const [wishlist, setWishlist] = useState(false);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
@@ -338,8 +338,8 @@ export default function ProductDetailPage({ currentAccount, onAddToCart, openPre
     <div style={{ background: 'var(--color-dominant)' }}>
       <div className="max-w-7xl mx-auto pt-6 py-12" style={{ paddingLeft: 0, paddingRight: '1.5rem' }}>
         <button
-          className="flex items-center gap-2 px-4 py-2 rounded-full mb-6"
-          style={{ background: 'var(--color-surface-hover)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)', marginLeft: '-4cm', position: 'relative', zIndex: 9999 }}
+          className="flex items-center gap-2 px-4 py-2 rounded-full mb-6 ml-6"
+          style={{ background: 'var(--color-surface-hover)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)', position: 'relative', zIndex: 10 }}
           onClick={() => navigate(-1)}
         >
           <ArrowLeft size={16} /> Back

@@ -42,7 +42,43 @@ export default function AdminDashboard() {
   }, []);
 
   if (loading) return <Loading label="Loading dashboard…" />;
-  if (error) return <ErrorState message={error} />;
+  if (error) return (
+    <div className="space-y-4">
+      <ErrorState message={error} />
+      <div className="text-center">
+        <button
+          onClick={() => {
+            setError(null);
+            setLoading(true);
+            (async () => {
+              try {
+                const [products, orders, customers, inventory] = await Promise.all([
+                  adminApi.listProducts({ limit: 5 }),
+                  adminApi.listOrders({ limit: 5 }),
+                  adminApi.listCustomers({ limit: 5 }),
+                  adminApi.listInventory(),
+                ]);
+                setStats({ products, orders, customers, inventory });
+              } catch (e) {
+                setError((e as Error).message);
+              } finally {
+                setLoading(false);
+              }
+            })();
+          }}
+          className="px-6 py-2.5 rounded-xl text-sm font-medium"
+          style={{ background: 'var(--color-accent)', color: 'white' }}
+        >
+          Retry Connection
+        </button>
+      </div>
+      {adminApi.localMode && (
+        <div className="rounded-xl px-4 py-3 text-sm text-center" style={{ background: 'var(--color-accent-soft)', color: 'var(--color-accent)', border: '1px solid var(--color-border-subtle)' }}>
+          ⚠ Backend is offline. Running in local mode — some features may be limited.
+        </div>
+      )}
+    </div>
+  );
   if (!stats) return null;
 
   const invItems = stats.inventory?.inventory_items ?? [];

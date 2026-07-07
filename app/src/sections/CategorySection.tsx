@@ -222,8 +222,23 @@ export default function CategorySection() {
       </div>
 
       {loading && (
-        <div className="text-center py-20 text-sm" style={{ color: 'var(--color-text-muted)' }}>
-          Loading catalog...
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              className="rounded-2xl overflow-hidden"
+              style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', height: 340 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0.3, 0.6, 0.3] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+            >
+              <div className="h-52 w-full" style={{ background: 'var(--color-ivory)' }} />
+              <div className="p-5 space-y-3">
+                <div className="h-4 w-2/3 rounded" style={{ background: 'var(--color-ivory)' }} />
+                <div className="h-3 w-1/2 rounded" style={{ background: 'var(--color-ivory)' }} />
+              </div>
+            </motion.div>
+          ))}
         </div>
       )}
 

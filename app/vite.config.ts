@@ -12,6 +12,7 @@ export default defineConfig({
     host: true,
     allowedHosts: true,
     proxy: {
+      // Proxy only the Medusa store API — NOT /admin (which is a frontend route)
       '/store': {
         target: 'http://localhost:9000',
         changeOrigin: true,
@@ -20,10 +21,8 @@ export default defineConfig({
         target: 'http://localhost:9000',
         changeOrigin: true,
       },
-      '/admin': {
-        target: 'http://localhost:9000',
-        changeOrigin: true,
-      },
+      // DO NOT proxy /admin — it conflicts with frontend admin SPA routes
+      // The adminApi.ts uses MEDUSA_BACKEND_URL directly (http://localhost:9000)
     },
     fs: {
       allow: [
