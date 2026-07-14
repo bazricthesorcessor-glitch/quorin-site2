@@ -18,6 +18,17 @@ Last updated: 2026-07-15
 - Collection creation/deletion exists in the admin implementation.
 - Orders listing exists in the admin implementation.
 
+## Admin foundation
+
+- Shared admin modal and confirmation primitives exist with Escape/backdrop closing and busy states.
+- Category and collection mutations use shared dialogs instead of native browser confirmations.
+- Category and collection mutation failures are rendered in the UI rather than native alerts.
+- A stale-response-safe `useAdminResource` hook now supports reusable loading, refresh, retry and retained-data behavior.
+- A reusable accessible `AdminTable` and pagination primitive now exists for operational data screens.
+- A dedicated order operations workspace has been implemented with search, payment/fulfillment filters, visible revenue summary and order detail inspection.
+- A dedicated customer workspace has been implemented with search, refresh, accessible row navigation and factual customer detail inspection.
+- Customer lifetime value/order history is deliberately not fabricated until a canonical customer-detail aggregate contract exists.
+
 ## AI-readable commerce work
 
 A machine-readable commerce direction has been established for:
@@ -41,4 +52,4 @@ Trust must remain evidence-based; QUORIN must not self-certify itself as trustwo
 - Original storefront milestone reached 90/100 under the smaller scope.
 - Scope then expanded to include a full operational admin product and deeper commerce system.
 - Expanded-scope baseline reset to 62/100.
-- Current expanded-scope score: 63/100.
+- Current expanded-scope score: 67/100.
