@@ -1,0 +1,5 @@
+import { Heart, ShoppingBag } from "lucide-react";
+import type { CatalogProduct } from "../../data/catalog";
+import "./commerce.css";
+const money=new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0});
+export function ProductCard({product}: {product:CatalogProduct}){const discount=Math.round((1-product.price/product.mrp)*100);return <article className="product-card"><div className="product-card__media"><img src={product.image} alt={product.name} loading="lazy"/><button className="product-card__wish" type="button" aria-label={`Save ${product.name}`}><Heart size={18}/></button>{discount>0&&<span className="product-card__discount">{discount}% off</span>}</div><div className="product-card__body"><p className="product-card__category">{product.category}</p><h3>{product.name}</h3><p className="product-card__description">{product.description}</p><div className="product-card__footer"><div><strong>{money.format(product.price)}</strong><s>{money.format(product.mrp)}</s></div><button type="button" aria-label={`Add ${product.name} to bag`}><ShoppingBag size={17}/></button></div></div></article>}
