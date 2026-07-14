@@ -2,5 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
 import { App } from "./app/App";
+import { ShopProvider } from "./state/ShopContext";
 import "./app/styles/global.css";
-createRoot(document.getElementById("root")!).render(<StrictMode><BrowserRouter><App /></BrowserRouter></StrictMode>);
+createRoot(document.getElementById("root")!).render(<StrictMode><BrowserRouter><ShopProvider><App /></ShopProvider></BrowserRouter></StrictMode>);
