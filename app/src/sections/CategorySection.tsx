@@ -1,257 +1,127 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useNavigate } from 'react-router';
-import { motion, useInView, useScroll, useTransform } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useMedusaCatalog } from '@/lib/useMedusaCatalog';
 import type { Category } from '@/data/products';
 
-const categoryImages: Record<string, string> = {
-  'resin-art': '/resin_category.webp',
-  'candle-making': '/candle_category.webp',
-  'soap-making': '/soap_category.webp',
+const categoryArt: Record<string, { src: string; position: string }> = {
+  'resin-art': { src: '/resin_category.webp', position: 'center 42%' },
+  'candle-making': { src: '/candle_category.webp', position: 'center 48%' },
+  'soap-making': { src: '/soap_category.webp', position: 'center 50%' },
 };
 
-interface CategoryCardProps {
-  category: Category;
-  index: number;
-}
-
-function CategoryCard({ category, index }: CategoryCardProps) {
+function CategoryCard({ category, index }: { category: Category; index: number }) {
   const navigate = useNavigate();
-  const cardRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(cardRef, { once: true, margin: '-100px' });
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
-
-  const scrollToCategory = () => {
-    navigate(`/category/${category.id}`);
-  };
-
-  const { scrollYProgress } = useScroll({
-    target: cardRef,
-    offset: ['start end', 'center center'],
-  });
-
-  const scale = useTransform(scrollYProgress, [0, 1], [0.8, 1]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.3, 0.8, 1]);
-  const y = useTransform(scrollYProgress, [0, 1], [100, 0]);
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    setMousePos({
-      x: ((e.clientX - rect.left) / rect.width - 0.5) * 20,
-      y: ((e.clientY - rect.top) / rect.height - 0.5) * 20,
-    });
-  };
+  const art = categoryArt[category.id];
 
   return (
-    <motion.div
-      ref={cardRef}
-      className="relative w-full cursor-pointer"
-      style={{ scale, opacity, y }}
-      onClick={scrollToCategory}
+    <motion.button
+      type="button"
+      onClick={() => navigate(`/category/${category.id}`)}
+      className="group relative w-full overflow-hidden rounded-[22px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2"
+      style={{
+        minHeight: 'clamp(148px, 24vw, 420px)',
+        border: '1px solid var(--color-border-subtle)',
+        background: 'var(--color-surface)',
+        boxShadow: '0 14px 40px rgba(52, 39, 20, 0.08)',
+      }}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.5, delay: index * 0.08 }}
+      whileHover={{ y: -4 }}
+      aria-label={`Explore ${category.title}`}
     >
-      <motion.div
-        className="relative overflow-hidden rounded-[24px] group"
-        style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid var(--color-border)',
-          aspectRatio: '9/10',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-        }}
-        onMouseMove={handleMouseMove}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => {
-          setIsHovered(false);
-          setMousePos({ x: 0, y: 0 });
-        }}
-        whileHover={{
-          y: -8,
-          scale: 1.02,
-          borderColor: 'var(--color-accent)',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
-        }}
-        transition={{ duration: 0.25, ease: 'easeOut' }}
-      >
-        {/* Background Image with Parallax */}
-        <motion.div
-          className="absolute inset-0"
-          data-cursor="image"
-          animate={{
-            x: mousePos.x,
-            y: mousePos.y,
-            scale: isHovered ? 1.03 : 1,
-            filter: isHovered ? 'brightness(1.1)' : 'brightness(1)',
-          }}
-          transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-        >
-          <img
-            src={categoryImages[category.id]}
-            alt={category.title}
-            className="w-full h-full object-cover pointer-events-none"
-          />
-          {/* Bottom Gradient Overlay - 45% opacity */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-transparent pointer-events-none" />
-          {/* Hover Overlay */}
-          <motion.div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: `linear-gradient(
-                to top,
-                rgba(0, 0, 0, 0.85) 0%,
-                rgba(0, 0, 0, 0.45) 40%,
-                rgba(0, 0, 0, 0.05) 100%
-              )`,
-            }}
-            animate={{ opacity: isHovered ? 0.7 : 0.4 }}
-            transition={{ duration: 0.3 }}
-          />
-        </motion.div>
-
-        {/* Content */}
-        <div className="absolute inset-0 flex flex-col justify-end p-7">
-{/* Title */}
-          <motion.h3
-            className="text-2xl md:text-3xl font-bold mb-4"
-            style={{ color: '#FFFFFF' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ delay: 0.3 }}
-          >
-            {category.title}
-          </motion.h3>
-
-          {/* Description - reveal on hover */}
-          <motion.p
-            className="text-sm leading-relaxed mb-4 max-w-md"
-            style={{ color: 'rgba(255,255,255,0.85)' }}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{
-              opacity: isHovered ? 1 : 0,
-              y: isHovered ? 0 : 10,
-            }}
-            transition={{ duration: 0.25 }}
-          >
-            {category.description}
-          </motion.p>
-
-          {/* CTA Button */}
-          <motion.button
-            className="flex items-center gap-2 text-xs tracking-widest uppercase group/btn"
-            style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 400 }}
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.4 }}
-            whileHover={{ color: '#FFFFFF' }}
-            onClick={scrollToCategory}
-          >
-            <span>EXPLORE COLLECTION</span>
-            <motion.span
-              animate={{ x: isHovered ? 4 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ArrowRight size={14} />
-            </motion.span>
-          </motion.button>
-        </div>
-
-        {/* Hover Border Glow */}
-        <motion.div
-          className="absolute inset-0 rounded-2xl pointer-events-none"
-          animate={{
-            boxShadow: isHovered
-              ? `inset 0 0 0 1px var(--color-accent), 0 0 40px var(--halo-gold)`
-              : 'inset 0 0 0 1px var(--color-border-subtle)',
-          }}
-          transition={{ duration: 0.3 }}
+      {art && (
+        <img
+          src={art.src}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
+          style={{ objectPosition: art.position }}
         />
-      </motion.div>
-    </motion.div>
+      )}
+
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(90deg, rgba(22,18,14,.72) 0%, rgba(22,18,14,.38) 48%, rgba(22,18,14,.08) 78%, transparent 100%)',
+        }}
+      />
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/30 to-transparent md:hidden" />
+
+      <div className="relative z-10 flex min-h-[148px] h-full flex-col justify-end p-5 sm:p-6 md:min-h-[360px] md:p-8">
+        <span className="mb-2 text-[10px] font-medium uppercase tracking-[0.28em] text-white/70">
+          Explore collection
+        </span>
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h3 className="text-[clamp(1.35rem,3vw,2rem)] font-medium tracking-[0.08em] text-white">
+              {category.title}
+            </h3>
+            <p className="mt-2 hidden max-w-xs text-sm leading-relaxed text-white/78 md:block">
+              {category.description}
+            </p>
+          </div>
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-neutral-900 shadow-lg transition-transform duration-300 group-hover:translate-x-1">
+            <ArrowRight size={18} />
+          </span>
+        </div>
+      </div>
+    </motion.button>
   );
 }
 
 export default function CategorySection() {
   const { categories, loading, error } = useMedusaCatalog();
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(sectionRef, { once: true, margin: '-200px' });
+  const sectionRef = useRef<HTMLElement>(null);
+  const isInView = useInView(sectionRef, { once: true, margin: '-120px' });
 
   return (
     <section
       ref={sectionRef}
       id="categories"
       data-section="categories"
-      className="relative py-32 px-4 md:px-8"
+      className="relative px-4 py-16 sm:px-6 md:px-8 md:py-24"
       style={{ background: 'var(--color-dominant)' }}
     >
-      {/* Section Header */}
-      <div className="max-w-7xl mx-auto mb-20">
+      <div className="mx-auto mb-8 max-w-7xl md:mb-12">
         <motion.div
-          className="flex flex-col md:flex-row md:items-end md:justify-between gap-6"
-          initial={{ opacity: 0, y: 50 }}
+          className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-8"
+          initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.55 }}
         >
           <div>
-            <motion.span
-              className="text-xs tracking-[0.3em] mb-4 block"
-              style={{ color: 'var(--color-accent)' }}
-            >
+            <span className="mb-3 block text-[10px] font-medium tracking-[0.3em]" style={{ color: 'var(--color-accent)' }}>
               WHAT WE SELL
-            </motion.span>
-            <motion.h2
-              className="text-4xl md:text-6xl font-bold text-[var(--color-text-primary)]"
-              style={{ isolation: 'isolate' }}
-            >
-              Our{' '}
-              <span
-                style={{ color: 'var(--color-accent)' }}
-              >
-                Categories
-              </span>
-            </motion.h2>
+            </span>
+            <h2 className="text-3xl font-medium tracking-[0.08em] text-[var(--color-text-primary)] sm:text-4xl md:text-5xl">
+              OUR <span style={{ color: 'var(--color-accent)' }}>CATEGORIES</span>
+            </h2>
           </div>
-          <motion.p
-            className="text-sm max-w-md leading-relaxed"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            From crystal-clear resins to aromatic candle supplies — find everything
-            you need for your next creative project.
-          </motion.p>
+          <p className="max-w-md text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+            From crystal-clear resins to aromatic candle supplies — find everything you need for your next creative project.
+          </p>
         </motion.div>
       </div>
 
       {loading && (
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
           {[0, 1, 2].map((i) => (
-            <motion.div
-              key={i}
-              className="rounded-2xl overflow-hidden"
-              style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', height: 340 }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
-            >
-              <div className="h-52 w-full" style={{ background: 'var(--color-ivory)' }} />
-              <div className="p-5 space-y-3">
-                <div className="h-4 w-2/3 rounded" style={{ background: 'var(--color-ivory)' }} />
-                <div className="h-3 w-1/2 rounded" style={{ background: 'var(--color-ivory)' }} />
-              </div>
-            </motion.div>
+            <div key={i} className="h-[148px] animate-pulse rounded-[22px] md:h-[360px]" style={{ background: 'var(--color-surface)' }} />
           ))}
         </div>
       )}
 
-      {error && (
-        <div className="text-center py-20 text-sm" style={{ color: 'var(--color-accent)' }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="py-16 text-center text-sm" style={{ color: 'var(--color-accent)' }}>{error}</div>}
 
-      {/* Category Cards Grid */}
       {!loading && !error && (
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-[32px]">
-          {categories.map((category, index) => (
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-3 sm:gap-4 md:grid-cols-3 md:gap-6">
+          {categories.slice(0, 3).map((category, index) => (
             <CategoryCard key={category.id} category={category} index={index} />
           ))}
         </div>
