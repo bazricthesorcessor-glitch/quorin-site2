@@ -26,7 +26,7 @@ const testimonials = [
 
 export default function Hero() {
   const navigate = useNavigate();
-  const heroImage = productImage(0) || '/resin_category.webp';
+  const heroImage = '/hero-image.webp';
   const categoryCards = [
     ...featuredCategories.map((category, index) => ({ id: category.id, title: category.title, subtitle: 'Explore Collection', src: getCategoryPreviewImage(category), position: categoryArt[category.id]?.position ?? 'center', href: `/category/${category.id}`, icon: [Palette, Flame, Sparkles][index] })),
     ...extraCategoryCards.map((category) => ({ ...category, href: `/search?q=${encodeURIComponent(category.search)}` })),
