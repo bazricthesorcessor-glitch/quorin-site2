@@ -31,7 +31,7 @@ export default function Hero() {
     ...featuredCategories.map((category, index) => ({ id: category.id, title: category.title, subtitle: 'Explore Collection', src: getCategoryPreviewImage(category), position: categoryArt[category.id]?.position ?? 'center', href: `/category/${category.id}`, icon: [Palette, Flame, Sparkles][index] })),
     ...extraCategoryCards.map((category) => ({ ...category, href: `/search?q=${encodeURIComponent(category.search)}` })),
   ];
-  return <section className="relative overflow-hidden pb-24 md:pb-10">
+  return <section className="relative overflow-hidden pb-24 md:pb-10 md:pt-16">
     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(201,169,110,.12),transparent_28%),radial-gradient(circle_at_85%_30%,rgba(201,169,110,.08),transparent_26%)]" />
     <div className="relative mx-auto max-w-[1400px] px-3 pt-3 sm:px-4 md:px-8 md:pt-5">
       <div className="overflow-hidden rounded-[28px] border border-[rgba(232,226,217,.9)] bg-[rgba(255,252,247,.92)] shadow-[0_24px_70px_rgba(42,33,24,.08)]">
