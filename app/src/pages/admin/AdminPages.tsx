@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { BarChart3, Image as ImageIcon, ScrollText, Settings as SettingsIcon, UserCog } from 'lucide-react';
+import { useSearchParams } from 'react-router';
+import { BarChart3, FileBarChart, Image as ImageIcon, ScrollText, Settings as SettingsIcon, UserCog } from 'lucide-react';
 import { adminApi } from '@/lib/adminApi';
 import { Card, EmptyState, ErrorState, Loading, PageHeader, StatCard } from '@/components/admin/AdminUI';
 import AdminOrdersWorkspace from './AdminOrdersPage';
 import AdminCustomersWorkspace from './AdminCustomersWorkspace';
 import AdminInventoryWorkspace from './AdminInventoryWorkspace';
 import AdminCatalogGroupsPage from './AdminCatalogGroupsPage';
+import AdminReportsPage from './AdminReportsPage';
 
 export { AdminOrdersWorkspace as AdminOrdersPage };
 export { AdminCustomersWorkspace as AdminCustomersPage };
@@ -34,6 +36,13 @@ export function AdminCouponsPage() {
 }
 
 export function AdminAnalyticsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const view = searchParams.get('view') === 'reports' ? 'reports' : 'analytics';
+  if (view === 'reports') return <AdminReportsPage />;
+  return <AdminAnalyticsSnapshot onOpenReports={() => setSearchParams({ view: 'reports' })} />;
+}
+
+function AdminAnalyticsSnapshot({ onOpenReports }: { onOpenReports: () => void }) {
   const loadOrders = useCallback(() => adminApi.listOrders({ limit: 100 }), []);
   const loadProducts = useCallback(() => adminApi.listProducts({ limit: 200 }), []);
   const loadCustomers = useCallback(() => adminApi.listCustomers({ limit: 100 }), []);
@@ -48,7 +57,7 @@ export function AdminAnalyticsPage() {
   const revenue = orderList.reduce((sum, order) => sum + (order.summary?.total ?? 0), 0);
   const count = orders.data?.count ?? orderList.length;
   const average = count > 0 ? revenue / count : 0;
-  return <div><PageHeader title="Analytics" subtitle="Operational snapshot from live admin API records." /><div className="grid grid-cols-2 lg:grid-cols-4 gap-4"><StatCard label="Revenue in loaded window" value={`₹${revenue.toFixed(0)}`} icon={BarChart3} accent /><StatCard label="Orders" value={count} icon={ScrollText} /><StatCard label="Average order" value={`₹${average.toFixed(0)}`} icon={BarChart3} /><StatCard label="Customers" value={customers.data?.count ?? 0} icon={UserCog} /></div><Card className="mt-6"><p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>This is intentionally an operational snapshot, not a fake BI dashboard. Date ranges, server-side aggregates and comparison periods remain required before analytics can claim full reporting accuracy.</p><div className="mt-4 text-sm" style={{ color: 'var(--color-text-muted)' }}>{productList.filter((product) => product.status === 'published').length} of {productList.length} loaded products are published.</div></Card></div>;
+  return <div><PageHeader title="Analytics" subtitle="Operational snapshot from live admin API records." action={<button type="button" onClick={onOpenReports} className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold" style={{ background: 'var(--color-surface)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}><FileBarChart size={15} /> Open Reports</button>} /><div className="grid grid-cols-2 lg:grid-cols-4 gap-4"><StatCard label="Revenue in loaded window" value={`₹${revenue.toFixed(0)}`} icon={BarChart3} accent /><StatCard label="Orders" value={count} icon={ScrollText} /><StatCard label="Average order" value={`₹${average.toFixed(0)}`} icon={BarChart3} /><StatCard label="Customers" value={customers.data?.count ?? 0} icon={UserCog} /></div><Card className="mt-6"><p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>This is intentionally an operational snapshot, not a fake BI dashboard. Date ranges, server-side aggregates and comparison periods remain required before analytics can claim full reporting accuracy.</p><div className="mt-4 text-sm" style={{ color: 'var(--color-text-muted)' }}>{productList.filter((product) => product.status === 'published').length} of {productList.length} loaded products are published.</div></Card></div>;
 }
 
 function Placeholder({ title, description, icon: Icon }: { title: string; description: string; icon: typeof SettingsIcon }) {
