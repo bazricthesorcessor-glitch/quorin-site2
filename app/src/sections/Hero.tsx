@@ -17,8 +17,8 @@ const getCategoryPreviewImage = (category: Category) => categoryArt[category.id]
 const productImage = (index: number) => featuredProducts[index]?.images_local?.[0] ?? featuredProducts[index]?.images?.[0] ?? '';
 
 const extraCategoryCards = [
-  { id: 'tools', title: 'Tools', subtitle: 'Explore Collection', description: 'Heat tools, hand drills and essential equipment for every maker.', src: '/PHOTOS/COMBOS/1.png', search: 'tools', position: 'center', icon: Wrench },
-  { id: 'craft-supplies', title: 'Craft Supplies', subtitle: 'Explore Collection', description: 'Glitters, pigments, dyes, additives and finishing supplies.', src: '/PHOTOS/GLITTER/1.png', search: 'craft', position: 'center', icon: PackageOpen },
+  { id: 'tools', title: 'Tools', subtitle: 'Explore Collection', description: 'Heat tools, hand drills and essential equipment for every maker.', src: '/tools-category.webp', search: 'tools', position: 'center', icon: Wrench },
+  { id: 'craft-supplies', title: 'Craft Supplies', subtitle: 'Explore Collection', description: 'Glitters, pigments, dyes, additives and finishing supplies.', src: '/craft-supplies.webp', search: 'craft', position: 'center', icon: PackageOpen },
 ];
 
 const testimonials = [
