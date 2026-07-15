@@ -12,11 +12,13 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SearchPageProps {
   onAddToCart: (product: Product) => void;
+  onToggleWishlist?: (product: Product) => void;
+  currentAccountWishlist?: string[];
 }
 
 const BRANDS = ['QUORIN', 'Generic', 'Others'];
 
-export default function SearchPage({ onAddToCart }: SearchPageProps) {
+export default function SearchPage({ onAddToCart, onToggleWishlist, currentAccountWishlist }: SearchPageProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
@@ -662,6 +664,8 @@ export default function SearchPage({ onAddToCart }: SearchPageProps) {
                               addRecentSearch(query);
                             }}
                             onClick={() => navigate(`/product/${encodeURIComponent(getProductId(product))}`)}
+                            onToggleWishlist={onToggleWishlist}
+                            inWishlist={currentAccountWishlist?.includes(getProductId(product))}
                           />
                         ))}
                       </div>

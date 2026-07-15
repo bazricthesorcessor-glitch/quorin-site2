@@ -11,9 +11,11 @@ interface CategoryPageProps {
   onAddToCart: (product: Product) => void;
   onPreview?: (product: Product) => void;
   categories: Category[];
+  onToggleWishlist?: (product: Product) => void;
+  currentAccountWishlist?: string[];
 }
 
-export default function CategoryPage({ onAddToCart, onPreview, categories }: CategoryPageProps) {
+export default function CategoryPage({ onAddToCart, onPreview, categories, onToggleWishlist, currentAccountWishlist }: CategoryPageProps) {
   const navigate = useNavigate();
   const { categoryId } = useParams();
   const isMobile = useIsMobile();
@@ -38,7 +40,7 @@ export default function CategoryPage({ onAddToCart, onPreview, categories }: Cat
       <main className="pt-16 pb-24 bg-[var(--color-background)] min-h-screen">
         <section className="px-4 pb-6">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] mb-4 cursor-pointer"
           >
             <ArrowLeft size={14} /> Back
@@ -54,6 +56,8 @@ export default function CategoryPage({ onAddToCart, onPreview, categories }: Cat
               product={product}
               onAddToCart={onAddToCart}
               onClick={() => navigate(`/product/${getProductId(product)}`)}
+              onToggleWishlist={onToggleWishlist}
+              inWishlist={currentAccountWishlist?.includes(getProductId(product))}
             />
           ))}
         </div>

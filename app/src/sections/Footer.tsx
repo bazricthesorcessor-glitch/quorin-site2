@@ -8,7 +8,7 @@ export default function Footer() {
   const navigate = useNavigate();
   const [showEmail, setShowEmail] = useState(false);
   const [copied, setCopied] = useState(false);
-  const email = 'support@quorin.com';
+  const email = 'support@quorin.in';
 
   const copyEmail = async () => {
     try {
@@ -78,10 +78,10 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3">
               <li className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-                support@quorin.com
+                support@quorin.in
               </li>
               <li className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-                +91 98765 43210
+                +91 9509385742
               </li>
               <li className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
                 Mumbai, India

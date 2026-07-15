@@ -7,7 +7,7 @@ import { useAdminAuth } from '@/contexts/AdminAuthContext';
 export default function AdminLoginPage() {
   const navigate = useNavigate();
   const { login } = useAdminAuth();
-  const [email, setEmail] = useState('admin@quorin.com');
+  const [email, setEmail] = useState('admin@quorin.in');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -55,7 +55,7 @@ export default function AdminLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full rounded-xl pl-10 pr-4 py-3 outline-none"
                 style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
-                placeholder="admin@quorin.com"
+                placeholder="admin@quorin.in"
               />
             </div>
           </div>

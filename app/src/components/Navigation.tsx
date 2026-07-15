@@ -58,6 +58,13 @@ export default function Navigation({
 
   const isMobile = useIsMobile();
 
+  const extraLinks = [
+    { title: 'Tools', onClick: () => navigate('/search?q=Tools') },
+    { title: 'Kits', onClick: () => navigate('/search?q=Kits') },
+    { title: 'New Arrivals', onClick: () => navigate('/search?q=new') },
+
+  ];
+
   useEffect(() => {
     const handleOpenLogin = () => {
       setLoginMode('email');
@@ -291,7 +298,7 @@ export default function Navigation({
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
             <div
-              className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 rounded-2xl frosted-glass"
+              className="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-3 rounded-2xl frosted-glass"
             >
               {/* Animated content: normal mode vs search mode */}
               <AnimatePresence mode="wait">
@@ -410,6 +417,30 @@ export default function Navigation({
                           onClick={() => openCategory(cat.id)}
                         >
                           {cat.title}
+                          <motion.div
+                            className="absolute -bottom-1 left-0 h-[1px]"
+                            style={{ background: 'var(--color-accent)' }}
+                            initial={{ width: 0 }}
+                            whileHover={{ width: '100%' }}
+                            transition={{ duration: 0.4 }}
+                          />
+                        </motion.button>
+                      ))}
+                      {extraLinks.map((link) => (
+                        <motion.button
+                          key={link.title}
+                          className="relative text-sm tracking-[0.15em] uppercase transition-colors"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                          onMouseEnter={(e) => {
+                            (e.target as HTMLElement).style.color = 'var(--color-text-primary)';
+                          }}
+                          onMouseLeave={(e) => {
+                            (e.target as HTMLElement).style.color = 'var(--color-text-secondary)';
+                          }}
+                          whileHover={{ y: -1 }}
+                          onClick={link.onClick}
+                        >
+                          {link.title}
                           <motion.div
                             className="absolute -bottom-1 left-0 h-[1px]"
                             style={{ background: 'var(--color-accent)' }}

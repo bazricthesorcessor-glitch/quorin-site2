@@ -17,9 +17,6 @@ import ProfileModal from '@/components/ProfileModal';
 import AdminCenter, { type AdminTheme } from '@/components/AdminCenter';
 import CustomCursor from '@/components/CustomCursor';
 import Hero from '@/sections/Hero';
-import CategorySection from '@/sections/CategorySection';
-import WhyShop from '@/sections/WhyShop';
-import HistorySection from '@/sections/History';
 import Footer from '@/sections/Footer';
 import ProductShowcase from '@/sections/ProductShowcase';
 import CategoryPage from '@/pages/CategoryPage';
@@ -30,6 +27,7 @@ import SearchPage from '@/pages/SearchPage';
 import AuthGoogleCallback from '@/pages/AuthGoogleCallback';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Toaster } from '@/components/ui/sonner';
+import { Search, ArrowRight } from 'lucide-react';
 import { getProductId, quorinData, type Category, type Product } from '@/data/products';
 import {
   findAccountByIdentifierInAccounts,
@@ -41,6 +39,7 @@ import { getXpDiscountPercent, getXpLevel } from '@/data/xp';
 import { getCheckoutGiftOffer, getGiftDiscountForProduct, getGiftLockKey, redeemCheckoutGift } from '@/data/gifts';
 import { getCssVar } from '@/lib/theme';
 import {
+  appendActivityLog,
   loadAccounts,
   loadCatalog,
   loadCheckoutLocks,
@@ -156,6 +155,7 @@ interface HomeScreenProps {
   currentAccount: AccountRecord | null;
   onUpdateOrder: UpdateOrderFn;
   categories: Category[];
+  cartCount: number;
   productsById: Map<string, Product>;
   addToCart: (product: Product) => void;
   openPreview: (product: Product) => void;
@@ -164,65 +164,138 @@ interface HomeScreenProps {
   currentAccountWishlist?: string[];
 }
 
-function HomeScreen({ currentAccount, onUpdateOrder, categories, productsById, addToCart, openPreview, navigateToProduct, onToggleWishlist, currentAccountWishlist }: HomeScreenProps) {
+const getCategoryPreviewImage = (category: Category) => {
+  const product = category.products[0];
+  return product?.images_local?.[0] ?? product?.images?.[0] ?? '';
+};
+
+function HomeScreen({ currentAccount, onUpdateOrder, categories, cartCount, productsById, addToCart, openPreview, navigateToProduct, onToggleWishlist, currentAccountWishlist }: HomeScreenProps) {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
-
-  const activeProducts = useMemo(() => {
-    const allProds = categories.flatMap((c) => c.products);
-    if (!selectedCatId) return allProds;
-    return allProds.filter((p) => p.category === selectedCatId || p.category?.id === selectedCatId);
-  }, [selectedCatId, categories]);
+  const topCategories = categories.slice(0, 3);
 
   if (isMobile) {
     return (
-      <main className="bg-[var(--color-background)] min-h-screen pb-32">
-        <Hero />
-        
-        {/* Horizontal Category Chips */}
-        <div className="px-4 py-2 sticky top-0 bg-[var(--color-background)]/90 backdrop-blur-md z-30 border-b border-[var(--color-border-subtle)]">
-          <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-1">
-            <button
-              onClick={() => setSelectedCatId(null)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all cursor-pointer ${
-                selectedCatId === null
-                  ? 'bg-black text-white'
-                  : 'bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-secondary)]'
-              }`}
-            >
-              All Supplies
+      <main className="min-h-screen px-4 pt-4 pb-32" style={{ background: '#F6F1EA' }}>
+        <div className="mx-auto max-w-md">
+          <div className="mb-8 flex items-center justify-between">
+            <button className="grid h-12 w-12 place-items-center rounded-2xl bg-white/90 shadow-[0_8px_24px_rgba(42,33,24,0.08)] border border-black/5">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7">
+                <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
+              </svg>
             </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCatId(cat.id)}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all cursor-pointer ${
-                  selectedCatId === cat.id
-                    ? 'bg-black text-white'
-                    : 'bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-secondary)]'
-                }`}
-              >
-                {cat.title}
-              </button>
-            ))}
-          </div>
-        </div>
 
-        {/* 2-Column Feed Grid */}
-        <div className="px-4 mt-6">
-          <h3 className="text-xs font-bold tracking-wider text-[var(--color-text-muted)] uppercase mb-4">
-            {selectedCatId ? categories.find(c => c.id === selectedCatId)?.title : 'All Supplies'} ({activeProducts.length})
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            {activeProducts.map((product, idx) => (
-              <MobileProductCard
-                key={`${product.name}-${idx}`}
-                product={product}
-                onAddToCart={addToCart}
-                onClick={() => navigate(`/product/${getProductId(product)}`)}
-              />
-            ))}
+            <div className="quorin-brand text-3xl tracking-[0.2em]" style={{ color: 'var(--color-accent)' }}>QUORIN</div>
+
+            <div className="flex items-center gap-2">
+              <button className="grid h-12 w-12 place-items-center rounded-2xl bg-white/90 shadow-[0_8px_24px_rgba(42,33,24,0.08)] border border-black/5">
+                <Search size={19} />
+              </button>
+              <button className="relative grid h-12 w-12 place-items-center rounded-2xl bg-white/90 shadow-[0_8px_24px_rgba(42,33,24,0.08)] border border-black/5">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7">
+                  <path d="M6 7h12l-1 12H7L6 7Z" />
+                  <path d="M9 7a3 3 0 0 1 6 0" strokeLinecap="round" />
+                </svg>
+                <span className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#C9A96E] px-1 text-[9px] font-semibold text-white">{cartCount}</span>
+              </button>
+              <button className="grid h-12 w-12 place-items-center rounded-2xl bg-white/90 shadow-[0_8px_24px_rgba(42,33,24,0.08)] border border-black/5">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7">
+                  <circle cx="12" cy="8" r="3" />
+                  <path d="M5 20c1.5-4 4.3-6 7-6s5.5 2 7 6" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-8">
+            <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.45em] text-[var(--color-text-muted)]">
+              <span className="h-px flex-1 bg-[rgba(201,169,110,0.35)]" />
+              <span>Made for Makers</span>
+              <span className="h-px flex-1 bg-[rgba(201,169,110,0.35)]" />
+            </div>
+
+            <div className="mt-3 quorin-brand text-[4.9rem] leading-[0.88] tracking-tight" style={{ color: 'var(--color-accent)' }}>QUORIN</div>
+
+            <p className="mt-5 max-w-[20rem] text-[1.02rem] leading-[1.7] text-[var(--color-text-secondary)]">
+              Premium crafting supplies for resin art, candle making, and soap making.
+              <span className="block text-[var(--color-accent)]">Bring your creative vision to life.</span>
+            </p>
+
+            <div className="mt-7 flex flex-col gap-3">
+              <button
+                onClick={() => navigate('/search')}
+                className="inline-flex h-14 items-center justify-between rounded-full bg-[#D0A85A] px-6 text-sm font-semibold uppercase tracking-[0.25em] text-white shadow-[0_12px_30px_rgba(201,169,110,0.3)]"
+              >
+                <span>Explore Collection</span>
+                <ArrowRight size={18} />
+              </button>
+              <button
+                onClick={() => navigate('/search')}
+                className="inline-flex h-14 items-center justify-center rounded-full border border-[#D0A85A] bg-transparent px-6 text-sm font-semibold uppercase tracking-[0.22em] text-[#C7A15C]"
+              >
+                Shop Best Sellers
+              </button>
+            </div>
+
+            <div className="mt-7 flex items-center gap-3 text-[10px] uppercase tracking-[0.4em] text-[var(--color-text-muted)]">
+              <span className="grid h-10 w-10 place-items-center rounded-full border border-[rgba(201,169,110,0.35)] bg-white/60">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M12 3v18" strokeLinecap="round" />
+                  <path d="M8 7h8" strokeLinecap="round" />
+                </svg>
+              </span>
+              <span>Scroll To Explore</span>
+            </div>
+
+            <div className="mt-5 flex items-center justify-center gap-3">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#D0A85A]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-white shadow-sm" />
+              <span className="h-2.5 w-2.5 rounded-full bg-white shadow-sm" />
+            </div>
+          </div>
+
+          <div className="rounded-[28px] bg-white/88 p-4 shadow-[0_18px_45px_rgba(42,33,24,0.08)] border border-black/5">
+            <div className="mb-2 text-[10px] uppercase tracking-[0.45em] text-[#C7A15C]">What We Sell</div>
+            <div className="flex items-end gap-2">
+              <div className="quorin-brand text-[2.4rem] leading-none text-[var(--color-text-primary)]">Our</div>
+              <div className="quorin-brand text-[2.4rem] leading-none text-[#D0A85A]">Categories</div>
+            </div>
+            <p className="mt-3 max-w-[24rem] text-[1rem] leading-[1.6] text-[var(--color-text-secondary)]">
+              From crystal-clear resins to aromatic candle supplies — find everything you need for your next creative project.
+            </p>
+
+            <div className="mt-5 grid gap-3">
+              {topCategories.map((category, index) => {
+                const image = getCategoryPreviewImage(category);
+                const labelIcon = ['⦿', '⌘', '✿'][index] ?? '•';
+
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => navigate(`/search?q=${encodeURIComponent(category.title)}`)}
+                    className="relative overflow-hidden rounded-[20px] text-left shadow-[0_10px_24px_rgba(42,33,24,0.18)]"
+                    style={{ minHeight: 112 }}
+                  >
+                    {image && (
+                      <img src={image} alt={category.title} className="absolute inset-0 h-full w-full object-cover" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-r from-[rgba(42,33,24,0.68)] via-[rgba(42,33,24,0.30)] to-transparent" />
+                    <div className="relative z-10 flex min-h-[112px] items-center justify-between px-4 py-4 text-white">
+                      <div className="flex items-center gap-3">
+                        <div className="grid h-12 w-12 place-items-center rounded-full bg-white text-[#C7A15C] text-lg font-semibold shadow-sm">{labelIcon}</div>
+                        <div>
+                          <div className="quorin-brand text-2xl leading-none">{category.title}</div>
+                          <div className="mt-2 text-[10px] uppercase tracking-[0.32em] text-white/80">Explore Collection →</div>
+                        </div>
+                      </div>
+                      <div className="grid h-10 w-10 place-items-center rounded-full bg-white/95 text-[#2A2118]">
+                        <ArrowRight size={18} />
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </main>
@@ -232,14 +305,6 @@ function HomeScreen({ currentAccount, onUpdateOrder, categories, productsById, a
   return (
     <main>
       <Hero />
-      <CategorySection />
-      <WhyShop />
-      <ProductShowcase categories={categories} onAddToCart={addToCart} onPreview={openPreview} onNavigateToProduct={navigateToProduct} />
-      <HistorySection
-        currentAccount={currentAccount}
-        onUpdateOrder={onUpdateOrder}
-        productsById={productsById}
-      />
       <Footer />
     </main>
   );
@@ -394,6 +459,12 @@ export default function App() {
   useEffect(() => {
     console.log('[App] medusaCategories.length =', medusaCategories.length, 'categories:', medusaCategories.map(c => c.id));
   }, [medusaCategories]);
+
+  useEffect(() => {
+    const handleOpenCart = () => setCartOpen(true);
+    window.addEventListener('quorin:openCart', handleOpenCart);
+    return () => window.removeEventListener('quorin:openCart', handleOpenCart);
+  }, []);
 
   useEffect(() => {
     try {
@@ -714,6 +785,12 @@ export default function App() {
     mutator(nextCatalog);
     Object.assign(quorinData, nextCatalog);
     setCatalogVersion((value) => value + 1);
+    appendActivityLog({
+      type: 'catalog',
+      title: 'Catalog updated',
+      detail: `Catalog now includes ${nextCatalog.categories.length} categories.`,
+      actor: 'admin',
+    });
     await syncCatalogToMedusa();
     refetchMedusaCatalog();
   }, [syncCatalogToMedusa, refetchMedusaCatalog]);
@@ -722,6 +799,12 @@ export default function App() {
     quorinData.brand = nextTheme.brand;
     quorinData.tagline = nextTheme.tagline;
     setTheme(nextTheme);
+    appendActivityLog({
+      type: 'theme',
+      title: 'Brand theme updated',
+      detail: `${nextTheme.brand} visual settings saved.`,
+      actor: 'admin',
+    });
   }, []);
 
   const toggleAdminMode = useCallback(() => {
@@ -730,6 +813,14 @@ export default function App() {
   }, [currentAccount]);
 
   const signOut = () => {
+    if (currentAccount) {
+      appendActivityLog({
+        type: 'auth',
+        title: 'Customer signed out',
+        detail: currentAccount.profile.displayName,
+        actor: currentAccount.profile.email,
+      });
+    }
     setCurrentAccountId(null);
     setProfileOpen(false);
     setAdminOpen(false);
@@ -760,6 +851,12 @@ export default function App() {
         },
       },
     }));
+    appendActivityLog({
+      type: 'profile',
+      title: 'Profile updated',
+      detail: profile.displayName,
+      actor: profile.email,
+    });
     return { ok: true };
   };
 
@@ -777,6 +874,12 @@ export default function App() {
           orders: account.orders.map((order) => (order.id === orderId ? { ...order, ...patch } : order)),
         },
       };
+    });
+    appendActivityLog({
+      type: 'order',
+      title: 'Order updated',
+      detail: orderId,
+      actor: currentAccount?.profile.email,
     });
   };
 
@@ -803,6 +906,13 @@ export default function App() {
       [lockKey]: true,
     }));
 
+    appendActivityLog({
+      type: 'checkout',
+      title: 'Checkout gift redeemed',
+      detail: giftOffer.source,
+      actor: currentAccount.profile.email,
+    });
+
     setCartOpen(false);
   };
 
@@ -815,6 +925,12 @@ export default function App() {
       const account = findAccountByIdentifierInAccounts(accounts, identifier);
       if (account && account.password === password) {
         setCurrentAccountId(account.profile.id);
+        appendActivityLog({
+          type: 'auth',
+          title: 'Customer signed in',
+          detail: account.profile.displayName,
+          actor: account.profile.email,
+        });
         return { ok: true };
       }
       return { ok: false, message: 'Invalid email or password.' };
@@ -851,6 +967,12 @@ export default function App() {
           },
         }));
         setCurrentAccountId(id);
+        appendActivityLog({
+          type: 'auth',
+          title: 'Medusa customer linked',
+          detail: customer.email,
+          actor: customer.email,
+        });
       }
     } catch {
       // Medusa customer fetch failed
@@ -1049,14 +1171,14 @@ export default function App() {
           {/* Main Content */}
           <Routes>
             <Route path="/auth/google/callback" element={<AuthGoogleCallback />} />
-            <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
+            <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} cartCount={cartCount} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
             <Route
               path="/product/:productId"
               element={<ProductDetailPage currentAccount={currentAccount} onAddToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} categories={activeCategories} />}
             />
             <Route
               path="/category/:categoryId"
-              element={<CategoryPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} />}
+              element={<CategoryPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} onToggleWishlist={(p) => toggleWishlist(getProductId(p))} currentAccountWishlist={currentAccount?.wishlist} />}
             />
             <Route
               path="/xp"
@@ -1066,8 +1188,8 @@ export default function App() {
               path="/wishlist"
               element={<WishlistPage currentAccount={currentAccount} onToggleWishlist={toggleWishlist} onAddToCart={addToCart} categories={activeCategories} />}
             />
-            <Route path="/search" element={<SearchPage onAddToCart={addToCart} />} />
-            <Route path="*" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
+            <Route path="/search" element={<SearchPage onAddToCart={addToCart} onToggleWishlist={(p) => toggleWishlist(getProductId(p))} currentAccountWishlist={currentAccount?.wishlist} />} />
+            <Route path="*" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} cartCount={cartCount} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
           </Routes>
 
           <ProductPreview

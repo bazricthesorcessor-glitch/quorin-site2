@@ -3,30 +3,29 @@ const loaders = require("./node_modules/@medusajs/medusa/dist/loaders/index.js")
 const { initializeContainer, default: medusaLoader } = loaders;
 
 const PRODUCTS = [
-  { name: "QUORIN Crystal Clear Epoxy Resin and Hardener Kit", description: "UV Resistant, High Gloss Finish, Smooth Finish, Easy to Use, Crystal Clear.", price: 999, mrp: 1549, tags: ["resin", "epoxy", "art", "jewelry", "crafts"], category: "resin-art", thumbnail: "/product-resin-kit.jpg" },
-  { name: "Liquid Resin Pigment Combo Set (Pack of 6)", description: "Highly Concentrated, Smooth Mixing, Vibrant Colors.", price: 284, mrp: 989, tags: ["pigments", "colors", "resin-art"], category: "resin-art" },
-  { name: "Liquid Resin Pigment Combo Set (Pack of 10)", description: "Highly Concentrated, Smooth Mixing, Vibrant Colors.", price: 473, mrp: 989, tags: ["pigments", "colors", "resin-art"], category: "resin-art" },
-  { name: "QUORIN Eco Tones Pigment Paste Set (6 Colors)", description: "Eco-friendly pigment paste for Jesmonite and resin crafts.", price: 299, mrp: 2000, tags: ["eco-resin", "pigment", "jesmonite"], category: "resin-art" },
-  { name: "QUORIN Eco Tones Pigment Paste Kit (10 Colors)", description: "Complete eco-friendly pigment kit for crafts.", price: 496, mrp: 2000, tags: ["eco-resin", "pigment", "craft"], category: "resin-art" },
-  { name: "QUORIN Eco-Create Eco Resin", description: "Water Based, 2:1 Formula, Low Odor, Craft Friendly.", price: 299, mrp: 699, tags: ["eco-resin", "casting", "home-decor"], category: "resin-art" },
-  { name: "QUORIN Resin Tools Kit", description: "23-piece professional resin art tool kit.", price: 1429, mrp: 2999, tags: ["tools", "drill", "polishing", "finishing"], category: "resin-art" },
-  { name: "Quorin 15-Piece Resin Art Tool Kit", description: "Essential tools for resin art and crafting.", price: 682, mrp: 1499, tags: ["resin-tools", "drill", "sanding"], category: "resin-art" },
-  { name: "QUORIN Hand Drill for Resin Art", description: "Professional hand drill for resin work.", price: 299, mrp: 499, tags: ["drill", "craft-tools"], category: "resin-art" },
-  { name: "QUORIN Resin Art Tools Combo Kit", description: "Heat gun, brushes, cups, mixing tools combo.", price: 734, mrp: 1499, tags: ["heat-gun", "brush", "cup", "mixing"], category: "resin-art" },
-  { name: "Resin Glitter for Epoxy Art", description: "Metallic glitter for decorative epoxy art.", price: 299, mrp: 800, tags: ["glitter", "metallic", "decor"], category: "resin-art" },
-  { name: "Crushed Clear Glass for Resin Art", description: "200g crushed glass for geode art and resin decor.", price: 169, mrp: 800, tags: ["geode-art", "glass", "decor"], category: "resin-art" },
-  { name: "QUORIN Candle Colour Set (8 Colors, 30ml)", description: "Premium candle dye set for soy, gel, paraffin, and beeswax.", price: 579, mrp: 2000, tags: ["candle-color", "wax-dye"], category: "candle-making" },
-  { name: "QUORIN Candle Colour Set (6 Colors, 30ml)", description: "Premium candle dye set for all wax types.", price: 436, mrp: 2000, tags: ["candle-color", "wax-dye"], category: "candle-making" },
-  { name: "QUORIN Candle Colour Set (8 Colors, 15ml)", description: "Compact candle dye set for DIY candle making.", price: 299, mrp: 1000, tags: ["candle-color", "DIY"], category: "candle-making" },
-  { name: "QUORIN Candle Wicks (50 Pieces, 4 Inch)", description: "Premium cotton wicks for candle making.", price: 189, mrp: 1000, tags: ["wicks", "cotton", "candle-making"], category: "candle-making" },
-  { name: "Candle Wicks Assorted Pack (125 Pieces)", description: "Multi-size wick pack for jar candles.", price: 299, mrp: 1000, tags: ["wicks", "jar-candle"], category: "candle-making" },
-  { name: "Candle Wicks Small Jar Pack (150 Pieces)", description: "Wicks designed for small jar candles and tealights.", price: 284, mrp: 1000, tags: ["wicks", "tealight"], category: "candle-making" },
-  { name: "Candle Wicks Assorted Multi-Size (150 Pieces)", description: "Assorted wicks for DIY candle projects.", price: 284, mrp: 1000, tags: ["wicks", "DIY"], category: "candle-making" },
-  { name: "QUORIN Blow Torch Fire Gun", description: "Torch for bubble removal in candle making.", price: 265, mrp: 1000, tags: ["torch", "bubble-removal", "craft-tool"], category: "candle-making" },
-  { name: "Premium Fragrance Oil Set (Pack of 6)", description: "Long Lasting Aroma, Craft Friendly, Home Fragrance.", price: 299, mrp: 2000, tags: ["fragrance-oil", "candle-making"], category: "candle-making" },
-  { name: "Quorin DIY Soap Colouring Kit (8 Colors)", description: "Easy to Use, Beginner Friendly, Vibrant Colors.", price: 198, mrp: 1000, tags: ["soap-color", "melt-and-pour"], category: "soap-making" },
-  { name: "QUORIN Liquid Soap Colour Kit with Silicone Mold", description: "Includes Mold, Easy Mixing, DIY Gifting.", price: 284, mrp: 1000, tags: ["soap-color", "silicone-mold", "handmade-soap"], category: "soap-making" },
-  { name: "Premium Fragrance Oil Set (Pack of 6)", description: "Essential oil fragrances for soap making.", price: 299, mrp: 2000, tags: ["soap-fragrance", "essential-oil"], category: "soap-making" },
+  { name: "QUORIN Crystal Clear Epoxy Resin & Hardener", description: "Two-part crystal clear epoxy resin system for art and crafts. UV Resistant, High Gloss Finish, Beginner Friendly.", price: 677, mrp: 1499, tags: ["resin-kit", "epoxy", "resin", "hardener", "crystal clear"], category: "resin-art", thumbnail: "/PHOTOS/Resin/1.webp" },
+  { name: "Jigong Heat Tool Kit", description: "Professional heat gun kit for resin crafting, candle making, and DIY projects.", price: 426, mrp: 899, tags: ["torch", "heat tool", "hot air gun", "crafting", "diy"], category: "candle-making", thumbnail: "/PHOTOS/COMBOS/Combo - 1 ( heat gun)/1.webp" },
+  { name: "Quorin Candle Pigment Set", description: "Liquid pigment for coloring candles in 7 vibrant colors.", price: 156, mrp: 349, tags: ["candle-color", "candle making", "pigment", "colorant", "liquid"], category: "candle-making", thumbnail: "/PHOTOS/candle pigments/1.webp" },
+  { name: "Crushed Glass Pack", description: "Clear crushed glass for resin art in 3mm size.", price: 299, mrp: 599, tags: ["glitter", "crushed glass", "resin art", "decoration"], category: "resin-art", thumbnail: "/PHOTOS/Crushed glass/main image/crushed glass.webp" },
+  { name: "Deburring System", description: "Professional deburring tool for removing burrs and smoothing surfaces.", price: 1062, mrp: 1999, tags: ["tools", "deburring", "tool", "crafting", "surface finish"], category: "resin-art", thumbnail: "/PHOTOS/Deburring tool/1.jpg" },
+  { name: "Quorin Fragrance Oil Collection", description: "Premium fragrance oils for candle making and aromatherapy.", price: 224, mrp: 499, tags: ["fragrance-oil", "fragrance oil", "sandalwood", "essential oil", "candle"], category: "candle-making", thumbnail: "/PHOTOS/Fragrances/variation 1/1.webp" },
+  { name: "Quorin Glitter Collection", description: "Premium glitter powder for decorative crafting in multiple colors.", price: 213, mrp: 449, tags: ["glitter", "crafting", "decorative", "art"], category: "resin-art", thumbnail: "/PHOTOS/GLITTER/bold party/1.webp" },
+  { name: "Resin Craft Drill Kit", description: "Hand drill with 4 bits for resin and craft work.", price: 170, mrp: 399, tags: ["drill", "hand drill", "resin", "crafting", "tools"], category: "resin-art", thumbnail: "/PHOTOS/HAND DRILL WITH 4 BITS/hand drll.jpg" },
+  { name: "Quorin Blowtorch Jet Lighter", description: "Professional blowtorch for removing air bubbles from resin and candle tops.", price: 708, mrp: 1299, tags: ["torch", "blowtorch", "lighter", "resin", "crafting"], category: "candle-making", thumbnail: "/PHOTOS/Jet lighter/Jet.webp" },
+  { name: "Quorin Liquid Deco Paint", description: "Water-based liquid decorative paint for artistic applications.", price: 445, mrp: 899, tags: ["pigments", "paint", "liquid", "decorative", "art"], category: "resin-art", thumbnail: "/PHOTOS/Liquid deco paint/1.webp" },
+  { name: "Jewellery Mould Set", description: "Silicone moulds for making resin jewellery.", price: 478, mrp: 999, tags: ["geode-art", "jewelry mould", "resin mould", "jewellery making", "silicone"], category: "resin-art", thumbnail: "/PHOTOS/MOULDS COMBO/1/1.webp" },
+  { name: "Neodymium Magnets Set", description: "Strong round neodymium magnets in various sizes.", price: 378, mrp: 799, tags: ["tools", "neodymium", "magnets", "crafting", "strong"], category: "resin-art", thumbnail: "/PHOTOS/Magnets combo/1.webp" },
+  { name: "Soap Making Kit with Mould", description: "Complete soap making kit with pigments and silicone mould.", price: 899, mrp: 1799, tags: ["soap-color", "soap making", "mould", "kit", "diy"], category: "soap-making", thumbnail: "/PHOTOS/Soap Dye + mould/1.webp" },
+  { name: "Quorin Soap Pigment Set", description: "Liquid soap pigment in 8 vibrant colors.", price: 315, mrp: 699, tags: ["soap-color", "soap making", "pigment", "colorant", "liquid"], category: "soap-making", thumbnail: "/PHOTOS/Soap dye/1.webp" },
+  { name: "UV Resin Kit", description: "UV-curing resin kit for nail art and quick-cure crafting.", price: 564, mrp: 1199, tags: ["eco-resin", "UV resin", "nail art", "crafting", "quick cure"], category: "resin-art", thumbnail: "/PHOTOS/UV Resin combo/1.webp" },
+  { name: "Candle Wick Set", description: "Premium cotton wicks for candle making in multiple sizes.", price: 114, mrp: 249, tags: ["wicks", "candle making", "cotton", "crafting"], category: "candle-making", thumbnail: "/PHOTOS/Wick COMBOS/1/1.webp" },
+  { name: "Quorin Christmas Candle Set", description: "Handcrafted candles for the festive season.", price: 690, mrp: 1499, tags: ["candle-color", "candles", "christmas", "festive", "handcrafted"], category: "candle-making", thumbnail: "/PHOTOS/christmas candles/1.webp" },
+  { name: "Quorin Eco Cast Water-Based Product", description: "Eco-friendly water-based casting compound for crafts.", price: 210, mrp: 449, tags: ["eco-resin", "eco", "water-based", "casting", "crafting"], category: "resin-art", thumbnail: "/PHOTOS/eco-cast/1.webp" },
+  { name: "Quorin Gilding Glue", description: "Premium adhesive for gold leafing and gilding projects.", price: 218, mrp: 449, tags: ["tools", "gilding", "gold leaf", "adhesive", "crafting"], category: "resin-art", thumbnail: "/PHOTOS/gilding glue/1.webp" },
+  { name: "Brass Latch & Hook Set", description: "Decorative brass latches and hooks for jewelry boxes and crafts.", price: 357, mrp: 749, tags: ["tools", "brass", "latch", "hook", "hardware"], category: "resin-art", thumbnail: "/PHOTOS/metal hook_/1.webp" },
+  { name: "Resin Bubble Remover Tool", description: "Specialized tool for removing air bubbles from resin crafts.", price: 407, mrp: 849, tags: ["tools", "resin", "bubble remover", "tool", "crafting"], category: "resin-art", thumbnail: "/PHOTOS/resin bubble remover/1.webp" },
+  { name: "Quorin Resin Pigment", description: "Liquid pigment for coloring resin crafts.", price: 112, mrp: 249, tags: ["pigments", "resin", "pigment", "colorant", "liquid"], category: "resin-art", thumbnail: "/PHOTOS/resin pigment/6/7.webp" },
+  { name: "Quorin Silica Powder", description: "500gm silica powder pouch for resin art and crafting.", price: 386, mrp: 799, tags: ["glitter", "silica", "resin art", "crafting", "500gm"], category: "resin-art", thumbnail: "/PHOTOS/silica 500 gm in pouch/silica for resin art (1).jpg" },
 ];
 
 async function seed() {
@@ -40,7 +39,11 @@ async function seed() {
 
   // Create categories (skip if they exist)
   const categories = {};
-  const catNames = { "resin-art": "Resin Art", "candle-making": "Candle Making", "soap-making": "Soap Making" };
+  const catNames = {
+    "resin-art": "Resin Art",
+    "candle-making": "Candle Making",
+    "soap-making": "Soap Making",
+  };
   const existingCats = await productModuleService.listProductCategories();
   for (const cat of existingCats) {
     const handle = cat.handle || cat.id;

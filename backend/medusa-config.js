@@ -98,17 +98,25 @@ module.exports = {
             id: "emailpass",
             options: {},
           },
-          {
-            resolve: "@medusajs/auth-google",
-            id: "google",
-            options: {
-              clientId: process.env.GOOGLE_CLIENT_ID,
-              clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-              callbackUrl: process.env.GOOGLE_CALLBACK_URL,
-            },
-          },
+          ...(process.env.GOOGLE_CLIENT_ID
+            ? [
+                {
+                  resolve: "@medusajs/auth-google",
+                  id: "google",
+                  options: {
+                    clientId: process.env.GOOGLE_CLIENT_ID,
+                    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                    callbackUrl: process.env.GOOGLE_CALLBACK_URL,
+                  },
+                },
+              ]
+            : []),
         ],
       },
+    },
+    locking: {
+      resolve: "@medusajs/locking",
+      options: {},
     },
     ...(process.env.REDIS_URL
       ? {
