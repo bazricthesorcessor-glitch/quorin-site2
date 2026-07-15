@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BarChart3, Boxes, ExternalLink, FolderTree, Image as ImageIcon, Layers, LayoutDashboard, LogOut, Menu, Package, ScrollText, Settings, ShoppingCart, Store, Ticket, UserCog, Users, X } from 'lucide-react';
+import { BarChart3, Boxes, ExternalLink, FileBarChart, FolderTree, Image as ImageIcon, Layers, LayoutDashboard, LogOut, Menu, Package, ScrollText, Settings, ShoppingCart, Store, Ticket, UserCog, Users, X } from 'lucide-react';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 
 interface NavItem { to: string; label: string; icon: typeof LayoutDashboard; }
 const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
-  { title: 'Overview', items: [{ to: '/admin', label: 'Dashboard', icon: LayoutDashboard }, { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 }] },
+  { title: 'Overview', items: [{ to: '/admin', label: 'Dashboard', icon: LayoutDashboard }, { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 }, { to: '/admin/reports', label: 'Reports', icon: FileBarChart }] },
   { title: 'Catalog', items: [{ to: '/admin/products', label: 'Products', icon: Package }, { to: '/admin/categories', label: 'Categories', icon: FolderTree }, { to: '/admin/collections', label: 'Collections', icon: Layers }, { to: '/admin/inventory', label: 'Inventory', icon: Boxes }, { to: '/admin/media', label: 'Media Library', icon: ImageIcon }] },
   { title: 'Sales', items: [{ to: '/admin/orders', label: 'Orders', icon: ShoppingCart }, { to: '/admin/customers', label: 'Customers', icon: Users }, { to: '/admin/coupons', label: 'Coupons & Promotions', icon: Ticket }] },
   { title: 'System', items: [{ to: '/admin/settings', label: 'Settings', icon: Settings }, { to: '/admin/admins', label: 'Admins & Roles', icon: UserCog }, { to: '/admin/activity', label: 'Activity Logs', icon: ScrollText }] },
