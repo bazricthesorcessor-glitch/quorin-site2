@@ -19,16 +19,16 @@ const extraCategoryCards = [
   {
     id: 'tools',
     title: 'Tools',
-    eyebrow: 'Build with precision',
-    src: '/PHOTOS/Deburring tool/1.jpg',
+    description: 'Heat tools, hand drills and essential equipment for every maker.',
+    src: '/PHOTOS/COMBOS/1.png',
     search: 'tools',
     position: 'center',
   },
   {
     id: 'craft-supplies',
     title: 'Craft Supplies',
-    eyebrow: 'Everything for making',
-    src: '/PHOTOS/GLITTER/bold party/1.webp',
+    description: 'Glitters, pigments, dyes, additives and finishing supplies.',
+    src: '/PHOTOS/GLITTER/1.png',
     search: 'craft',
     position: 'center',
   },
@@ -77,8 +77,8 @@ export default function Hero() {
           <div className="mt-1 quorin-brand text-[2.1rem] leading-none text-[var(--color-text-primary)]">Our <span className="text-[#D0A85A]">Categories</span></div>
         </div>
         <div className="grid grid-cols-1 gap-3 px-5 pb-7 md:grid-cols-3 md:px-8 lg:px-12 lg:pb-12">
-          {featuredCategories.map((category) => { const art = categoryArt[category.id]; return <button type="button" key={category.id} onClick={() => navigate(`/category/${category.id}`)} className="group relative min-h-[210px] w-full overflow-hidden rounded-[20px] text-left shadow-[0_14px_30px_rgba(42,33,24,.13)] md:min-h-[260px]"><img src={getCategoryPreviewImage(category)} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" style={{ objectPosition: art?.position ?? 'center' }} /><div className="absolute inset-0 bg-gradient-to-t from-[rgba(25,18,12,.72)] via-[rgba(25,18,12,.1)] to-transparent" /><div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 text-white"><div><div className="text-[9px] uppercase tracking-[.28em] text-white/70">Explore collection</div><div className="mt-1 quorin-brand text-[1.7rem]">{category.title}</div></div><span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-[var(--color-text-primary)]"><ArrowRight size={18} /></span></div></button>; })}
-          {extraCategoryCards.map((category) => <button type="button" key={category.id} onClick={() => navigate(`/search?q=${encodeURIComponent(category.search)}`)} className="group relative min-h-[210px] w-full overflow-hidden rounded-[20px] text-left shadow-[0_14px_30px_rgba(42,33,24,.13)] md:min-h-[260px]"><img src={category.src} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" style={{ objectPosition: category.position }} /><div className="absolute inset-0 bg-gradient-to-t from-[rgba(25,18,12,.76)] via-[rgba(25,18,12,.12)] to-transparent" /><div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 text-white"><div><div className="text-[9px] uppercase tracking-[.28em] text-white/70">{category.eyebrow}</div><div className="mt-1 quorin-brand text-[1.7rem]">{category.title}</div></div><span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-[var(--color-text-primary)]"><ArrowRight size={18} /></span></div></button>)}
+          {featuredCategories.map((category) => { const art = categoryArt[category.id]; return <button type="button" key={category.id} onClick={() => navigate(`/category/${category.id}`)} className="group relative flex min-h-[118px] w-full overflow-hidden rounded-[20px] border border-[rgba(232,226,217,.9)] bg-white text-left shadow-[0_12px_28px_rgba(42,33,24,.09)] md:min-h-[260px]"><div className="relative w-[42%] shrink-0 overflow-hidden md:absolute md:inset-0 md:w-full"><img src={getCategoryPreviewImage(category)} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" style={{ objectPosition: art?.position ?? 'center' }} /></div><div className="relative flex flex-1 items-center justify-between gap-3 p-4 md:absolute md:inset-x-0 md:bottom-0 md:items-end md:bg-gradient-to-t md:from-[rgba(25,18,12,.72)] md:via-[rgba(25,18,12,.12)] md:to-transparent md:text-white"><div><div className="quorin-brand text-[1.15rem] uppercase tracking-[.08em] md:text-[1.7rem]">{category.title}</div><div className="mt-2 text-[12px] leading-5 text-[var(--color-text-secondary)] md:hidden">Explore premium {category.title.toLowerCase()} materials and supplies.</div></div><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-[var(--color-text-primary)] shadow-sm"><ArrowRight size={17} /></span></div></button>; })}
+          {extraCategoryCards.map((category) => <button type="button" key={category.id} onClick={() => navigate(`/search?q=${encodeURIComponent(category.search)}`)} className="group relative flex min-h-[118px] w-full overflow-hidden rounded-[20px] border border-[rgba(232,226,217,.9)] bg-white text-left shadow-[0_12px_28px_rgba(42,33,24,.09)] md:min-h-[260px]"><div className="relative w-[42%] shrink-0 overflow-hidden md:absolute md:inset-0 md:w-full"><img src={category.src} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" style={{ objectPosition: category.position }} /></div><div className="relative flex flex-1 items-center justify-between gap-3 p-4 md:absolute md:inset-x-0 md:bottom-0 md:items-end md:bg-gradient-to-t md:from-[rgba(25,18,12,.76)] md:via-[rgba(25,18,12,.12)] md:to-transparent md:text-white"><div><div className="quorin-brand text-[1.15rem] uppercase tracking-[.08em] md:text-[1.7rem]">{category.title}</div><div className="mt-2 text-[12px] leading-5 text-[var(--color-text-secondary)] md:hidden">{category.description}</div></div><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-[var(--color-text-primary)] shadow-sm"><ArrowRight size={17} /></span></div></button>)}
         </div>
       </div>
     </div>
