@@ -25,7 +25,7 @@ const testimonials = [
 ];
 
 function GoldenVine() {
-  return <svg aria-hidden="true" viewBox="0 0 110 820" fill="none" className="pointer-events-none absolute left-1/2 top-0 z-20 hidden h-[820px] w-[110px] -translate-x-1/2 overflow-visible lg:block">
+  return <svg aria-hidden="true" viewBox="0 0 110 820" fill="none" className="pointer-events-none absolute left-[48%] top-0 z-20 hidden h-[820px] w-[110px] -translate-x-1/2 overflow-visible lg:block">
     <path d="M54 -10C55 62 48 106 57 153C66 200 75 234 60 278C45 322 33 354 46 402C59 450 72 483 59 529C46 575 37 611 51 659C61 695 65 745 54 830" stroke="#C99A4D" strokeWidth="1.25" strokeLinecap="round"/>
     <circle cx="55" cy="58" r="4" fill="#C99A4D"/><circle cx="62" cy="226" r="3.5" fill="#C99A4D"/><circle cx="43" cy="410" r="3.5" fill="#C99A4D"/><circle cx="58" cy="660" r="3.5" fill="#C99A4D"/>
     <path d="M61 250C75 239 85 239 91 224C78 226 67 233 61 250Z" stroke="#C99A4D" strokeWidth="1.1"/><path d="M59 258C75 259 82 269 88 281C74 278 65 271 59 258Z" stroke="#C99A4D" strokeWidth="1.1"/>
