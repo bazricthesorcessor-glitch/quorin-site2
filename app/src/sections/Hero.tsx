@@ -15,6 +15,25 @@ const categoryArt: Record<string, { src: string; position: string }> = {
 const getCategoryPreviewImage = (category: Category) => categoryArt[category.id]?.src ?? category.products[0]?.images_local?.[0] ?? category.products[0]?.images?.[0] ?? '';
 const getHeroImage = (index: number) => featuredProducts[index]?.images_local?.[0] ?? featuredProducts[index]?.images?.[0] ?? '';
 
+const extraCategoryCards = [
+  {
+    id: 'tools',
+    title: 'Tools',
+    eyebrow: 'Build with precision',
+    src: '/PHOTOS/Deburring tool/1.jpg',
+    search: 'tools',
+    position: 'center',
+  },
+  {
+    id: 'craft-supplies',
+    title: 'Craft Supplies',
+    eyebrow: 'Everything for making',
+    src: '/PHOTOS/GLITTER/bold party/1.webp',
+    search: 'craft',
+    position: 'center',
+  },
+];
+
 export default function Hero() {
   const navigate = useNavigate();
   const productImage = getHeroImage(0);
@@ -59,6 +78,7 @@ export default function Hero() {
         </div>
         <div className="grid grid-cols-1 gap-3 px-5 pb-7 md:grid-cols-3 md:px-8 lg:px-12 lg:pb-12">
           {featuredCategories.map((category) => { const art = categoryArt[category.id]; return <button type="button" key={category.id} onClick={() => navigate(`/category/${category.id}`)} className="group relative min-h-[210px] w-full overflow-hidden rounded-[20px] text-left shadow-[0_14px_30px_rgba(42,33,24,.13)] md:min-h-[260px]"><img src={getCategoryPreviewImage(category)} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" style={{ objectPosition: art?.position ?? 'center' }} /><div className="absolute inset-0 bg-gradient-to-t from-[rgba(25,18,12,.72)] via-[rgba(25,18,12,.1)] to-transparent" /><div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 text-white"><div><div className="text-[9px] uppercase tracking-[.28em] text-white/70">Explore collection</div><div className="mt-1 quorin-brand text-[1.7rem]">{category.title}</div></div><span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-[var(--color-text-primary)]"><ArrowRight size={18} /></span></div></button>; })}
+          {extraCategoryCards.map((category) => <button type="button" key={category.id} onClick={() => navigate(`/search?q=${encodeURIComponent(category.search)}`)} className="group relative min-h-[210px] w-full overflow-hidden rounded-[20px] text-left shadow-[0_14px_30px_rgba(42,33,24,.13)] md:min-h-[260px]"><img src={category.src} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.035]" style={{ objectPosition: category.position }} /><div className="absolute inset-0 bg-gradient-to-t from-[rgba(25,18,12,.76)] via-[rgba(25,18,12,.12)] to-transparent" /><div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-4 text-white"><div><div className="text-[9px] uppercase tracking-[.28em] text-white/70">{category.eyebrow}</div><div className="mt-1 quorin-brand text-[1.7rem]">{category.title}</div></div><span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-[var(--color-text-primary)]"><ArrowRight size={18} /></span></div></button>)}
         </div>
       </div>
     </div>
