@@ -1,0 +1,73 @@
+/* QUORIN mobile commerce convergence layer.
+   Keeps floating navigation, sticky purchase surfaces and mobile dialogs from
+   fighting for the same viewport space while preserving accessible motion. */
+
+:root {
+  --quorin-mobile-nav-height: 4.25rem;
+  --quorin-mobile-edge: 0.75rem;
+  --quorin-safe-bottom: max(var(--quorin-mobile-edge), env(safe-area-inset-bottom));
+  --quorin-mobile-nav-clearance: calc(var(--quorin-mobile-nav-height) + var(--quorin-safe-bottom) + 1rem);
+}
+
+@media (max-width: 767px) {
+  html {
+    scroll-padding-bottom: var(--quorin-mobile-nav-clearance);
+  }
+
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  [role='button'],
+  a {
+    touch-action: manipulation;
+  }
+
+  /* Product detail currently renders its own fixed purchase surface. Lift it
+     above the global floating nav without coupling the components together. */
+  body:has(a[href^='/product/']) {
+    --quorin-product-purchase-clearance: var(--quorin-mobile-nav-clearance);
+  }
+
+  /* Prevent content hidden behind floating commerce controls. */
+  main,
+  [data-commerce-scroll-region] {
+    scroll-margin-bottom: var(--quorin-mobile-nav-clearance);
+  }
+
+  /* Native dialogs/sheets receive safe-area breathing room even before their
+     component-specific convergence pass. */
+  [role='dialog'] {
+    max-height: calc(100dvh - env(safe-area-inset-top) - var(--quorin-safe-bottom));
+  }
+
+  [role='dialog'] > :last-child {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (pointer: coarse) {
+  button,
+  [role='button'] {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
