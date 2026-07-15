@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from 'react';
 import { BarChart3, Image as ImageIcon, ScrollText, Settings as SettingsIcon, UserCog } from 'lucide-react';
 import { adminApi } from '@/lib/adminApi';
 import { Card, EmptyState, ErrorState, Loading, PageHeader, StatCard } from '@/components/admin/AdminUI';
@@ -13,19 +14,19 @@ export const AdminCategoriesPage = () => <AdminCatalogGroupsPage mode="categorie
 export const AdminCollectionsPage = () => <AdminCatalogGroupsPage mode="collections" />;
 
 function useLoad<T>(loader: () => Promise<T>) {
-  const React = require('react') as typeof import('react');
-  const [state, setState] = React.useState<{ data: T | null; error: string | null; loading: boolean }>({ data: null, error: null, loading: true });
-  const load = React.useCallback(async () => {
+  const [state, setState] = useState<{ data: T | null; error: string | null; loading: boolean }>({ data: null, error: null, loading: true });
+  const load = useCallback(async () => {
     setState((current) => ({ ...current, error: null, loading: current.data === null }));
     try { setState({ data: await loader(), error: null, loading: false }); }
     catch (cause) { setState((current) => ({ ...current, error: cause instanceof Error ? cause.message : 'Something went wrong.', loading: false })); }
   }, [loader]);
-  React.useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); }, [load]);
   return { ...state, reload: load };
 }
 
 export function AdminCouponsPage() {
-  const { data, error, loading, reload } = useLoad(() => adminApi.listPromotions());
+  const loadPromotions = useCallback(() => adminApi.listPromotions(), []);
+  const { data, error, loading, reload } = useLoad(loadPromotions);
   if (loading) return <Loading label="Loading promotions…" />;
   if (error) return <ErrorState message={error} retry={reload} />;
   const promotions = data?.promotions ?? [];
@@ -33,9 +34,12 @@ export function AdminCouponsPage() {
 }
 
 export function AdminAnalyticsPage() {
-  const orders = useLoad(() => adminApi.listOrders({ limit: 100 }));
-  const products = useLoad(() => adminApi.listProducts({ limit: 200 }));
-  const customers = useLoad(() => adminApi.listCustomers({ limit: 100 }));
+  const loadOrders = useCallback(() => adminApi.listOrders({ limit: 100 }), []);
+  const loadProducts = useCallback(() => adminApi.listProducts({ limit: 200 }), []);
+  const loadCustomers = useCallback(() => adminApi.listCustomers({ limit: 100 }), []);
+  const orders = useLoad(loadOrders);
+  const products = useLoad(loadProducts);
+  const customers = useLoad(loadCustomers);
   if (orders.loading || products.loading || customers.loading) return <Loading label="Computing analytics…" />;
   const error = orders.error || products.error || customers.error;
   if (error) return <ErrorState message={error} retry={async () => { await Promise.all([orders.reload(), products.reload(), customers.reload()]); }} />;
