@@ -11,12 +11,26 @@ const categoryArt: Record<string, { src: string; position: string }> = {
   'resin-art': { src: '/resin_category.webp', position: 'center 42%' },
   'candle-making': { src: '/candle_category.webp', position: 'center 48%' },
   'soap-making': { src: '/soap_category.webp', position: 'center 50%' },
+  'tools': { src: '/tools-category.webp', position: 'center 38%' },
+  'craft-supplies': { src: '/craft-supplies.webp', position: 'center 40%' },
+
 };
 const getCategoryPreviewImage = (category: Category) => categoryArt[category.id]?.src ?? category.products[0]?.images_local?.[0] ?? category.products[0]?.images?.[0] ?? '';
 const productImage = (index: number) => featuredProducts[index]?.images_local?.[0] ?? featuredProducts[index]?.images?.[0] ?? '';
-const extraCategoryCards = [
-  { id: 'tools', title: 'Tools', subtitle: 'Explore Collection', src: '/tools-category.webp', search: 'tools', position: 'center', icon: Wrench },
-  { id: 'craft-supplies', title: 'Craft Supplies', subtitle: 'Explore Collection', src: '/craft-supplies.webp', search: 'craft', position: 'center', icon: PackageOpen },
+const categoryIconMap: Record<string, typeof Palette> = {
+  'resin-art': Palette, 'candle-making': Flame, 'soap-making': Sparkles,
+  'tools': Wrench, 'craft-supplies': PackageOpen,
+};
+
+const allCategoryCards = [
+  ...featuredCategories.map((cat) => ({
+    id: cat.id, title: cat.title, subtitle: 'Explore Collection',
+    src: getCategoryPreviewImage(cat), position: categoryArt[cat.id]?.position ?? 'center',
+    href: `/category/${cat.id}`, icon: categoryIconMap[cat.id],
+  })),
+  { id: 'tools', title: 'Tools', subtitle: 'Explore Collection', src: categoryArt['tools']!.src, position: categoryArt['tools']!.position, href: '/tools', icon: categoryIconMap['tools'] },
+  { id: 'craft-supplies', title: 'Craft Supplies', subtitle: 'Explore Collection', src: categoryArt['craft-supplies']!.src, position: categoryArt['craft-supplies']!.position, href: '/craft-supplies', icon: categoryIconMap['craft-supplies'] },
+
 ];
 const testimonials = [
   { quote: 'The quality is exceptional! My resin art has never looked this professional.', name: 'Priya Sharma', role: 'Resin Artist' },
@@ -38,11 +52,8 @@ function GoldenVine() {
 export default function Hero() {
   const navigate = useNavigate();
   const heroImage = '/hero-image.webp';
-  const categoryCards = [
-    ...featuredCategories.map((category, index) => ({ id: category.id, title: category.title, subtitle: 'Explore Collection', src: getCategoryPreviewImage(category), position: categoryArt[category.id]?.position ?? 'center', href: `/category/${category.id}`, icon: [Palette, Flame, Sparkles][index] })),
-    ...extraCategoryCards.map((category) => ({ ...category, href: `/search?q=${encodeURIComponent(category.search)}` })),
-  ];
-  return <section className="relative overflow-hidden pb-24 md:pb-10 md:pt-16">
+  const categoryCards = allCategoryCards;
+  return <section className="relative overflow-hidden pb-24 md:pb-10 pt-16">
     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(201,169,110,.12),transparent_28%),radial-gradient(circle_at_85%_30%,rgba(201,169,110,.08),transparent_26%)]" />
     <div className="relative mx-auto max-w-[1400px] px-3 pt-3 sm:px-4 md:px-8 md:pt-5">
       <div className="relative overflow-hidden rounded-[28px] border border-[rgba(232,226,217,.9)] bg-[rgba(255,252,247,.92)] shadow-[0_24px_70px_rgba(42,33,24,.08)]">

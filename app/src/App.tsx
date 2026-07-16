@@ -24,6 +24,11 @@ import ProductDetailPage from '@/pages/ProductDetailPage';
 import XpPage from '@/pages/XpPage';
 import WishlistPage from '@/pages/WishlistPage';
 import SearchPage from '@/pages/SearchPage';
+import NewArrivalsPage from '@/pages/NewArrivalsPage';
+import ToolsPage from '@/pages/ToolsPage';
+import CraftSuppliesPage from '@/pages/CraftSuppliesPage';
+import KitsPage from '@/pages/KitsPage';
+
 import AuthGoogleCallback from '@/pages/AuthGoogleCallback';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Toaster } from '@/components/ui/sonner';
@@ -1070,6 +1075,11 @@ export default function App() {
               element={<WishlistPage currentAccount={currentAccount} onToggleWishlist={toggleWishlist} onAddToCart={addToCart} categories={activeCategories} />}
             />
             <Route path="/search" element={<SearchPage onAddToCart={addToCart} onToggleWishlist={(p) => toggleWishlist(getProductId(p))} currentAccountWishlist={currentAccount?.wishlist} />} />
+            <Route path="/new-arrivals" element={<NewArrivalsPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} />} />
+            <Route path="/tools" element={<ToolsPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} />} />
+            <Route path="/craft-supplies" element={<CraftSuppliesPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} />} />
+            <Route path="/kits" element={<KitsPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} />} />
+
             <Route path="*" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} cartCount={cartCount} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
           </Routes>
 

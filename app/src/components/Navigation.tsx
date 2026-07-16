@@ -59,9 +59,8 @@ export default function Navigation({
   const isMobile = useIsMobile();
 
   const extraLinks = [
-    { title: 'Tools', onClick: () => navigate('/search?q=Tools') },
-    { title: 'Kits', onClick: () => navigate('/search?q=Kits') },
-    { title: 'New Arrivals', onClick: () => navigate('/search?q=new') },
+    { title: 'Kits', onClick: () => navigate('/kits') },
+    { title: 'New Arrivals', onClick: () => navigate('/new-arrivals') },
 
   ];
 
