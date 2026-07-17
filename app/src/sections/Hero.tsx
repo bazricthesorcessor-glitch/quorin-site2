@@ -43,13 +43,12 @@ function GoldenVine() {
     <>
       <svg aria-hidden="true" viewBox="0 0 120 860" fill="none" className="pointer-events-none absolute left-[41%] top-0 z-20 hidden h-[860px] w-[120px] -translate-x-1/2 overflow-visible lg:block">
         <path d="M58 -6C59 55 52 104 61 155C70 206 78 235 62 282C46 329 35 360 48 407C61 454 74 487 61 535C48 583 39 620 53 668C64 708 67 750 57 840" stroke="#C99A4D" strokeWidth="1.25" strokeLinecap="round"/>
-        <path d="M67 86C75 78 82 68 88 58C78 60 71 69 67 86Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
-        <path d="M47 203C39 198 31 190 26 181C36 183 42 190 47 203Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
-        <path d="M66 300C74 294 81 284 86 274C76 276 70 285 66 300Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
-        <path d="M47 395C39 391 32 384 26 375C36 377 42 384 47 395Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
-        <path d="M66 496C75 490 82 481 88 470C77 472 70 482 66 496Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
-        <path d="M47 599C39 595 32 588 26 579C36 581 42 588 47 599Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
-        <path d="M67 707C75 700 82 691 88 681C78 683 71 693 67 707Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
+        <path d="M66 112C72 103 79 96 86 90C79 90 72 96 66 112Z" stroke="#C99A4D" strokeWidth="1.05" strokeLinecap="round"/>
+        <path d="M48 232C40 226 34 219 29 211C37 212 43 219 48 232Z" stroke="#C99A4D" strokeWidth="1.05" strokeLinecap="round"/>
+        <path d="M66 344C73 336 80 329 87 323C80 323 73 329 66 344Z" stroke="#C99A4D" strokeWidth="1.05" strokeLinecap="round"/>
+        <path d="M48 462C40 456 34 449 29 441C37 442 43 449 48 462Z" stroke="#C99A4D" strokeWidth="1.05" strokeLinecap="round"/>
+        <path d="M66 575C73 567 80 560 87 554C80 554 73 560 66 575Z" stroke="#C99A4D" strokeWidth="1.05" strokeLinecap="round"/>
+        <path d="M48 690C40 684 34 677 29 669C37 670 43 677 48 690Z" stroke="#C99A4D" strokeWidth="1.05" strokeLinecap="round"/>
         <circle cx="58" cy="92" r="3.8" fill="#C99A4D"/>
         <circle cx="48" cy="298" r="3.4" fill="#C99A4D"/>
         <circle cx="61" cy="494" r="3.4" fill="#C99A4D"/>
