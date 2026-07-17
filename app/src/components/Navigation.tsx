@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router';
-import { Menu, X, ShoppingCart, UserRound, User, Package, MessageSquare, Zap, ArrowLeft, Shield, Heart, Search } from 'lucide-react';
+import { Menu, X, ShoppingCart, UserRound, User, Package, MessageSquare, Zap, ArrowLeft, Shield, Heart, Search, Sparkles, ShoppingBag } from 'lucide-react';
 import { quorinData } from '@/data/products';
 import { useMedusaCatalog } from '@/lib/useMedusaCatalog';
 import type { AccountRecord } from '@/data/accounts';
@@ -30,9 +30,11 @@ export default function Navigation({
 }: NavigationProps) {
   const navigate = useNavigate();
   const { categories: medusaCategories } = useMedusaCatalog();
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const navHideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastScrollY = useRef(0);
   const [loginOpen, setLoginOpen] = useState(false);
   const [loginMode, setLoginMode] = useState<'google' | 'email' | 'phone'>('google');
   const [otpSent, setOtpSent] = useState(false);
@@ -74,29 +76,27 @@ export default function Navigation({
   }, []);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (e.clientY < 80) {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setHasScrolled(currentScrollY > 100);
+
+      if (currentScrollY > lastScrollY.current + 5) {
         setIsVisible(true);
-      } else if (!menuOpen && e.clientY > 200) {
+      } else if (currentScrollY < lastScrollY.current - 5) {
         setIsVisible(false);
       }
+      lastScrollY.current = currentScrollY;
+
+      if (navHideTimer.current) clearTimeout(navHideTimer.current);
+      navHideTimer.current = setTimeout(() => setIsVisible(true), 2000);
     };
 
-    const handleScroll = () => {
-      setHasScrolled(window.scrollY > 100);
-      if (window.scrollY > 100) {
-        setIsVisible(true);
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('scroll', handleScroll);
-
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('scroll', handleScroll);
+      if (navHideTimer.current) clearTimeout(navHideTimer.current);
     };
-  }, [menuOpen]);
+  }, []);
 
   const openCategory = (id: string) => {
     navigate(`/category/${id}`);
@@ -231,15 +231,25 @@ export default function Navigation({
         navigate('/wishlist');
       }
     },
-     {
-       icon: MessageSquare,
-       label: 'Custom Requests',
-       onClick: () => {
-         setMenuOpen(false);
-         setCustomRequestText('');
-         setCustomRequestOpen(true);
-       },
-     },
+    {
+      icon: MessageSquare,
+      label: 'Custom Requests',
+      onClick: () => {
+        setMenuOpen(false);
+        setCustomRequestText('');
+        setCustomRequestOpen(true);
+      },
+    },
+    {
+      icon: ShoppingBag,
+      label: 'Kits',
+      onClick: () => { setMenuOpen(false); navigate('/kits'); },
+    },
+    {
+      icon: Sparkles,
+      label: 'New Arrivals',
+      onClick: () => { setMenuOpen(false); navigate('/new-arrivals'); },
+    },
     {
       icon: Zap,
       label: 'XP',
@@ -287,17 +297,22 @@ export default function Navigation({
     <>
       {/* Main Navigation */}
       <AnimatePresence>
-        {isVisible && !isMobile && (
+        {isVisible && (
           <motion.nav
             ref={navRef}
-            className="fixed top-0 left-0 right-0 z-40 px-6 py-4"
+            className="fixed top-0 left-0 right-0 z-40 px-3 pt-3 md:px-6 md:pt-4"
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -100, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           >
             <div
-              className="max-w-[1400px] mx-auto flex items-center justify-between px-6 py-3 rounded-2xl frosted-glass"
+              className="mx-auto flex items-center justify-between px-4 py-2.5 rounded-[30px]"
+              style={{
+                background: 'rgba(250, 246, 240, 0.92)',
+                border: '1px solid rgba(201, 169, 110, 0.22)',
+                boxShadow: '0 18px 40px rgba(42, 33, 24, 0.15), 0 0 0 1px rgba(255,255,255,0.35) inset',
+              }}
             >
               {/* Animated content: normal mode vs search mode */}
               <AnimatePresence mode="wait">
@@ -470,8 +485,7 @@ export default function Navigation({
                   }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => {
-                    setSearchMode(true);
-                    setTimeout(() => searchInputRef.current?.focus(), 100);
+                    navigate('/search');
                   }}
                 >
                   <Search size={18} style={{ color: 'var(--color-text-primary)' }} />

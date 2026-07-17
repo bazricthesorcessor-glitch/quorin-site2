@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Search, Heart, User, ShoppingBag } from 'lucide-react';
+import { Home, Sparkles, Package, User, ShoppingBag } from 'lucide-react';
 import type { AccountRecord } from '@/data/accounts';
 
 interface MobileNavigationProps {
@@ -22,38 +22,28 @@ export default function MobileNavigation({
   const navigate = useNavigate();
   const location = useLocation();
   const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Scroll detection to hide/show on scroll
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
-      // Don't trigger near top
-      if (currentScrollY < 10) {
-        setIsVisible(true);
-        setLastScrollY(currentScrollY);
-        return;
-      }
-
-      if (currentScrollY > lastScrollY && currentScrollY - lastScrollY > 10) {
-        setIsVisible(false); // scrolling down fast
-      } else if (lastScrollY - currentScrollY > 5) {
-        setIsVisible(true); // scrolling up
-      }
-      setLastScrollY(currentScrollY);
+      setIsVisible(false);
+      if (hideTimer.current) clearTimeout(hideTimer.current);
+      hideTimer.current = setTimeout(() => setIsVisible(true), 3000);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (hideTimer.current) clearTimeout(hideTimer.current);
+    };
+  }, []);
 
   const activeTab = (() => {
     const path = location.pathname;
     if (path === '/') return 'home';
-    if (path === '/search') return 'search';
-    if (path === '/wishlist') return 'wishlist';
-    if (path.startsWith('/product/')) return 'explore';
+    if (path === '/new-arrivals') return 'new-arrivals';
+    if (path.startsWith('/product/') || path === '/search') return 'explore';
+    if (path === '/kits') return 'kits';
     return '';
   })();
 
@@ -67,16 +57,9 @@ export default function MobileNavigation({
 
   const navItems = [
     { id: 'home', label: 'Home', icon: Home, onClick: () => navigate('/') },
-    { id: 'search', label: 'Search', icon: Search, onClick: () => navigate('/search') },
+    { id: 'new-arrivals', label: 'New Arrivals', icon: Sparkles, onClick: () => navigate('/new-arrivals') },
     { id: 'explore', label: 'Shop', icon: ShoppingBag, onClick: () => navigate('/search') },
-    { id: 'wishlist', label: 'Wishlist', icon: Heart, onClick: () => {
-        if (!currentAccount) {
-          onOpenLogin();
-        } else {
-          navigate('/wishlist');
-        }
-      } 
-    },
+    { id: 'kits', label: 'Kits', icon: Package, onClick: () => navigate('/kits') },
     { id: 'profile', label: 'Account', icon: User, onClick: handleProfileClick },
   ];
 
@@ -109,12 +92,13 @@ export default function MobileNavigation({
               <button
                 key={item.id}
                 onClick={item.onClick}
-                className="relative flex flex-col items-center justify-center py-1.5 px-3 rounded-xl cursor-pointer active:scale-90 transition-all duration-150"
+                className="relative flex flex-col items-center justify-center py-1.5 rounded-xl cursor-pointer active:scale-90 transition-all duration-150"
                 style={{
+                  padding: item.id === 'explore' ? '8px 0' : '6px 12px',
                   background: item.id === 'explore'
                     ? 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), rgba(201,169,110,0.95) 55%, rgba(201,169,110,0.85) 100%)'
                     : isActive ? 'rgba(201,169,110,0.10)' : 'transparent',
-                  transform: item.id === 'explore' ? 'translateY(-18px)' : 'none',
+                  transform: item.id === 'explore' ? 'translateY(-2px)' : 'none',
                   width: item.id === 'explore' ? 58 : undefined,
                   height: item.id === 'explore' ? 58 : undefined,
                   borderRadius: item.id === 'explore' ? '9999px' : undefined,
