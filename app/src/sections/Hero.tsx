@@ -43,13 +43,13 @@ function GoldenVine() {
     <>
       <svg aria-hidden="true" viewBox="0 0 120 860" fill="none" className="pointer-events-none absolute left-[41%] top-0 z-20 hidden h-[860px] w-[120px] -translate-x-1/2 overflow-visible lg:block">
         <path d="M58 -6C59 55 52 104 61 155C70 206 78 235 62 282C46 329 35 360 48 407C61 454 74 487 61 535C48 583 39 620 53 668C64 708 67 750 57 840" stroke="#C99A4D" strokeWidth="1.25" strokeLinecap="round"/>
-        <path d="M68 92C78 84 86 73 93 61C80 63 72 75 68 92Z" stroke="#C99A4D" strokeWidth="1.1"/>
-        <path d="M49 198C39 191 31 181 25 169C37 172 45 181 49 198Z" stroke="#C99A4D" strokeWidth="1.1"/>
-        <path d="M67 298C76 292 84 281 89 269C77 272 70 283 67 298Z" stroke="#C99A4D" strokeWidth="1.1"/>
-        <path d="M49 392C39 387 31 379 25 368C37 370 45 379 49 392Z" stroke="#C99A4D" strokeWidth="1.1"/>
-        <path d="M67 494C78 488 86 477 91 465C79 468 71 479 67 494Z" stroke="#C99A4D" strokeWidth="1.1"/>
-        <path d="M49 596C39 591 31 582 25 571C37 574 45 583 49 596Z" stroke="#C99A4D" strokeWidth="1.1"/>
-        <path d="M68 706C78 699 86 689 92 676C79 678 71 689 68 706Z" stroke="#C99A4D" strokeWidth="1.1"/>
+        <path d="M67 86C75 78 82 68 88 58C78 60 71 69 67 86Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
+        <path d="M47 203C39 198 31 190 26 181C36 183 42 190 47 203Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
+        <path d="M66 300C74 294 81 284 86 274C76 276 70 285 66 300Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
+        <path d="M47 395C39 391 32 384 26 375C36 377 42 384 47 395Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
+        <path d="M66 496C75 490 82 481 88 470C77 472 70 482 66 496Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
+        <path d="M47 599C39 595 32 588 26 579C36 581 42 588 47 599Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
+        <path d="M67 707C75 700 82 691 88 681C78 683 71 693 67 707Z" stroke="#C99A4D" strokeWidth="1.1" strokeLinecap="round"/>
         <circle cx="58" cy="92" r="3.8" fill="#C99A4D"/>
         <circle cx="48" cy="298" r="3.4" fill="#C99A4D"/>
         <circle cx="61" cy="494" r="3.4" fill="#C99A4D"/>
@@ -58,10 +58,10 @@ function GoldenVine() {
 
       <svg aria-hidden="true" viewBox="0 0 64 420" fill="none" className="pointer-events-none absolute right-2 top-14 z-20 h-[420px] w-[64px] overflow-visible lg:hidden">
         <path d="M31 0C34 46 25 74 33 111C41 148 47 177 34 208C21 239 13 268 22 304C31 340 39 370 29 420" stroke="#C99A4D" strokeWidth="1.2" strokeLinecap="round"/>
-        <path d="M36 68C44 62 49 53 53 43C45 45 39 53 36 68Z" stroke="#C99A4D" strokeWidth="1.05"/>
-        <path d="M27 155C20 150 15 142 11 132C20 134 25 141 27 155Z" stroke="#C99A4D" strokeWidth="1.05"/>
-        <path d="M36 247C44 241 49 233 53 223C45 225 39 233 36 247Z" stroke="#C99A4D" strokeWidth="1.05"/>
-        <path d="M27 335C20 330 15 322 11 312C20 314 25 321 27 335Z" stroke="#C99A4D" strokeWidth="1.05"/>
+        <path d="M35 62C42 56 47 48 51 39C43 41 38 48 35 62Z" stroke="#C99A4D" strokeWidth="1.05" strokeLinecap="round"/>
+        <path d="M26 153C20 149 15 143 12 136C20 137 24 143 26 153Z" stroke="#C99A4D" strokeWidth="1.05" strokeLinecap="round"/>
+        <path d="M35 245C42 239 47 232 51 223C43 225 38 232 35 245Z" stroke="#C99A4D" strokeWidth="1.05" strokeLinecap="round"/>
+        <path d="M26 336C20 332 15 326 12 319C20 320 24 326 26 336Z" stroke="#C99A4D" strokeWidth="1.05" strokeLinecap="round"/>
       </svg>
     </>
   );
