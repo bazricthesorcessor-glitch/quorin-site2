@@ -164,26 +164,6 @@ export default function Hero() {
         >
           EXPLORE COLLECTION
         </motion.button>
-
-        {/* Scroll indicator */}
-        <motion.div
-          className="mt-16"
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          <div
-            className="w-6 h-10 rounded-full flex items-start justify-center pt-2 mx-auto"
-            style={{ border: '1px solid var(--color-accent-medium)' }}
-          >
-            <motion.div
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ background: 'var(--color-accent)' }}
-              animate={{ y: [0, 12, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          </div>
-        </motion.div>
-
       </div>
     </section>
   );
