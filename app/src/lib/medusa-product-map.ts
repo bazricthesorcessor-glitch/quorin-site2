@@ -170,21 +170,6 @@ function mapFeatures(description: string | undefined): string[] | undefined {
 
 const TITLE_TO_LOCAL_ID_MAP: Record<string, string> = {
   "QUORIN Crystal Clear Epoxy Resin and Hardener Kit": "resin",
-  "Liquid Resin Pigment Combo Set": "resin-pigment",
-  "QUORIN Eco Tones Pigment Paste Set": "eco-cast",
-  "QUORIN Eco-Create Eco Resin": "eco-cast",
-  "QUORIN Resin Tools Kit": "deburring-tool",
-  "Quorin 15-Piece Resin Art Tool Kit": "resin-bubble-remover",
-  "QUORIN Hand Drill for Resin Art": "hand-drill",
-  "QUORIN Resin Art Tools Combo Kit": "combo-heat-tool",
-  "Resin Glitter for Epoxy Art": "glitter",
-  "Crushed Clear Glass for Resin Art": "crushed-glass",
-  "QUORIN Candle Colour Set": "candle-pigment",
-  "QUORIN Candle Wicks": "wick-combo",
-  "QUORIN Blow Torch Fire Gun": "jet-lighter",
-  "Premium Fragrance Oil Set": "fragrance-oil",
-  "Quorin DIY Soap Colouring Kit": "soap-dye",
-  "QUORIN Liquid Soap Colour Kit with Silicone Mold": "soap-dye-mould"
 };
 
 export function mapMedusaProduct(product: MedusaProduct): Product {

@@ -162,7 +162,7 @@ export default function AdminProductEditor({ onClose, onSaved, editProduct, cate
         tags: tagValues,
         categories: draft.categories.map((id) => ({ id })),
         collection_id: draft.collection_id || null,
-        images: draft.images.map((img) => ({ id: img.id })),
+        images: draft.images.map((img) => ({ url: img.url })),
         thumbnail: draft.thumbnail || null,
         metadata: { ...draft.metadata, seo_title: draft.seo_title, seo_description: draft.seo_description },
         variants: draft.variants.map((v) => ({
@@ -170,7 +170,6 @@ export default function AdminProductEditor({ onClose, onSaved, editProduct, cate
           title: v.title || 'Default',
           sku: v.sku || null,
           prices: v.price ? [{ currency_code: 'inr', amount: Math.round(Number(v.price) * 100) }] : [],
-          ...(v.id ? {} : { inventory_quantity: v.inventory ? Number(v.inventory) : 0, manage_inventory: true }),
         })),
         options: [{ title: 'Default', values: ['Default'] }],
       };

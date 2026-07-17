@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ShoppingCart, Heart, Minus, Plus, Star, ArrowRight, Maximize2, ExternalLink, Truck, ShieldCheck, RotateCcw, Gift } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Heart, Minus, Plus, Star, ArrowRight, Maximize2, ExternalLink, Truck, ShieldCheck, RotateCcw, Gift, Share2 } from 'lucide-react';
 import { quorinData, getProductId, type Category, type Product, type ProductReview } from '@/data/products';
 import FullscreenImageViewer from '@/components/FullscreenImageViewer';
 import type { AccountRecord } from '@/data/accounts';
@@ -142,16 +142,32 @@ export default function ProductDetailPage({ currentAccount, onAddToCart, openPre
   if (isMobile) {
     return (
       <div className="bg-[var(--color-background)] min-h-screen pb-32">
-        {/* Floating Header / Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="fixed top-4 left-4 z-40 p-3 rounded-full bg-black/60 text-white backdrop-blur-md shadow-md cursor-pointer"
-        >
-          <ArrowLeft size={18} />
-        </button>
+        {/* Floating Header */}
+        <div className="fixed top-4 left-4 right-4 z-40 flex items-center justify-between pointer-events-none">
+          <button
+            onClick={() => navigate(-1)}
+            className="pointer-events-auto p-3 rounded-full bg-black/55 text-white backdrop-blur-md shadow-md cursor-pointer"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div className="flex items-center gap-3 pointer-events-auto">
+            <button
+              onClick={() => navigator.share?.({ title: product.name, text: product.description, url: window.location.href })}
+              className="p-3 rounded-full bg-black/55 text-white backdrop-blur-md shadow-md cursor-pointer"
+            >
+              <Share2 size={18} />
+            </button>
+            <button
+              onClick={handleWishlistToggle}
+              className={`p-3 rounded-full backdrop-blur-md shadow-md cursor-pointer ${wishlist ? 'bg-white text-black' : 'bg-black/55 text-white'}`}
+            >
+              <Heart size={18} fill={wishlist ? 'currentColor' : 'none'} />
+            </button>
+          </div>
+        </div>
 
         {/* Swipable Image Gallery */}
-        <div className="relative w-full h-[45vh] bg-[var(--color-surface)] border-b border-[var(--color-border-subtle)]">
+        <div className="relative w-full h-[50vh] bg-[var(--color-surface)] border-b border-[var(--color-border-subtle)]">
           <div
             className="flex overflow-x-auto snap-x snap-mandatory h-full scrollbar-none scroll-smooth"
             onScroll={(e) => {
@@ -166,6 +182,24 @@ export default function ProductDetailPage({ currentAccount, onAddToCart, openPre
               </div>
             ))}
           </div>
+
+          {allImages.length > 1 && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 z-10">
+              {allImages.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveImage(idx)}
+                  className="w-4 h-4 rounded-full border-2 transition-transform"
+                  style={{
+                    background: idx === activeImage ? 'var(--color-accent)' : 'rgba(255,255,255,0.8)',
+                    borderColor: idx === activeImage ? 'white' : 'rgba(255,255,255,0.7)',
+                    transform: idx === activeImage ? 'scale(1.2)' : 'scale(1)',
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.18)',
+                  }}
+                />
+              ))}
+            </div>
+          )}
           
           {/* Indicator dots */}
           {allImages.length > 1 && (
@@ -209,6 +243,18 @@ export default function ProductDetailPage({ currentAccount, onAddToCart, openPre
                 </span>
               </>
             )}
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-6">
+            {['Starter Kit', 'Fast Cure', 'Beginner Friendly'].map((label) => (
+              <span
+                key={label}
+                className="px-3 py-1.5 rounded-full text-[11px] font-semibold"
+                style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-secondary)' }}
+              >
+                {label}
+              </span>
+            ))}
           </div>
 
           {/* Variant / Size selection */}

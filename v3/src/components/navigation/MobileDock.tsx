@@ -1,0 +1,2 @@
+import { Heart, Home, Search, ShoppingBag, UserRound } from "lucide-react";
+export function MobileDock(){return <nav className="mobile-dock" aria-label="Mobile navigation"><a href="/" aria-label="Home"><Home size={20}/></a><a href="/search" aria-label="Search"><Search size={20}/></a><a href="/wishlist" aria-label="Wishlist"><Heart size={20}/></a><a href="/bag" aria-label="Shopping bag"><ShoppingBag size={20}/></a><a href="/account" aria-label="Account"><UserRound size={20}/></a></nav>}

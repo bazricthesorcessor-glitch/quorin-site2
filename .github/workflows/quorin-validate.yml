@@ -1,0 +1,45 @@
+name: QUORIN Validate
+
+on:
+  push:
+    branches:
+      - quorin-v3-rebuild
+  pull_request:
+    paths:
+      - 'app/**'
+      - '.github/workflows/quorin-validate.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: quorin-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    name: App build and typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Production build
+        run: npm run build

@@ -34,12 +34,9 @@ async function setup() {
   });
   if (pbk.length === 0) {
     const [key] = await apiKeyModule.createApiKeys([{
+      title: "Storefront Key",
       token: "pk_d24dd21f67e355e5c0b962f86f8402379a26d67a85eab02334b201085f563b62",
-      name: "Storefront Key",
       created_by: "system",
-      listing_allowed: true,
-      retrieval_allowed: true,
-      authorization_cursor: {},
     }]);
     logger.info(`Created publishable API key: ${key.token}`);
     pbk = [key];

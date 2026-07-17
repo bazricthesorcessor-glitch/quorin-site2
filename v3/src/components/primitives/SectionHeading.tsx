@@ -1,0 +1,2 @@
+type SectionHeadingProps={eyebrow?:string;title:string;copy?:string;align?:"left"|"center"};
+export function SectionHeading({eyebrow,title,copy,align="center"}:SectionHeadingProps){return <div className={`section-heading section-heading--${align}`}>{eyebrow&&<p className="section-heading__eyebrow">{eyebrow}</p>}<h2 className="q-display section-heading__title">{title}</h2>{copy&&<p className="section-heading__copy">{copy}</p>}</div>}

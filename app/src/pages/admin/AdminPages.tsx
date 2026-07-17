@@ -4,11 +4,13 @@ import {
   ShoppingCart, Users, BarChart3, Image as ImageIcon, Settings as SettingsIcon,
   UserCog, ScrollText, Loader2, AlertCircle,
 } from 'lucide-react';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import {
   adminApi,
   type AdminCategory, type AdminCollection, type AdminOrder, type AdminCustomer,
   type AdminInventoryItem, type AdminPromotion,
 } from '@/lib/adminApi';
+import { loadAccounts, loadActivityLog } from '@/lib/quorinStore';
 import {
   PageHeader, Card, Loading, ErrorState, EmptyState, PrimaryButton, GhostButton, Badge, StatCard,
 } from '@/components/admin/AdminUI';
@@ -28,6 +30,17 @@ const useAsync = <T,>(fn: () => Promise<T>, deps: unknown[] = []) => {
 
 const slugify = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const fmtMoney = (amount: number) => `₹${amount.toFixed(0)}`;
+const fmtTimeAgo = (value: string) => {
+  const date = new Date(value);
+  const diff = date.getTime() - Date.now();
+  const absMinutes = Math.round(Math.abs(diff) / 60000);
+  if (absMinutes < 1) return 'just now';
+  if (absMinutes < 60) return `${absMinutes}m ${diff < 0 ? 'ago' : 'from now'}`;
+  const absHours = Math.round(absMinutes / 60);
+  if (absHours < 24) return `${absHours}h ${diff < 0 ? 'ago' : 'from now'}`;
+  const absDays = Math.round(absHours / 24);
+  return `${absDays}d ${diff < 0 ? 'ago' : 'from now'}`;
+};
 
 /* =================== Categories =================== */
 
@@ -460,7 +473,7 @@ export function AdminMediaPage() {
 /* =================== Settings =================== */
 
 export function AdminSettingsPage() {
-  const [form, setForm] = useState({ storeName: 'QUORIN', tagline: 'Made for Makers', supportEmail: 'support@quorin.com', currency: 'INR', country: 'India' });
+  const [form, setForm] = useState({ storeName: 'QUORIN', tagline: 'Made for Makers', supportEmail: 'support@quorin.in', currency: 'INR', country: 'India' });
   return (
     <div>
       <PageHeader title="Settings" subtitle="Store information and configuration" />
@@ -489,19 +502,87 @@ export function AdminSettingsPage() {
 /* =================== Admins & Activity (stubs) =================== */
 
 export function AdminAdminsPage() {
+  const { user } = useAdminAuth();
+  const admins = Object.values(loadAccounts()).filter((account) => account.profile.role === 'admin');
+
   return (
     <div>
-      <PageHeader title="Admins & Roles" subtitle="Manage administrative users" />
-      <Card><EmptyState title="Role management" description="Admin user creation and role assignment are handled through the Medusa backend. This page will surface those controls in a future update. The current admin session is authenticated against /admin/users/me." /></Card>
+      <PageHeader title="Admins & Roles" subtitle="Current admin session and local roster" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <h2 className="text-sm font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>Current Session</h2>
+          {user ? (
+            <div className="space-y-2 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+              <div className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{[user.first_name, user.last_name].filter(Boolean).join(' ') || user.email}</div>
+              <div>{user.email}</div>
+              <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Authenticated against the Medusa admin endpoint.</div>
+            </div>
+          ) : (
+            <EmptyState title="No active admin session" description="Sign in again to manage the admin panel." />
+          )}
+        </Card>
+        <Card>
+          <h2 className="text-sm font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>Local Admin Accounts</h2>
+          {admins.length === 0 ? (
+            <EmptyState title="No local admin accounts" description="Admin users are seeded through the backend or local account store." />
+          ) : (
+            <div className="space-y-3">
+              {admins.map((account) => (
+                <div key={account.profile.id} className="rounded-xl p-4" style={{ background: 'var(--color-ivory)', border: '1px solid var(--color-border-subtle)' }}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{account.profile.displayName}</div>
+                      <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{account.profile.email}</div>
+                    </div>
+                    <Badge tone="success">Admin</Badge>
+                  </div>
+                  <div className="mt-3 text-sm" style={{ color: 'var(--color-text-secondary)' }}>{account.profile.city || account.profile.address || 'No public profile details yet.'}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   );
 }
 
 export function AdminActivityPage() {
+  const activities = loadActivityLog();
+  const toneByType: Record<string, 'neutral' | 'success' | 'warning' | 'danger'> = {
+    auth: 'success',
+    catalog: 'neutral',
+    checkout: 'warning',
+    order: 'neutral',
+    profile: 'neutral',
+    theme: 'neutral',
+    system: 'danger',
+  };
+
   return (
     <div>
-      <PageHeader title="Activity Logs" subtitle="Audit trail of administrative actions" />
-      <Card><EmptyState title="No activity logged" description="A detailed audit trail of product, order, and settings changes will appear here in a future update." /></Card>
+      <PageHeader title="Activity Logs" subtitle="Recent catalog, profile, and checkout changes" />
+      {activities.length === 0 ? (
+        <Card><EmptyState title="No activity logged" description="As you edit products, profiles, and checkout state, the log will populate here." /></Card>
+      ) : (
+        <Card className="p-0 overflow-hidden">
+          <div className="divide-y" style={{ borderColor: 'var(--color-border-subtle)' }}>
+            {activities.map((entry) => (
+              <div key={entry.id} className="flex flex-col gap-2 p-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{entry.title}</div>
+                    <Badge tone={toneByType[entry.type] ?? 'neutral'}>{entry.type}</Badge>
+                  </div>
+                  <div className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>{entry.detail || 'No additional details provided.'}</div>
+                  {entry.actor ? <div className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>{entry.actor}</div> : null}
+                </div>
+                <div className="text-xs whitespace-nowrap" style={{ color: 'var(--color-text-muted)' }}>{fmtTimeAgo(entry.createdAt)}</div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
   checkoutLocks: 'quorin.checkoutLocks',
   clientFingerprint: 'quorin.clientFingerprint',
   currentAccountId: 'quorin.currentAccountId',
+  activityLog: 'quorin.activityLog',
   customRequests: 'quorin.customRequests',
   theme: 'quorin.theme',
 } as const;
@@ -34,6 +35,15 @@ export interface CustomRequestRecord {
   id: string;
   accountId: string;
   message: string;
+  createdAt: string;
+}
+
+export interface ActivityRecord {
+  id: string;
+  type: 'auth' | 'catalog' | 'checkout' | 'order' | 'profile' | 'theme' | 'system';
+  title: string;
+  detail?: string;
+  actor?: string;
   createdAt: string;
 }
 
@@ -151,4 +161,18 @@ export const appendCustomRequest = (entry: CustomRequestRecord) => {
   const next = [entry, ...loadCustomRequests()];
   writeJson(STORAGE_KEYS.customRequests, next);
   return next;
+};
+
+export const loadActivityLog = () =>
+  readJson<ActivityRecord[]>(STORAGE_KEYS.activityLog, []);
+
+export const appendActivityLog = (entry: Omit<ActivityRecord, 'id' | 'createdAt'> & { createdAt?: string }) => {
+  const next: ActivityRecord = {
+    id: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `activity-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    createdAt: entry.createdAt ?? new Date().toISOString(),
+    ...entry,
+  };
+  const nextLog = [next, ...loadActivityLog()].slice(0, 100);
+  writeJson(STORAGE_KEYS.activityLog, nextLog);
+  return nextLog;
 };

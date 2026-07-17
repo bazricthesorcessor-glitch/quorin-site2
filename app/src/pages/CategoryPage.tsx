@@ -1,36 +1,54 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import ProductShowcase from '@/sections/ProductShowcase';
+import BestSellersSection from '@/sections/BestSellersSection';
 import MobileProductCard from '@/components/MobileProductCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getProductId, type Category, type Product } from '@/data/products';
+
+const VIRTUAL_CATEGORIES: Record<string, { title: string; description: string; tag: string }> = {
+  tools: { title: 'Tools', description: 'Essential tools for resin, candle, and soap making.', tag: 'tools' },
+  'craft-supplies': { title: 'Craft Supplies', description: 'Pigments, glitters, moulds, and more for your creative projects.', tag: 'crafting' },
+  kits: { title: 'Kits', description: 'Complete starter kits and bundles to begin your creative journey.', tag: 'kit' },
+};
 
 interface CategoryPageProps {
   onAddToCart: (product: Product) => void;
   onPreview?: (product: Product) => void;
   categories: Category[];
+  onToggleWishlist?: (product: Product) => void;
+  currentAccountWishlist?: string[];
 }
 
-export default function CategoryPage({ onAddToCart, onPreview, categories }: CategoryPageProps) {
+export default function CategoryPage({ onAddToCart, onPreview, categories, onToggleWishlist, currentAccountWishlist }: CategoryPageProps) {
   const navigate = useNavigate();
   const { categoryId } = useParams();
   const isMobile = useIsMobile();
 
-  const category = useMemo(
-    () => categories.find((item) => item.id === categoryId),
-    [categories, categoryId]
-  );
+  const allProducts = useMemo(() => categories.flatMap((c) => c.products), [categories]);
 
-  useEffect(() => {
-    if (!category) {
-      navigate('/', { replace: true });
-    }
-  }, [category, navigate]);
+  const category = useMemo(() => {
+    const found = categories.find((item) => item.id === categoryId);
+    if (found) return found;
+    const virtual = VIRTUAL_CATEGORIES[categoryId ?? ''];
+    if (!virtual) return null;
+    return {
+      id: categoryId!,
+      title: virtual.title,
+      description: virtual.description,
+      products: allProducts.filter((p) => p.tags.some((t) => t.toLowerCase().includes(virtual.tag))),
+    };
+  }, [categories, categoryId, allProducts]);
 
   if (!category) {
-    return null;
+    return (
+      <main className="pt-28 max-w-7xl mx-auto px-4 md:px-8 text-center">
+        <h1 className="text-2xl font-semibold mb-4" style={{ color: 'var(--color-text-primary)' }}>Category not found</h1>
+        <button onClick={() => navigate('/')} className="text-sm underline" style={{ color: 'var(--color-accent)' }}>Go back home</button>
+      </main>
+    );
   }
 
   if (isMobile) {
@@ -38,7 +56,7 @@ export default function CategoryPage({ onAddToCart, onPreview, categories }: Cat
       <main className="pt-16 pb-24 bg-[var(--color-background)] min-h-screen">
         <section className="px-4 pb-6">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] mb-4 cursor-pointer"
           >
             <ArrowLeft size={14} /> Back
@@ -54,6 +72,8 @@ export default function CategoryPage({ onAddToCart, onPreview, categories }: Cat
               product={product}
               onAddToCart={onAddToCart}
               onClick={() => navigate(`/product/${getProductId(product)}`)}
+              onToggleWishlist={onToggleWishlist}
+              inWishlist={currentAccountWishlist?.includes(getProductId(product))}
             />
           ))}
         </div>
@@ -82,7 +102,9 @@ export default function CategoryPage({ onAddToCart, onPreview, categories }: Cat
         <p className="max-w-2xl" style={{ color: 'var(--color-text-muted)' }}>{category.description}</p>
       </section>
 
-      <ProductShowcase categoryId={category.id} onAddToCart={onAddToCart} onPreview={onPreview} categories={categories} />
+      <ProductShowcase categoryId={category.id} onAddToCart={onAddToCart} onPreview={onPreview} categories={[category as Category]} />
+
+      <BestSellersSection categories={categories} onAddToCart={onAddToCart} onPreview={onPreview} />
     </main>
   );
 }

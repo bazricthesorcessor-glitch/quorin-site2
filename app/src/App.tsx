@@ -17,9 +17,6 @@ import ProfileModal from '@/components/ProfileModal';
 import AdminCenter, { type AdminTheme } from '@/components/AdminCenter';
 import CustomCursor from '@/components/CustomCursor';
 import Hero from '@/sections/Hero';
-import CategorySection from '@/sections/CategorySection';
-import WhyShop from '@/sections/WhyShop';
-import HistorySection from '@/sections/History';
 import Footer from '@/sections/Footer';
 import ProductShowcase from '@/sections/ProductShowcase';
 import CategoryPage from '@/pages/CategoryPage';
@@ -27,9 +24,15 @@ import ProductDetailPage from '@/pages/ProductDetailPage';
 import XpPage from '@/pages/XpPage';
 import WishlistPage from '@/pages/WishlistPage';
 import SearchPage from '@/pages/SearchPage';
+import NewArrivalsPage from '@/pages/NewArrivalsPage';
+import ToolsPage from '@/pages/ToolsPage';
+import CraftSuppliesPage from '@/pages/CraftSuppliesPage';
+import KitsPage from '@/pages/KitsPage';
+
 import AuthGoogleCallback from '@/pages/AuthGoogleCallback';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Toaster } from '@/components/ui/sonner';
+import { Search, ArrowRight } from 'lucide-react';
 import { getProductId, quorinData, type Category, type Product } from '@/data/products';
 import {
   findAccountByIdentifierInAccounts,
@@ -41,6 +44,7 @@ import { getXpDiscountPercent, getXpLevel } from '@/data/xp';
 import { getCheckoutGiftOffer, getGiftDiscountForProduct, getGiftLockKey, redeemCheckoutGift } from '@/data/gifts';
 import { getCssVar } from '@/lib/theme';
 import {
+  appendActivityLog,
   loadAccounts,
   loadCatalog,
   loadCheckoutLocks,
@@ -156,6 +160,7 @@ interface HomeScreenProps {
   currentAccount: AccountRecord | null;
   onUpdateOrder: UpdateOrderFn;
   categories: Category[];
+  cartCount: number;
   productsById: Map<string, Product>;
   addToCart: (product: Product) => void;
   openPreview: (product: Product) => void;
@@ -164,67 +169,21 @@ interface HomeScreenProps {
   currentAccountWishlist?: string[];
 }
 
-function HomeScreen({ currentAccount, onUpdateOrder, categories, productsById, addToCart, openPreview, navigateToProduct, onToggleWishlist, currentAccountWishlist }: HomeScreenProps) {
+const getCategoryPreviewImage = (category: Category) => {
+  const product = category.products[0];
+  return product?.images_local?.[0] ?? product?.images?.[0] ?? '';
+};
+
+function HomeScreen({ currentAccount, onUpdateOrder, categories, cartCount, productsById, addToCart, openPreview, navigateToProduct, onToggleWishlist, currentAccountWishlist }: HomeScreenProps) {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
-
-  const activeProducts = useMemo(() => {
-    const allProds = categories.flatMap((c) => c.products);
-    if (!selectedCatId) return allProds;
-    return allProds.filter((p) => p.category === selectedCatId || p.category?.id === selectedCatId);
-  }, [selectedCatId, categories]);
+  const topCategories = categories.slice(0, 3);
 
   if (isMobile) {
     return (
-      <main className="bg-[var(--color-background)] min-h-screen pb-32">
+      <main>
         <Hero />
-        
-        {/* Horizontal Category Chips */}
-        <div className="px-4 py-2 sticky top-0 bg-[var(--color-background)]/90 backdrop-blur-md z-30 border-b border-[var(--color-border-subtle)]">
-          <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none py-1">
-            <button
-              onClick={() => setSelectedCatId(null)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all cursor-pointer ${
-                selectedCatId === null
-                  ? 'bg-black text-white'
-                  : 'bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-secondary)]'
-              }`}
-            >
-              All Supplies
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCatId(cat.id)}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider transition-all cursor-pointer ${
-                  selectedCatId === cat.id
-                    ? 'bg-black text-white'
-                    : 'bg-[var(--color-surface)] border border-[var(--color-border-subtle)] text-[var(--color-text-secondary)]'
-                }`}
-              >
-                {cat.title}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 2-Column Feed Grid */}
-        <div className="px-4 mt-6">
-          <h3 className="text-xs font-bold tracking-wider text-[var(--color-text-muted)] uppercase mb-4">
-            {selectedCatId ? categories.find(c => c.id === selectedCatId)?.title : 'All Supplies'} ({activeProducts.length})
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            {activeProducts.map((product, idx) => (
-              <MobileProductCard
-                key={`${product.name}-${idx}`}
-                product={product}
-                onAddToCart={addToCart}
-                onClick={() => navigate(`/product/${getProductId(product)}`)}
-              />
-            ))}
-          </div>
-        </div>
+        <Footer />
       </main>
     );
   }
@@ -232,14 +191,6 @@ function HomeScreen({ currentAccount, onUpdateOrder, categories, productsById, a
   return (
     <main>
       <Hero />
-      <CategorySection />
-      <WhyShop />
-      <ProductShowcase categories={categories} onAddToCart={addToCart} onPreview={openPreview} onNavigateToProduct={navigateToProduct} />
-      <HistorySection
-        currentAccount={currentAccount}
-        onUpdateOrder={onUpdateOrder}
-        productsById={productsById}
-      />
       <Footer />
     </main>
   );
@@ -394,6 +345,12 @@ export default function App() {
   useEffect(() => {
     console.log('[App] medusaCategories.length =', medusaCategories.length, 'categories:', medusaCategories.map(c => c.id));
   }, [medusaCategories]);
+
+  useEffect(() => {
+    const handleOpenCart = () => setCartOpen(true);
+    window.addEventListener('quorin:openCart', handleOpenCart);
+    return () => window.removeEventListener('quorin:openCart', handleOpenCart);
+  }, []);
 
   useEffect(() => {
     try {
@@ -714,6 +671,12 @@ export default function App() {
     mutator(nextCatalog);
     Object.assign(quorinData, nextCatalog);
     setCatalogVersion((value) => value + 1);
+    appendActivityLog({
+      type: 'catalog',
+      title: 'Catalog updated',
+      detail: `Catalog now includes ${nextCatalog.categories.length} categories.`,
+      actor: 'admin',
+    });
     await syncCatalogToMedusa();
     refetchMedusaCatalog();
   }, [syncCatalogToMedusa, refetchMedusaCatalog]);
@@ -722,6 +685,12 @@ export default function App() {
     quorinData.brand = nextTheme.brand;
     quorinData.tagline = nextTheme.tagline;
     setTheme(nextTheme);
+    appendActivityLog({
+      type: 'theme',
+      title: 'Brand theme updated',
+      detail: `${nextTheme.brand} visual settings saved.`,
+      actor: 'admin',
+    });
   }, []);
 
   const toggleAdminMode = useCallback(() => {
@@ -730,6 +699,14 @@ export default function App() {
   }, [currentAccount]);
 
   const signOut = () => {
+    if (currentAccount) {
+      appendActivityLog({
+        type: 'auth',
+        title: 'Customer signed out',
+        detail: currentAccount.profile.displayName,
+        actor: currentAccount.profile.email,
+      });
+    }
     setCurrentAccountId(null);
     setProfileOpen(false);
     setAdminOpen(false);
@@ -760,6 +737,12 @@ export default function App() {
         },
       },
     }));
+    appendActivityLog({
+      type: 'profile',
+      title: 'Profile updated',
+      detail: profile.displayName,
+      actor: profile.email,
+    });
     return { ok: true };
   };
 
@@ -777,6 +760,12 @@ export default function App() {
           orders: account.orders.map((order) => (order.id === orderId ? { ...order, ...patch } : order)),
         },
       };
+    });
+    appendActivityLog({
+      type: 'order',
+      title: 'Order updated',
+      detail: orderId,
+      actor: currentAccount?.profile.email,
     });
   };
 
@@ -803,6 +792,13 @@ export default function App() {
       [lockKey]: true,
     }));
 
+    appendActivityLog({
+      type: 'checkout',
+      title: 'Checkout gift redeemed',
+      detail: giftOffer.source,
+      actor: currentAccount.profile.email,
+    });
+
     setCartOpen(false);
   };
 
@@ -815,6 +811,12 @@ export default function App() {
       const account = findAccountByIdentifierInAccounts(accounts, identifier);
       if (account && account.password === password) {
         setCurrentAccountId(account.profile.id);
+        appendActivityLog({
+          type: 'auth',
+          title: 'Customer signed in',
+          detail: account.profile.displayName,
+          actor: account.profile.email,
+        });
         return { ok: true };
       }
       return { ok: false, message: 'Invalid email or password.' };
@@ -851,6 +853,12 @@ export default function App() {
           },
         }));
         setCurrentAccountId(id);
+        appendActivityLog({
+          type: 'auth',
+          title: 'Medusa customer linked',
+          detail: customer.email,
+          actor: customer.email,
+        });
       }
     } catch {
       // Medusa customer fetch failed
@@ -1049,14 +1057,14 @@ export default function App() {
           {/* Main Content */}
           <Routes>
             <Route path="/auth/google/callback" element={<AuthGoogleCallback />} />
-            <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
+            <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} cartCount={cartCount} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
             <Route
               path="/product/:productId"
               element={<ProductDetailPage currentAccount={currentAccount} onAddToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} categories={activeCategories} />}
             />
             <Route
               path="/category/:categoryId"
-              element={<CategoryPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} />}
+              element={<CategoryPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} onToggleWishlist={(p) => toggleWishlist(getProductId(p))} currentAccountWishlist={currentAccount?.wishlist} />}
             />
             <Route
               path="/xp"
@@ -1066,8 +1074,13 @@ export default function App() {
               path="/wishlist"
               element={<WishlistPage currentAccount={currentAccount} onToggleWishlist={toggleWishlist} onAddToCart={addToCart} categories={activeCategories} />}
             />
-            <Route path="/search" element={<SearchPage onAddToCart={addToCart} />} />
-            <Route path="*" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
+            <Route path="/search" element={<SearchPage onAddToCart={addToCart} onToggleWishlist={(p) => toggleWishlist(getProductId(p))} currentAccountWishlist={currentAccount?.wishlist} />} />
+            <Route path="/new-arrivals" element={<NewArrivalsPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} />} />
+            <Route path="/tools" element={<ToolsPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} />} />
+            <Route path="/craft-supplies" element={<CraftSuppliesPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} />} />
+            <Route path="/kits" element={<KitsPage onAddToCart={addToCart} onPreview={openPreview} categories={activeCategories} />} />
+
+            <Route path="*" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} cartCount={cartCount} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
           </Routes>
 
           <ProductPreview
