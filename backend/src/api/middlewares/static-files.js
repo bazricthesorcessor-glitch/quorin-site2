@@ -1,4 +1,4 @@
-const CORS_ORIGIN = (process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:3000").split(",");
+const CORS_ORIGIN = (process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:3000,https://quorin.in,https://www.quorin.in").split(",");
 
 module.exports = (req, res, next) => {
   if (req.path.startsWith("/static/") || req.path.startsWith("/uploads/")) {

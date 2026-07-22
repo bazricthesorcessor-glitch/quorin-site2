@@ -31,7 +31,7 @@ const CATEGORY_INFO: Record<string, { title: string; description: string }> = {
 };
 
 const defaultImage = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" fill="#F8F5EF"><rect width="400" height="400"/><text x="200" y="200" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" font-size="48" fill="#C9A96E">Q</text></svg>')}`;
-const MEDUSA_BACKEND_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'http://localhost:9000';
+const MEDUSA_BACKEND_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'https://api.quorin.in';
 
 interface MedusaCalculatedPrice {
   calculated_amount: number;
