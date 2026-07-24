@@ -15,6 +15,12 @@ interface NavigationProps {
   onHomeClick?: () => void;
   currentAccount: AccountRecord | null;
   onAuthenticate: (identifier: string, password: string) => Promise<{ ok: boolean; message?: string }>;
+  onRegister: (data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+  }) => Promise<{ ok: boolean; message?: string }>;
   onOpenProfile: () => void;
   onToggleAdminMode: () => void;
 }
@@ -25,6 +31,7 @@ export default function Navigation({
   onHomeClick,
   currentAccount,
   onAuthenticate,
+  onRegister,
   onOpenProfile,
   onToggleAdminMode,
 }: NavigationProps) {
@@ -43,6 +50,11 @@ export default function Navigation({
   const [phoneNumber, setPhoneNumber] = useState('');
   const [emailAddress, setEmailAddress] = useState('');
   const [emailPassword, setEmailPassword] = useState('');
+  const [emailAuthMode, setEmailAuthMode] = useState<'login' | 'register'>('login');
+  const [registerFirstName, setRegisterFirstName] = useState('');
+  const [registerLastName, setRegisterLastName] = useState('');
+  const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
+  const [authSubmitting, setAuthSubmitting] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [accessNotice, setAccessNotice] = useState<string | null>(null);
   const [activeSigil, setActiveSigil] = useState<string | null>(null);
@@ -158,16 +170,74 @@ export default function Navigation({
   };
 
   const handleEmailLogin = async () => {
-    const result = await onAuthenticate(emailAddress.trim(), emailPassword.trim());
-
-    if (!result.ok) {
-      setLoginError(result.message ?? 'Login failed.');
+    if (!emailAddress.trim() || !emailPassword) {
+      setLoginError('Enter your email address and password.');
       return;
     }
 
+    setAuthSubmitting(true);
     setLoginError(null);
-    setLoginOpen(false);
-    onOpenProfile();
+
+    try {
+      const result = await onAuthenticate(
+        emailAddress.trim(),
+        emailPassword
+      );
+
+      if (!result.ok) {
+        setLoginError(result.message ?? 'Login failed.');
+        return;
+      }
+
+      setLoginOpen(false);
+      onOpenProfile();
+    } finally {
+      setAuthSubmitting(false);
+    }
+  };
+
+  const handleEmailRegistration = async () => {
+    if (
+      !registerFirstName.trim() ||
+      !registerLastName.trim() ||
+      !emailAddress.trim() ||
+      !emailPassword
+    ) {
+      setLoginError('Complete all registration fields.');
+      return;
+    }
+
+    if (emailPassword.length < 6) {
+      setLoginError('Password must contain at least 6 characters.');
+      return;
+    }
+
+    if (emailPassword !== registerConfirmPassword) {
+      setLoginError('Passwords do not match.');
+      return;
+    }
+
+    setAuthSubmitting(true);
+    setLoginError(null);
+
+    try {
+      const result = await onRegister({
+        firstName: registerFirstName.trim(),
+        lastName: registerLastName.trim(),
+        email: emailAddress.trim(),
+        password: emailPassword,
+      });
+
+      if (!result.ok) {
+        setLoginError(result.message ?? 'Registration failed.');
+        return;
+      }
+
+      setLoginOpen(false);
+      onOpenProfile();
+    } finally {
+      setAuthSubmitting(false);
+    }
   };
 
   const saveCustomRequest = (message: string) => {
@@ -856,13 +926,34 @@ export default function Navigation({
                 </div>
               ) : loginMode === 'email' ? (
                 <div className="space-y-3">
+                  {emailAuthMode === 'register' && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        className="w-full rounded-xl px-4 py-3 outline-none"
+                        placeholder="First name"
+                        value={registerFirstName}
+                        onChange={(e) => setRegisterFirstName(e.target.value)}
+                        style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
+                      />
+                      <input
+                        className="w-full rounded-xl px-4 py-3 outline-none"
+                        placeholder="Last name"
+                        value={registerLastName}
+                        onChange={(e) => setRegisterLastName(e.target.value)}
+                        style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
+                      />
+                    </div>
+                  )}
+
                   <input
                     className="w-full rounded-xl px-4 py-3 outline-none"
-                    placeholder="Email address or account ID"
+                    placeholder="Email address"
+                    type="email"
                     value={emailAddress}
                     onChange={(e) => setEmailAddress(e.target.value)}
                     style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
                   />
+
                   <input
                     className="w-full rounded-xl px-4 py-3 outline-none"
                     placeholder="Password"
@@ -871,15 +962,55 @@ export default function Navigation({
                     onChange={(e) => setEmailPassword(e.target.value)}
                     style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
                   />
+
+                  {emailAuthMode === 'register' && (
+                    <input
+                      className="w-full rounded-xl px-4 py-3 outline-none"
+                      placeholder="Confirm password"
+                      type="password"
+                      value={registerConfirmPassword}
+                      onChange={(e) => setRegisterConfirmPassword(e.target.value)}
+                      style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
+                    />
+                  )}
+
                   <button
-                    className="w-full rounded-xl px-4 py-3 text-sm tracking-wider"
+                    type="button"
+                    disabled={authSubmitting}
+                    className="w-full rounded-xl px-4 py-3 text-sm tracking-wider disabled:opacity-60"
                     style={{
                       background: 'var(--color-accent)',
                       color: 'white',
                     }}
-                    onClick={handleEmailLogin}
+                    onClick={
+                      emailAuthMode === 'login'
+                        ? handleEmailLogin
+                        : handleEmailRegistration
+                    }
                   >
-                    Continue with Email
+                    {authSubmitting
+                      ? 'Please wait...'
+                      : emailAuthMode === 'login'
+                        ? 'Continue with Email'
+                        : 'Create Account'}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="w-full text-center text-sm underline underline-offset-4"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                    onClick={() => {
+                      setLoginError(null);
+                      setEmailPassword('');
+                      setRegisterConfirmPassword('');
+                      setEmailAuthMode(
+                        emailAuthMode === 'login' ? 'register' : 'login'
+                      );
+                    }}
+                  >
+                    {emailAuthMode === 'login'
+                      ? 'New to QUORIN? Create account'
+                      : 'Already have an account? Sign in'}
                   </button>
                 </div>
               ) : (

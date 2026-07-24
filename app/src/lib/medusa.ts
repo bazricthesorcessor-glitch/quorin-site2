@@ -163,19 +163,39 @@ export const medusaApi = {
     }
   },
 
-  async createCustomer(data: { email: string; password: string }) {
+  async createCustomer(data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+  }) {
     try {
-      const token = await ensureClient().auth.register("customer", "emailpass", {
-        email: data.email,
-        password: data.password,
-      });
-      // Now create customer with token
+      const token = await ensureClient().auth.register(
+        "customer",
+        "emailpass",
+        {
+          email: data.email,
+          password: data.password,
+        }
+      );
+
+      if (typeof token !== "string") {
+        throw new Error("Registration requires additional authentication steps.");
+      }
+
       const { customer } = await ensureClient().store.customer.create(
-        { email: data.email },
+        {
+          email: data.email,
+          first_name: data.firstName,
+          last_name: data.lastName,
+        },
         {},
         { Authorization: `Bearer ${token}` }
       );
-      return { success: true, customer };
+
+      localStorage.setItem("medusa_auth_token", token);
+
+      return { success: true, customer, token };
     } catch (error) {
       console.error("Error creating customer:", error);
       throw error;

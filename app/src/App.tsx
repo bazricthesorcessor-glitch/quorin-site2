@@ -859,6 +859,35 @@ export default function App() {
     return { ok: true };
   }, [accounts]);
 
+  const registerCustomer = useCallback(async (data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+  }) => {
+    try {
+      await medusaApi.createCustomer(data);
+
+      const loginResult = await authenticate(data.email, data.password);
+
+      if (!loginResult.ok) {
+        return {
+          ok: false,
+          message: loginResult.message ?? "Account created, but login failed.",
+        };
+      }
+
+      return { ok: true };
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not create your account.";
+
+      return { ok: false, message };
+    }
+  }, [authenticate]);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
     lenisRef.current?.scrollTo(0, { immediate: true });
@@ -1011,6 +1040,7 @@ export default function App() {
               onCartClick={() => setCartOpen(true)}
               currentAccount={currentAccount}
               onAuthenticate={authenticate}
+              onRegister={registerCustomer}
               onOpenProfile={() => setProfileOpen(true)}
               onToggleAdminMode={toggleAdminMode}
               onHomeClick={() => {
