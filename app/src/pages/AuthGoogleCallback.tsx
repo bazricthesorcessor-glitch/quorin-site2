@@ -1,87 +1,123 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { medusaApi } from '@/lib/medusa';
-import { saveAccounts, saveCurrentAccountId, loadAccounts } from '@/lib/quorinStore';
+import {
+  saveAccounts,
+  saveCurrentAccountId,
+  loadAccounts,
+} from '@/lib/quorinStore';
 import type { AccountRecord } from '@/data/accounts';
 
 export default function AuthGoogleCallback() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const code = searchParams.get('code');
-    const state = searchParams.get('state');
+    let cancelled = false;
 
-    if (!code || !state) {
-      setError('Missing authentication parameters.');
-      return;
-    }
-
-    (async () => {
+    const finishGoogleLogin = async () => {
       try {
-        const { token, user } = await medusaApi.googleAuthCallback(code, state);
+        const search = window.location.search;
 
-        const { customer } = await medusaApi.getOrCreateCustomerFromGoogleAuth(
-          token,
-          user
-        );
+        if (!search.includes('code=') || !search.includes('state=')) {
+          throw new Error('Missing Google authentication parameters.');
+        }
+
+        const { customer, user } =
+          await medusaApi.googleAuthCallback(search);
+
+        if (cancelled) return;
 
         const existingAccounts = loadAccounts();
+        const existing = existingAccounts[customer.id];
+
         const accountRecord: AccountRecord = {
-          password: '',
+          password: existing?.password ?? '',
           profile: {
             id: customer.id,
-            role: 'customer' as const,
-            displayName: user.name || customer.email,
+            role: 'customer',
+            displayName:
+              user.name ||
+              [
+                customer.first_name,
+                customer.last_name,
+              ]
+                .filter(Boolean)
+                .join(' ') ||
+              customer.email,
             email: customer.email,
-            phone: customer.phone ?? '',
-            address: '',
-            city: '',
-            bio: '',
+            phone:
+              customer.phone ??
+              existing?.profile.phone ??
+              '',
+            address:
+              existing?.profile.address ??
+              '',
+            city:
+              existing?.profile.city ??
+              '',
+            bio:
+              existing?.profile.bio ??
+              '',
           },
-          orders: [],
-          giftUsage: {
-            level10GiftRedeemed: false,
-            birthdayGiftYears: [],
-            birthdayChangeYears: [],
-          },
-          wishlist: [],
+          orders: existing?.orders ?? [],
+          giftUsage:
+            existing?.giftUsage ?? {
+              level10GiftRedeemed: false,
+              birthdayGiftYears: [],
+              birthdayChangeYears: [],
+            },
+          wishlist: existing?.wishlist ?? [],
         };
 
         saveAccounts({
           ...existingAccounts,
           [customer.id]: accountRecord,
         });
-        saveCurrentAccountId(customer.id);
 
-        window.location.href = '/';
+        saveCurrentAccountId(customer.id);
+        window.location.replace('/');
       } catch (err) {
         console.error('Google auth callback error:', err);
-        setError(
-          err instanceof Error ? err.message : 'Authentication failed.'
-        );
+
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Google authentication failed.'
+          );
+        }
       }
-    })();
-  }, [searchParams, navigate]);
+    };
+
+    finishGoogleLogin();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (error) {
     return (
       <div
-        className="flex items-center justify-center min-h-screen"
+        className="flex min-h-screen items-center justify-center px-6"
         style={{ background: 'var(--color-bg)' }}
       >
-        <div className="text-center space-y-4">
-          <p style={{ color: 'var(--color-text-primary)' }}>{error}</p>
+        <div className="space-y-4 text-center">
+          <p style={{ color: 'var(--color-text-primary)' }}>
+            {error}
+          </p>
+
           <button
-            className="rounded-xl px-6 py-2 text-sm tracking-wider"
+            type="button"
+            className="rounded-xl px-6 py-3 text-sm tracking-wider"
             style={{
               background: 'var(--color-accent)',
               color: 'white',
             }}
             onClick={() => navigate('/')}
           >
-            Go Home
+            Return Home
           </button>
         </div>
       </div>
@@ -90,7 +126,7 @@ export default function AuthGoogleCallback() {
 
   return (
     <div
-      className="flex items-center justify-center min-h-screen"
+      className="flex min-h-screen items-center justify-center"
       style={{ background: 'var(--color-bg)' }}
     >
       <p style={{ color: 'var(--color-text-muted)' }}>
