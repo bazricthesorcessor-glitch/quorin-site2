@@ -1,32 +1,128 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { medusaApi } from '@/lib/medusa';
+import {
+  saveAccounts,
+  saveCurrentAccountId,
+  loadAccounts,
+} from '@/lib/quorinStore';
+
+const MEDUSA_BACKEND_URL =
+  import.meta.env.VITE_MEDUSA_BACKEND_URL || 'http://localhost:9000';
+const PUBLISHABLE_KEY =
+  import.meta.env.VITE_MEDUSA_PUBLISHABLE_KEY || '';
 
 /**
  * GoogleCallback Component
- * 
- * Extracts the 'code' parameter from the Google OAuth callback URL using useLocation
- * and redirects the user to the home page ('/') after a 2-second delay using useNavigate.
+ *
+ * Extracts the 'code' query parameter from the URL using useLocation,
+ * sends a POST request with credentials: 'include' to the backend OAuth endpoint,
+ * and navigates to '/' on success or '/login' on failure.
  */
 export default function GoogleCallback() {
   const location = useLocation();
   const navigate = useNavigate();
-
-  // Read the 'code' parameter from URL search parameters
-  const code = useMemo(() => {
-    const searchParams = new URLSearchParams(location.search);
-    return searchParams.get('code');
-  }, [location.search]);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const authAttempted = useRef(false);
 
   useEffect(() => {
-    // Redirect to home page after 2 seconds (2000 ms)
-    const timer = setTimeout(() => {
-      navigate('/');
-    }, 2000);
+    // Prevent duplicate requests during React StrictMode renders
+    if (authAttempted.current) return;
+    authAttempted.current = true;
 
-    return () => {
-      clearTimeout(timer);
+    const handleGoogleAuth = async () => {
+      try {
+        const searchParams = new URLSearchParams(location.search);
+        const code = searchParams.get('code');
+
+        if (!code) {
+          throw new Error("Missing 'code' query parameter in Google callback URL.");
+        }
+
+        const endpoint = `${MEDUSA_BACKEND_URL}/auth/customer/google/callback${location.search}`;
+
+        // Send POST request with credentials: 'include' to preserve session cookies
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(PUBLISHABLE_KEY ? { 'x-publishable-api-key': PUBLISHABLE_KEY } : {}),
+          },
+          credentials: 'include',
+          body: JSON.stringify({ code }),
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(
+            errData.message ||
+              `Authentication failed with backend status ${response.status}`
+          );
+        }
+
+        const data = await response.json();
+
+        // Save token to localStorage & client if provided
+        if (data?.token) {
+          localStorage.setItem('medusa_auth_token', data.token);
+        }
+
+        // Sync customer account into quorinStore if customer data is available
+        try {
+          if (medusaApi && typeof medusaApi.googleAuthCallback === 'function') {
+            const authResult = await medusaApi.googleAuthCallback(location.search);
+            if (authResult?.customer) {
+              const existingAccounts = loadAccounts();
+              const existing = existingAccounts[authResult.customer.id];
+              const accountRecord = {
+                password: existing?.password ?? '',
+                profile: {
+                  id: authResult.customer.id,
+                  role: 'customer',
+                  displayName:
+                    authResult.user?.name ||
+                    [authResult.customer.first_name, authResult.customer.last_name]
+                      .filter(Boolean)
+                      .join(' ') ||
+                    authResult.customer.email,
+                  email: authResult.customer.email,
+                  phone: authResult.customer.phone ?? existing?.profile?.phone ?? '',
+                  address: existing?.profile?.address ?? '',
+                  city: existing?.profile?.city ?? '',
+                  bio: existing?.profile?.bio ?? '',
+                },
+                orders: existing?.orders ?? [],
+                giftUsage: existing?.giftUsage ?? {
+                  level10GiftRedeemed: false,
+                  birthdayGiftYears: [],
+                  birthdayChangeYears: [],
+                },
+                wishlist: existing?.wishlist ?? [],
+              };
+
+              saveAccounts({
+                ...existingAccounts,
+                [authResult.customer.id]: accountRecord,
+              });
+              saveCurrentAccountId(authResult.customer.id);
+            }
+          }
+        } catch (storeError) {
+          console.warn('Profile sync warning:', storeError);
+        }
+
+        // Only navigate to '/' AFTER the backend successfully responds
+        navigate('/');
+      } catch (error) {
+        console.error('Google OAuth callback error:', error);
+        setErrorMessage(error.message || 'Authentication failed');
+        // Navigate to /login on error
+        navigate('/login');
+      }
     };
-  }, [navigate]);
+
+    handleGoogleAuth();
+  }, [location.search, navigate]);
 
   return (
     <div
@@ -59,14 +155,8 @@ export default function GoogleCallback() {
         </h2>
 
         <p className="text-sm text-stone-600 mb-3">
-          Verifying your credentials and redirecting to the store...
+          {errorMessage ? errorMessage : 'Completing sign in with backend and redirecting...'}
         </p>
-
-        {code && (
-          <p className="text-xs text-stone-400 font-mono truncate max-w-full">
-            Auth Code Received
-          </p>
-        )}
       </div>
     </div>
   );
