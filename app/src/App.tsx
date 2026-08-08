@@ -29,7 +29,7 @@ import ToolsPage from '@/pages/ToolsPage';
 import CraftSuppliesPage from '@/pages/CraftSuppliesPage';
 import KitsPage from '@/pages/KitsPage';
 
-import AuthGoogleCallback from '@/pages/AuthGoogleCallback';
+import GoogleCallback from '@/pages/GoogleCallback';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Toaster } from '@/components/ui/sonner';
 import { Search, ArrowRight } from 'lucide-react';
@@ -1086,7 +1086,7 @@ export default function App() {
 
           {/* Main Content */}
           <Routes>
-            <Route path="/auth/google/callback" element={<AuthGoogleCallback />} />
+            <Route path="/auth/google/callback" element={<GoogleCallback />} />
             <Route path="/" element={<HomeScreen currentAccount={currentAccount} onUpdateOrder={updateCurrentOrder} categories={activeCategories} cartCount={cartCount} productsById={productsById} addToCart={addToCart} openPreview={openPreview} onToggleWishlist={toggleWishlist} currentAccountWishlist={currentAccount?.wishlist} />} />
             <Route
               path="/product/:productId"
