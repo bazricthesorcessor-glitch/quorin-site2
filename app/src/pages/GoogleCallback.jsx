@@ -5,7 +5,7 @@ import { useLocation, useNavigate } from 'react-router';
  * GoogleCallback Component
  * 
  * Extracts the 'code' parameter from the Google OAuth callback URL using useLocation
- * and redirects the user to the home page ('/') after a 1.5-second delay using useNavigate.
+ * and redirects the user to the home page ('/') after a 2-second delay using useNavigate.
  */
 export default function GoogleCallback() {
   const location = useLocation();
@@ -18,10 +18,10 @@ export default function GoogleCallback() {
   }, [location.search]);
 
   useEffect(() => {
-    // Redirect to home page after 1.5 seconds (1500 ms)
+    // Redirect to home page after 2 seconds (2000 ms)
     const timer = setTimeout(() => {
       navigate('/');
-    }, 1500);
+    }, 2000);
 
     return () => {
       clearTimeout(timer);
