@@ -1,11 +1,25 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/medusa";
 import scrypt from "scrypt-kdf";
 
+const setCorsHeaders = (req: MedusaRequest, res: MedusaResponse) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  } else {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-publishable-api-key");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+};
+
 export async function OPTIONS(req: MedusaRequest, res: MedusaResponse) {
+  setCorsHeaders(req, res);
   return res.status(200).end();
 }
 
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
+  setCorsHeaders(req, res);
   const { email, code, newPassword } = req.body;
   if (!email || !code || !newPassword) {
     return res.status(400).json({ message: "Missing fields" });
