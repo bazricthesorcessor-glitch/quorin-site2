@@ -1,5 +1,9 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/medusa";
 
+export async function OPTIONS(req: MedusaRequest, res: MedusaResponse) {
+  return res.status(200).end();
+}
+
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const { email } = req.body;
   if (!email) {
@@ -42,7 +46,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev", // Resend default test email
+        from: "QUORIN Support <onboarding@resend.dev>", // Must use onboarding@resend.dev until custom domain is verified
         to: email,
         subject: "Your QUORIN Password Reset Code",
         html: `

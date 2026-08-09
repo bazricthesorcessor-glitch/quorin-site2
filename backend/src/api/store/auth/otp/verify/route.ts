@@ -1,6 +1,10 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/medusa";
 import scrypt from "scrypt-kdf";
 
+export async function OPTIONS(req: MedusaRequest, res: MedusaResponse) {
+  return res.status(200).end();
+}
+
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const { email, code, newPassword } = req.body;
   if (!email || !code || !newPassword) {

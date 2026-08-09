@@ -70,7 +70,8 @@ export default function Navigation({
     setAuthSubmitting(true);
     setLoginError(null);
     try {
-      const res = await fetch('http://localhost:9000/store/auth/otp/generate', {
+      const backendUrl = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'http://localhost:9000';
+      const res = await fetch(`${backendUrl}/store/auth/otp/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailAddress.trim() })
@@ -107,7 +108,8 @@ export default function Navigation({
     setAuthSubmitting(true);
     setLoginError(null);
     try {
-      const res = await fetch('http://localhost:9000/store/auth/otp/verify', {
+      const backendUrl = import.meta.env.VITE_MEDUSA_BACKEND_URL || 'http://localhost:9000';
+      const res = await fetch(`${backendUrl}/store/auth/otp/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailAddress.trim(), code: resetCode, newPassword })
