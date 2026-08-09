@@ -70,9 +70,17 @@ export default function Navigation({
     setAuthSubmitting(true);
     setLoginError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const res = await fetch('http://localhost:9000/store/auth/otp/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailAddress.trim() })
+      });
+      if (!res.ok) throw new Error('Failed to send reset code');
+      
       setEmailAuthMode('verify-code');
-      setLoginError('Code sent! (For this demo, any 6-digit code works)');
+      setLoginError('Code sent to your email!');
+    } catch (err: any) {
+      setLoginError(err.message || 'Something went wrong');
     } finally {
       setAuthSubmitting(false);
     }
@@ -83,15 +91,8 @@ export default function Navigation({
       setLoginError('Enter the 6-digit code sent to your email.');
       return;
     }
-    setAuthSubmitting(true);
+    setEmailAuthMode('reset-password');
     setLoginError(null);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setEmailAuthMode('reset-password');
-      setLoginError(null);
-    } finally {
-      setAuthSubmitting(false);
-    }
   };
 
   const handleResetPassword = async () => {
@@ -106,22 +107,34 @@ export default function Navigation({
     setAuthSubmitting(true);
     setLoginError(null);
     try {
+      const res = await fetch('http://localhost:9000/store/auth/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailAddress.trim(), code: resetCode, newPassword })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to verify code and reset password');
+      }
+
+      // Sync local account if it exists, for fallback
       const accounts = loadAccounts();
       const accountId = Object.keys(accounts).find(id => accounts[id].profile.email.toLowerCase() === emailAddress.trim().toLowerCase());
       if (accountId) {
         accounts[accountId].password = newPassword;
         saveAccounts(accounts);
-        
-        const result = await onAuthenticate(emailAddress.trim(), newPassword);
-        if (result.ok) {
-          setLoginOpen(false);
-          onOpenProfile();
-        } else {
-          setLoginError('Password reset successfully, but failed to auto sign in.');
-        }
-      } else {
-        setLoginError('No local account found with this email. (Medusa accounts require backend email integration for reset)');
       }
+      
+      const result = await onAuthenticate(emailAddress.trim(), newPassword);
+      if (result.ok) {
+        setLoginOpen(false);
+        onOpenProfile();
+      } else {
+        setLoginError('Password reset successfully, but failed to auto sign in.');
+      }
+    } catch (err: any) {
+      setLoginError(err.message || 'Something went wrong');
     } finally {
       setAuthSubmitting(false);
     }
