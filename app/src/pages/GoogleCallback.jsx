@@ -38,76 +38,45 @@ export default function GoogleCallback() {
         if (!hasFetched.current) {
           hasFetched.current = true;
 
-          const endpoint = `${MEDUSA_BACKEND_URL}/auth/customer/google/callback${location.search}`;
+          if (medusaApi && typeof medusaApi.googleAuthCallback === 'function') {
+            const authResult = await medusaApi.googleAuthCallback(location.search);
+            if (authResult?.customer) {
+              const existingAccounts = loadAccounts();
+              const existing = existingAccounts[authResult.customer.id];
+              const accountRecord = {
+                password: existing?.password ?? '',
+                profile: {
+                  id: authResult.customer.id,
+                  role: 'customer',
+                  displayName:
+                    authResult.user?.name ||
+                    [authResult.customer.first_name, authResult.customer.last_name]
+                      .filter(Boolean)
+                      .join(' ') ||
+                    authResult.customer.email,
+                  email: authResult.customer.email,
+                  phone: authResult.customer.phone ?? existing?.profile?.phone ?? '',
+                  address: existing?.profile?.address ?? '',
+                  city: existing?.profile?.city ?? '',
+                  bio: existing?.profile?.bio ?? '',
+                },
+                orders: existing?.orders ?? [],
+                giftUsage: existing?.giftUsage ?? {
+                  level10GiftRedeemed: false,
+                  birthdayGiftYears: [],
+                  birthdayChangeYears: [],
+                },
+                wishlist: existing?.wishlist ?? [],
+              };
 
-          // Send POST request with credentials: 'include' to preserve session cookies
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(PUBLISHABLE_KEY ? { 'x-publishable-api-key': PUBLISHABLE_KEY } : {}),
-            },
-            credentials: 'include',
-            body: JSON.stringify({ code }),
-          });
-
-          if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(
-              errData.message ||
-                `Authentication failed with backend status ${response.status}`
-            );
-          }
-
-          const data = await response.json();
-
-          // Save token to localStorage & client if provided
-          if (data?.token) {
-            localStorage.setItem('medusa_auth_token', data.token);
-          }
-
-          // Sync customer account into quorinStore if customer data is available
-          try {
-            if (medusaApi && typeof medusaApi.googleAuthCallback === 'function') {
-              const authResult = await medusaApi.googleAuthCallback(location.search);
-              if (authResult?.customer) {
-                const existingAccounts = loadAccounts();
-                const existing = existingAccounts[authResult.customer.id];
-                const accountRecord = {
-                  password: existing?.password ?? '',
-                  profile: {
-                    id: authResult.customer.id,
-                    role: 'customer',
-                    displayName:
-                      authResult.user?.name ||
-                      [authResult.customer.first_name, authResult.customer.last_name]
-                        .filter(Boolean)
-                        .join(' ') ||
-                      authResult.customer.email,
-                    email: authResult.customer.email,
-                    phone: authResult.customer.phone ?? existing?.profile?.phone ?? '',
-                    address: existing?.profile?.address ?? '',
-                    city: existing?.profile?.city ?? '',
-                    bio: existing?.profile?.bio ?? '',
-                  },
-                  orders: existing?.orders ?? [],
-                  giftUsage: existing?.giftUsage ?? {
-                    level10GiftRedeemed: false,
-                    birthdayGiftYears: [],
-                    birthdayChangeYears: [],
-                  },
-                  wishlist: existing?.wishlist ?? [],
-                };
-
-                saveAccounts({
-                  ...existingAccounts,
-                  [authResult.customer.id]: accountRecord,
-                });
-                saveCurrentAccountId(authResult.customer.id);
-              }
+              saveAccounts({
+                ...existingAccounts,
+                [authResult.customer.id]: accountRecord,
+              });
+              saveCurrentAccountId(authResult.customer.id);
             }
-          } catch (storeError) {
-            console.warn('Profile sync warning:', storeError);
+          } else {
+            throw new Error('medusaApi is not defined or missing googleAuthCallback');
           }
 
           // Only navigate to '/' AFTER the backend successfully responds
