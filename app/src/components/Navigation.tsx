@@ -7,7 +7,7 @@ import { quorinData } from '@/data/products';
 import { useMedusaCatalog } from '@/lib/useMedusaCatalog';
 import type { AccountRecord } from '@/data/accounts';
 import { defaultPhoneCountry, phoneCountries, findPhoneCountry, searchPhoneCountries } from '@/data/phoneCountries';
-import { appendCustomRequest } from '@/lib/quorinStore';
+import { appendCustomRequest, loadAccounts, saveAccounts } from '@/lib/quorinStore';
 
 interface NavigationProps {
   cartCount: number;
@@ -52,12 +52,80 @@ export default function Navigation({
   const [phoneNumber, setPhoneNumber] = useState('');
   const [emailAddress, setEmailAddress] = useState('');
   const [emailPassword, setEmailPassword] = useState('');
-  const [emailAuthMode, setEmailAuthMode] = useState<'login' | 'register'>('login');
+  const [emailAuthMode, setEmailAuthMode] = useState<'login' | 'register' | 'forgot-password' | 'verify-code' | 'reset-password'>('login');
   const [registerFirstName, setRegisterFirstName] = useState('');
   const [registerLastName, setRegisterLastName] = useState('');
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState('');
   const [authSubmitting, setAuthSubmitting] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+
+  const handleForgotPassword = async () => {
+    if (!emailAddress.trim()) {
+      setLoginError('Enter your email address to reset password.');
+      return;
+    }
+    setAuthSubmitting(true);
+    setLoginError(null);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      setEmailAuthMode('verify-code');
+      setLoginError('Code sent! (For this demo, any 6-digit code works)');
+    } finally {
+      setAuthSubmitting(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (resetCode.length < 6) {
+      setLoginError('Enter the 6-digit code sent to your email.');
+      return;
+    }
+    setAuthSubmitting(true);
+    setLoginError(null);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      setEmailAuthMode('reset-password');
+      setLoginError(null);
+    } finally {
+      setAuthSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (newPassword.length < 6) {
+      setLoginError('Password must contain at least 6 characters.');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setLoginError('Passwords do not match.');
+      return;
+    }
+    setAuthSubmitting(true);
+    setLoginError(null);
+    try {
+      const accounts = loadAccounts();
+      const accountId = Object.keys(accounts).find(id => accounts[id].profile.email.toLowerCase() === emailAddress.trim().toLowerCase());
+      if (accountId) {
+        accounts[accountId].password = newPassword;
+        saveAccounts(accounts);
+        
+        const result = await onAuthenticate(emailAddress.trim(), newPassword);
+        if (result.ok) {
+          setLoginOpen(false);
+          onOpenProfile();
+        } else {
+          setLoginError('Password reset successfully, but failed to auto sign in.');
+        }
+      } else {
+        setLoginError('No local account found with this email. (Medusa accounts require backend email integration for reset)');
+      }
+    } finally {
+      setAuthSubmitting(false);
+    }
+  };
   const [accessNotice, setAccessNotice] = useState<string | null>(null);
   const [activeSigil, setActiveSigil] = useState<string | null>(null);
   const [customRequestOpen, setCustomRequestOpen] = useState(false);
@@ -989,23 +1057,44 @@ export default function Navigation({
                     </div>
                   )}
 
-                  <input
-                    className="w-full rounded-xl px-4 py-3 outline-none"
-                    placeholder="Email address"
-                    type="email"
-                    value={emailAddress}
-                    onChange={(e) => setEmailAddress(e.target.value)}
-                    style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
-                  />
+                  {['login', 'register', 'forgot-password'].includes(emailAuthMode) && (
+                    <input
+                      className="w-full rounded-xl px-4 py-3 outline-none"
+                      placeholder="Email address"
+                      type="email"
+                      value={emailAddress}
+                      onChange={(e) => setEmailAddress(e.target.value)}
+                      style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
+                    />
+                  )}
 
-                  <input
-                    className="w-full rounded-xl px-4 py-3 outline-none"
-                    placeholder="Password"
-                    type="password"
-                    value={emailPassword}
-                    onChange={(e) => setEmailPassword(e.target.value)}
-                    style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
-                  />
+                  {['login', 'register'].includes(emailAuthMode) && (
+                    <div>
+                      <input
+                        className="w-full rounded-xl px-4 py-3 outline-none"
+                        placeholder="Password"
+                        type="password"
+                        value={emailPassword}
+                        onChange={(e) => setEmailPassword(e.target.value)}
+                        style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
+                      />
+                      {emailAuthMode === 'login' && (
+                        <div className="flex justify-end mt-1">
+                          <button
+                            type="button"
+                            className="text-xs underline"
+                            style={{ color: 'var(--color-text-secondary)' }}
+                            onClick={() => {
+                              setLoginError(null);
+                              setEmailAuthMode('forgot-password');
+                            }}
+                          >
+                            Forgot password?
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {emailAuthMode === 'register' && (
                     <input
@@ -1016,6 +1105,39 @@ export default function Navigation({
                       onChange={(e) => setRegisterConfirmPassword(e.target.value)}
                       style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
                     />
+                  )}
+
+                  {emailAuthMode === 'verify-code' && (
+                    <input
+                      className="w-full rounded-xl px-4 py-3 outline-none"
+                      placeholder="Enter 6-digit code"
+                      type="text"
+                      maxLength={6}
+                      value={resetCode}
+                      onChange={(e) => setResetCode(e.target.value)}
+                      style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
+                    />
+                  )}
+
+                  {emailAuthMode === 'reset-password' && (
+                    <>
+                      <input
+                        className="w-full rounded-xl px-4 py-3 outline-none"
+                        placeholder="New Password"
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
+                      />
+                      <input
+                        className="w-full rounded-xl px-4 py-3 outline-none"
+                        placeholder="Confirm New Password"
+                        type="password"
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        style={{ background: 'var(--color-ivory)', color: 'var(--color-text-primary)', border: '1px solid var(--color-border-subtle)' }}
+                      />
+                    </>
                   )}
 
                   <button
@@ -1029,33 +1151,60 @@ export default function Navigation({
                     onClick={
                       emailAuthMode === 'login'
                         ? handleEmailLogin
-                        : handleEmailRegistration
+                        : emailAuthMode === 'register'
+                        ? handleEmailRegistration
+                        : emailAuthMode === 'forgot-password'
+                        ? handleForgotPassword
+                        : emailAuthMode === 'verify-code'
+                        ? handleVerifyCode
+                        : handleResetPassword
                     }
                   >
                     {authSubmitting
                       ? 'Please wait...'
                       : emailAuthMode === 'login'
                         ? 'Continue with Email'
-                        : 'Create Account'}
+                        : emailAuthMode === 'register'
+                        ? 'Create Account'
+                        : emailAuthMode === 'forgot-password'
+                        ? 'Send Reset Code'
+                        : emailAuthMode === 'verify-code'
+                        ? 'Verify Code'
+                        : 'Change Password & Sign In'}
                   </button>
 
-                  <button
-                    type="button"
-                    className="w-full text-center text-sm underline underline-offset-4"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                    onClick={() => {
-                      setLoginError(null);
-                      setEmailPassword('');
-                      setRegisterConfirmPassword('');
-                      setEmailAuthMode(
-                        emailAuthMode === 'login' ? 'register' : 'login'
-                      );
-                    }}
-                  >
-                    {emailAuthMode === 'login'
-                      ? 'New to QUORIN? Create account'
-                      : 'Already have an account? Sign in'}
-                  </button>
+                  {['login', 'register'].includes(emailAuthMode) && (
+                    <button
+                      type="button"
+                      className="w-full text-center text-sm underline underline-offset-4"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                      onClick={() => {
+                        setLoginError(null);
+                        setEmailPassword('');
+                        setRegisterConfirmPassword('');
+                        setEmailAuthMode(
+                          emailAuthMode === 'login' ? 'register' : 'login'
+                        );
+                      }}
+                    >
+                      {emailAuthMode === 'login'
+                        ? 'New to QUORIN? Create account'
+                        : 'Already have an account? Sign in'}
+                    </button>
+                  )}
+                  {['forgot-password', 'verify-code', 'reset-password'].includes(emailAuthMode) && (
+                    <button
+                      type="button"
+                      className="w-full text-center text-sm underline underline-offset-4"
+                      style={{ color: 'var(--color-text-secondary)' }}
+                      onClick={() => {
+                        setLoginError(null);
+                        setEmailAuthMode('login');
+                      }}
+                    >
+                      Back to Sign in
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-3">
