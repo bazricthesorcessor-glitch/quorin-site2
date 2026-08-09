@@ -79,8 +79,8 @@ export default function GoogleCallback() {
             throw new Error('medusaApi is not defined or missing googleAuthCallback');
           }
 
-          // Only navigate to '/' AFTER the backend successfully responds
-          navigate('/');
+          // Force a full page reload so App.tsx re-initializes its currentAccountId state
+          window.location.href = '/';
         }
       } catch (error) {
         console.error('Google OAuth callback error:', error);
