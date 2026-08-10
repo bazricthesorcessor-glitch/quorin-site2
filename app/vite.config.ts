@@ -28,7 +28,6 @@ export default defineConfig({
       allow: [
         path.resolve(__dirname),
         path.resolve(__dirname, '../PHOTOS'),
-        '/home/dmannu/quorin-site/PHOTOS',
         path.resolve(__dirname, 'node_modules'),
       ],
     },
